@@ -350,20 +350,20 @@ const JC_DEMANDS = [
 // ── Utilities ─────────────────────────────────────────────────────────────────
 function statusBadge(status: string) {
   const map: Record<string, string> = {
-    "Not Arrived": "bg-[#1C2A3E] text-[#6A8FAB] border border-[rgba(61,142,240,0.2)]",
+    "Not Arrived": "bg-card text-muted-foreground border border-border",
     "Arrived": "bg-[#0D2E1A] text-[#4ADE80] border border-[#4ADE80]/20",
     "In Service": "bg-[#1A1A0D] text-[#FACC15] border border-[#FACC15]/20",
     "JC Opened": "bg-[#0D1E3A] text-[#60A5FA] border border-[#60A5FA]/20",
     "Completed": "bg-[#0D1F2A] text-[#22D3EE] border border-[#22D3EE]/20",
     "In Progress": "bg-[#1A1A0D] text-[#FACC15] border border-[#FACC15]/20",
     "OCAS Pending": "bg-[#2A0D0D] text-[#F87171] border border-[#F87171]/20",
-    "Pending": "bg-[#1C2A3E] text-[#6A8FAB] border border-[rgba(61,142,240,0.2)]",
+    "Pending": "bg-card text-muted-foreground border border-border",
   }
   return map[status] || "bg-muted text-muted-foreground"
 }
 
 function priorityColor(p: string) {
-  return p === "high" ? "bg-[#F87171]/20 text-[#F87171]" : p === "medium" ? "bg-[#FACC15]/20 text-[#FACC15]" : "bg-[#6A8FAB]/20 text-[#6A8FAB]"
+  return p === "high" ? "bg-[#F87171]/20 text-[#F87171]" : p === "medium" ? "bg-[#FACC15]/20 text-[#FACC15]" : "bg-[#6A8FAB]/20 text-muted-foreground"
 }
 
 function notifStyle(type: string) {
@@ -371,7 +371,7 @@ function notifStyle(type: string) {
     urgent: { border: "border-l-[#F87171]", icon: "text-[#F87171]", bg: "bg-[#2A0D0D]/40" },
     warning: { border: "border-l-[#FACC15]", icon: "text-[#FACC15]", bg: "bg-[#2A1A0D]/40" },
     success: { border: "border-l-[#4ADE80]", icon: "text-[#4ADE80]", bg: "bg-[#0D2E1A]/40" },
-    info: { border: "border-l-[#3D8EF0]", icon: "text-[#3D8EF0]", bg: "bg-[#0D1626]/40" },
+    info: { border: "border-l-[#3D8EF0]", icon: "text-primary", bg: "bg-[#0D1626]/40" },
   }
   return styles[type] || styles.info
 }
@@ -419,14 +419,14 @@ function WelcomePanel({ onAction }: { onAction: (a: PanelType) => void }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.05 }}
           onClick={() => onAction(t.id)}
-          className="flex flex-col items-start gap-2 p-4 rounded-xl bg-[#0E1626] border border-[rgba(61,142,240,0.12)] hover:border-[rgba(61,142,240,0.35)] hover:bg-[#111E32] transition-all duration-200 text-left group"
+          className="flex flex-col items-start gap-2 p-4 rounded-xl bg-card border border-border hover:border-border hover:bg-[#111E32] transition-all duration-200 text-left group"
         >
           <div className="p-2 rounded-lg" style={{ backgroundColor: `${t.color}18` }}>
             <t.icon size={18} style={{ color: t.color }} />
           </div>
           <div>
-            <p className="text-[13px] font-semibold text-foreground font-['Rajdhani']">{t.label}</p>
-            <p className="text-[11px] text-muted-foreground font-['JetBrains_Mono']">{t.count}</p>
+            <p className="text-[13px] font-semibold text-foreground font-sans">{t.label}</p>
+            <p className="text-[11px] text-muted-foreground font-mono">{t.count}</p>
           </div>
         </motion.button>
       ))}
@@ -562,10 +562,10 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-[#0E1626] overflow-hidden">
+    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card overflow-hidden">
       {/* ── Black Banner Header ── */}
-      <div className="bg-[#070C16] py-2.5 px-4 flex items-center justify-between text-white font-sans border-b border-[rgba(61,142,240,0.1)]">
-        <div className="text-[12px] sm:text-[13px] font-semibold tracking-wider uppercase text-neutral-300 font-['Rajdhani']">
+      <div className="bg-background py-2.5 px-4 flex items-center justify-between text-white font-sans border-b border-border">
+        <div className="text-[12px] sm:text-[13px] font-semibold tracking-wider uppercase text-neutral-300 font-sans">
           My Appointments
         </div>
 
@@ -575,11 +575,11 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
             value={search} 
             onChange={e => setSearch(e.target.value)} 
             placeholder="Search by Reg No."
-            className="bg-[#121B2A] text-white px-3 py-1 text-[11px] rounded-md border border-[rgba(61,142,240,0.2)] focus:border-[#00AAFF] w-[110px] sm:w-[150px] outline-none placeholder-neutral-500 font-medium font-sans" 
+            className="bg-[#121B2A] text-white px-3 py-1 text-[11px] rounded-md border border-border focus:border-[#00AAFF] w-[110px] sm:w-[150px] outline-none placeholder-neutral-500 font-medium font-sans" 
           />
           <button 
             onClick={() => setShowAddPopup(true)} 
-            className="text-white hover:text-[#00AAFF] transition-colors leading-none text-[22px] font-light px-2"
+            className="text-white hover:text-primary transition-colors leading-none text-[22px] font-light px-2"
           >
             +
           </button>
@@ -587,7 +587,7 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
       </div>
 
       {/* ── Subheader Bar: Date selector & DAY/WEEK/MONTH pill switcher ── */}
-      <div className="bg-[#121B2A] px-4 py-2.5 flex items-center justify-between border-b border-border/50">
+      <div className="bg-[#121B2A] px-4 py-2.5 flex items-center justify-between border-b border-border">
         {/* Date Selector */}
         {(() => {
           const formatDateDisplay = (dateStr: string) => {
@@ -633,9 +633,9 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
                     }
                   }
                 }}
-                className="flex items-center gap-2 bg-[#14223A] border border-[rgba(61,142,240,0.25)] hover:border-[#00AAFF] hover:bg-[#1C2A3E]/70 transition-all rounded-lg px-3 py-1.5 cursor-pointer relative shadow-sm"
+                className="flex items-center gap-2 bg-card border border-border hover:border-[#00AAFF] hover:bg-card/70 transition-all rounded-lg px-3 py-1.5 cursor-pointer relative shadow-sm"
               >
-                <Calendar size={13} className="text-[#00AAFF]" />
+                <Calendar size={13} className="text-primary" />
                 <span className="tracking-wide text-[11.5px] text-foreground font-semibold select-none">
                   {formatDateDisplay(selectedDate)}
                 </span>
@@ -660,7 +660,7 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
         })()}
 
         {/* Tab Switcher */}
-        <div className="flex items-center bg-[#070C16] border border-border/40 rounded-full p-0.5">
+        <div className="flex items-center bg-background border border-border rounded-full p-0.5">
           {(["DAY", "WEEK", "MONTH"] as const).map(v => (
             <button key={v} onClick={() => setView(v)}
               className={`px-4 py-0.5 text-[10px] font-extrabold rounded-full transition-all tracking-wider font-sans ${view === v ? "bg-primary text-white shadow-sm font-black" : "text-muted-foreground hover:text-foreground"}`}>{v}</button>
@@ -669,27 +669,27 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
       </div>
 
       {/* ── Beautiful Table exactly as represented in Image ── */}
-      <div className="overflow-x-auto rounded-xl border border-border/50 bg-[#070C16]/20 mx-4 mb-1">
+      <div className="overflow-x-auto rounded-xl border border-border bg-background/20 mx-4 mb-1">
         <table className="w-full text-[11.5px] border-collapse">
           <thead>
-            <tr className="bg-[#1C2A3E]/80 border-b border-border">
-              <th className="px-4 py-2.5 text-left font-bold text-muted-foreground text-[10px] tracking-wider uppercase whitespace-nowrap font-['Rajdhani']">S.No.</th>
-              <th className="px-3 py-2.5 text-left font-bold text-muted-foreground text-[10px] tracking-wider uppercase whitespace-nowrap font-['Rajdhani']">Reg No</th>
-              <th className="px-3 py-2.5 text-left font-bold text-muted-foreground text-[10px] tracking-wider uppercase whitespace-nowrap font-['Rajdhani']">
+            <tr className="bg-card/80 border-b border-border">
+              <th className="px-4 py-2.5 text-left font-bold text-muted-foreground text-[10px] tracking-wider uppercase whitespace-nowrap font-sans">S.No.</th>
+              <th className="px-3 py-2.5 text-left font-bold text-muted-foreground text-[10px] tracking-wider uppercase whitespace-nowrap font-sans">Reg No</th>
+              <th className="px-3 py-2.5 text-left font-bold text-muted-foreground text-[10px] tracking-wider uppercase whitespace-nowrap font-sans">
                 <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                   Time Slot
-                  <span className="inline-flex flex-col items-center justify-center bg-[#2B3B52] hover:bg-[#324560] cursor-pointer rounded px-1 py-0.5 text-[7px] leading-[4px] text-white">
+                  <span className="inline-flex flex-col items-center justify-center bg-muted hover:bg-muted cursor-pointer rounded px-1 py-0.5 text-[7px] leading-[4px] text-white">
                     <span>▲</span>
                     <span>▼</span>
                   </span>
                 </span>
               </th>
-              <th className="px-3 py-2.5 text-left font-bold text-muted-foreground text-[10px] tracking-wider uppercase whitespace-nowrap font-['Rajdhani']">Service Type</th>
-              <th className="px-3 py-2.5 text-left font-bold text-muted-foreground text-[10px] tracking-wider uppercase whitespace-nowrap font-['Rajdhani']">OMR(KMS)</th>
-              <th className="px-3 py-2.5 text-left font-bold text-muted-foreground text-[10px] tracking-wider uppercase whitespace-nowrap font-['Rajdhani']">Model</th>
-              <th className="px-3 py-2.5 text-left font-bold text-muted-foreground text-[10px] tracking-wider uppercase whitespace-nowrap font-['Rajdhani']">Status</th>
-              <th className="px-3 py-2.5 text-left font-bold text-muted-foreground text-[10px] tracking-wider uppercase whitespace-nowrap font-['Rajdhani']">App Type</th>
-              <th className="px-3 py-2.5 text-center font-bold text-muted-foreground text-[10px] tracking-wider uppercase whitespace-nowrap font-['Rajdhani']">Send SMS</th>
+              <th className="px-3 py-2.5 text-left font-bold text-muted-foreground text-[10px] tracking-wider uppercase whitespace-nowrap font-sans">Service Type</th>
+              <th className="px-3 py-2.5 text-left font-bold text-muted-foreground text-[10px] tracking-wider uppercase whitespace-nowrap font-sans">OMR(KMS)</th>
+              <th className="px-3 py-2.5 text-left font-bold text-muted-foreground text-[10px] tracking-wider uppercase whitespace-nowrap font-sans">Model</th>
+              <th className="px-3 py-2.5 text-left font-bold text-muted-foreground text-[10px] tracking-wider uppercase whitespace-nowrap font-sans">Status</th>
+              <th className="px-3 py-2.5 text-left font-bold text-muted-foreground text-[10px] tracking-wider uppercase whitespace-nowrap font-sans">App Type</th>
+              <th className="px-3 py-2.5 text-center font-bold text-muted-foreground text-[10px] tracking-wider uppercase whitespace-nowrap font-sans">Send SMS</th>
             </tr>
           </thead>
           <tbody>
@@ -701,7 +701,7 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
                     <p className="text-[12px] font-semibold text-neutral-400">No scheduled appointments for this date</p>
                     <button 
                       onClick={() => setSelectedDate("2026-04-16")} 
-                      className="mt-1 text-[11px] text-[#00AAFF] hover:underline font-bold"
+                      className="mt-1 text-[11px] text-primary hover:underline font-bold"
                     >
                       Reset to April 16, 2026
                     </button>
@@ -711,17 +711,17 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
             ) : (
               filtered.map((a, i) => (
                 <tr key={a.regNo} onClick={() => setSelected(selected?.regNo === a.regNo ? null : a)}
-                  className={`border-b border-border/40 cursor-pointer transition-colors hover:bg-[#1C2A3E]/30 ${selected?.regNo === a.regNo ? "bg-primary/10 border-l-2 border-l-primary" : "bg-transparent"}`}>
+                  className={`border-b border-border cursor-pointer transition-colors hover:bg-card/30 ${selected?.regNo === a.regNo ? "bg-primary/10 border-l-2 border-l-primary" : "bg-transparent"}`}>
                   <td className="px-4 py-3 text-muted-foreground font-bold text-[11.5px]">{i + 1}</td>
-                  <td className="px-3 py-3 font-['JetBrains_Mono'] text-[#00AAFF] font-black text-[12.5px] hover:underline cursor-pointer">{a.regNoDisplay || a.regNo}</td>
-                  <td className="px-3 py-3 text-foreground font-semibold text-[11.5px] font-['JetBrains_Mono']">{a.timeSlot}</td>
+                  <td className="px-3 py-3 font-mono text-primary font-black text-[12.5px] hover:underline cursor-pointer">{a.regNoDisplay || a.regNo}</td>
+                  <td className="px-3 py-3 text-foreground font-semibold text-[11.5px] font-mono">{a.timeSlot}</td>
                   <td className="px-3 py-3 text-foreground font-bold text-[11.5px] uppercase whitespace-nowrap">{a.serviceType}</td>
-                  <td className="px-3 py-3 text-foreground font-['JetBrains_Mono'] font-bold text-[12px]">{a.omr.toLocaleString()}</td>
+                  <td className="px-3 py-3 text-foreground font-mono font-bold text-[12px]">{a.omr.toLocaleString()}</td>
                   <td className="px-3 py-3 text-foreground font-bold text-[11.5px]">{a.model}</td>
                   <td className="px-3 py-3 text-neutral-300 font-semibold text-[11px]">{a.status}</td>
                   <td className="px-3 py-3 text-muted-foreground font-semibold text-[10.5px] max-w-[130px] leading-tight whitespace-pre-line">{a.appType || "—"}</td>
                   <td className="px-3 py-3 text-center">
-                    <button onClick={(e) => { e.stopPropagation(); openSmsModal(a); }} className="inline-flex items-center justify-center p-1 rounded hover:bg-[#1C2A3E]/80 active:scale-95 transition-all text-[#00AAFF] hover:text-sky-300">
+                    <button onClick={(e) => { e.stopPropagation(); openSmsModal(a); }} className="inline-flex items-center justify-center p-1 rounded hover:bg-card/80 active:scale-95 transition-all text-primary hover:text-sky-300">
                       <svg className="w-6 h-5 stroke-[1.8]" viewBox="0 0 24 20" fill="none" stroke="currentColor">
                         <line x1="1" y1="6" x2="5" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                         <line x1="0" y1="10" x2="4" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -743,41 +743,41 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
             className="overflow-hidden rounded-xl border border-primary/20 bg-[#0A1422] mx-4">
             <div className="p-4 flex items-start justify-between gap-4">
               <div className="flex-1 grid grid-cols-3 gap-3 text-[12px]">
-                <div className="bg-[#14223A] border border-[rgba(61,142,240,0.15)] rounded-lg p-3 hover:border-primary/45 transition-colors duration-150">
-                  <p className="text-[#3A8ADB] text-[9px] uppercase font-bold tracking-wider mb-1">Registration No.</p>
-                  <p className="text-[#00AAFF] font-['JetBrains_Mono'] font-bold text-[13px] tracking-wide uppercase">{selected.regNo}</p>
+                <div className="bg-card border border-border rounded-lg p-3 hover:border-primary/45 transition-colors duration-150">
+                  <p className="text-primary text-[9px] uppercase font-bold tracking-wider mb-1">Registration No.</p>
+                  <p className="text-primary font-mono font-bold text-[13px] tracking-wide uppercase">{selected.regNo}</p>
                 </div>
-                <div className="bg-[#14223A] border border-[rgba(61,142,240,0.15)] rounded-lg p-3 hover:border-primary/45 transition-colors duration-150">
-                  <p className="text-[#3A8ADB] text-[9px] uppercase font-bold tracking-wider mb-1">Model / Vehicle</p>
+                <div className="bg-card border border-border rounded-lg p-3 hover:border-primary/45 transition-colors duration-150">
+                  <p className="text-primary text-[9px] uppercase font-bold tracking-wider mb-1">Model / Vehicle</p>
                   <p className="text-white font-bold text-[12.5px] uppercase">{selected.model}</p>
                 </div>
-                <div className="bg-[#14223A] border border-[rgba(61,142,240,0.15)] rounded-lg p-3 hover:border-primary/45 transition-colors duration-150">
-                  <p className="text-[#3A8ADB] text-[9px] uppercase font-bold tracking-wider mb-1">Time Slot / Schedule</p>
-                  <p className="text-white font-['JetBrains_Mono'] font-bold text-[12.5px]">{selected.timeSlot}</p>
+                <div className="bg-card border border-border rounded-lg p-3 hover:border-primary/45 transition-colors duration-150">
+                  <p className="text-primary text-[9px] uppercase font-bold tracking-wider mb-1">Time Slot / Schedule</p>
+                  <p className="text-white font-mono font-bold text-[12.5px]">{selected.timeSlot}</p>
                 </div>
-                <div className="bg-[#14223A] border border-[rgba(61,142,240,0.15)] rounded-lg p-3 hover:border-primary/45 transition-colors duration-150">
-                  <p className="text-[#3A8ADB] text-[9px] uppercase font-bold tracking-wider mb-1">Service Type</p>
+                <div className="bg-card border border-border rounded-lg p-3 hover:border-primary/45 transition-colors duration-150">
+                  <p className="text-primary text-[9px] uppercase font-bold tracking-wider mb-1">Service Type</p>
                   <p className="text-white font-bold text-[12.5px] uppercase">{selected.serviceType}</p>
                 </div>
-                <div className="bg-[#14223A] border border-[rgba(61,142,240,0.15)] rounded-lg p-3 hover:border-primary/45 transition-colors duration-150">
-                  <p className="text-[#3A8ADB] text-[9px] uppercase font-bold tracking-wider mb-1">Odometer Reading</p>
-                  <p className="text-white font-['JetBrains_Mono'] font-bold text-[12.5px]">{selected.omr.toLocaleString()} KMS</p>
+                <div className="bg-card border border-border rounded-lg p-3 hover:border-primary/45 transition-colors duration-150">
+                  <p className="text-primary text-[9px] uppercase font-bold tracking-wider mb-1">Odometer Reading</p>
+                  <p className="text-white font-mono font-bold text-[12.5px]">{selected.omr.toLocaleString()} KMS</p>
                 </div>
-                <div className="bg-[#14223A] border border-[rgba(61,142,240,0.15)] rounded-lg p-3 hover:border-primary/45 transition-colors duration-150">
-                  <p className="text-[#3A8ADB] text-[9px] uppercase font-bold tracking-wider mb-1">Application Type</p>
+                <div className="bg-card border border-border rounded-lg p-3 hover:border-primary/45 transition-colors duration-150">
+                  <p className="text-primary text-[9px] uppercase font-bold tracking-wider mb-1">Application Type</p>
                   <p className="text-white font-bold text-[12.5px] uppercase">{selected.appType || "—"}</p>
                 </div>
               </div>
               <div className="flex flex-col gap-2">
                 <button onClick={() => onAction("jc-opening", { regNo: selected.regNo })}
-                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-[12px] font-semibold rounded-lg hover:bg-primary/90 transition-all font-['Rajdhani']">
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-[12px] font-semibold rounded-lg hover:bg-primary/90 transition-all font-sans">
                   <FileText size={13} /> Open JC
                 </button>
                 <button onClick={() => onAction("vehicle-history", { regNo: selected.regNo })}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#1C2A3E] text-foreground text-[12px] font-semibold rounded-lg hover:bg-[#253347] transition-all font-['Rajdhani']">
+                  className="flex items-center gap-2 px-4 py-2 bg-card text-foreground text-[12px] font-semibold rounded-lg hover:bg-muted transition-all font-sans">
                   <Car size={13} /> History
                 </button>
-                <button onClick={() => openSmsModal(selected)} className="flex items-center gap-2 px-4 py-2 bg-[#1C2A3E] text-foreground text-[12px] font-semibold rounded-lg hover:bg-[#253347] transition-all font-['Rajdhani']">
+                <button onClick={() => openSmsModal(selected)} className="flex items-center gap-2 px-4 py-2 bg-card text-foreground text-[12px] font-semibold rounded-lg hover:bg-muted transition-all font-sans">
                   <Mail size={13} /> Send SMS
                 </button>
               </div>
@@ -785,7 +785,7 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
           </motion.div>
         )}
       </AnimatePresence>
-      <p className="text-[11px] text-muted-foreground font-['JetBrains_Mono']">Showing {filtered.length} of {appointmentsList.length} appointments · 21-May-2026</p>
+      <p className="text-[11px] text-muted-foreground font-mono">Showing {filtered.length} of {appointmentsList.length} appointments · 21-May-2026</p>
 
       {/* --- Highly Detailed Add Appointment / Update Appointment Flow Popup --- */}
       <AnimatePresence>
@@ -800,44 +800,44 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
               initial={{ scale: 0.96, y: 10 }} 
               animate={{ scale: 1, y: 0 }} 
               exit={{ scale: 0.96, y: 10 }}
-              className="relative w-full max-w-6xl bg-[#0A1422] rounded-lg border border-[rgba(61,142,240,0.15)] overflow-hidden shadow-2xl flex flex-col max-h-[92vh] text-foreground"
+              className="relative w-full max-w-6xl bg-[#0A1422] rounded-lg border border-border overflow-hidden shadow-2xl flex flex-col max-h-[92vh] text-foreground"
             >
               {/* Top Banner Header - Dark Slate Styling */}
-              <div className="bg-[#14223A] border-b border-[rgba(61,142,240,0.15)] text-white px-5 py-3.5 flex items-center justify-between">
+              <div className="bg-card border-b border-border text-white px-5 py-3.5 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <button 
                     type="button" 
                     onClick={() => setShowAddPopup(false)} 
-                    className="p-1 hover:bg-[#1C2A3E]/70 rounded-full transition-colors text-white"
+                    className="p-1 hover:bg-card/70 rounded-full transition-colors text-white"
                   >
                     <ChevronLeft size={20} className="stroke-[2.5px]" />
                   </button>
                 </div>
                 
-                <div className="text-[12px] font-semibold tracking-widest text-[#00AAFF] font-sans">
+                <div className="text-[12px] font-semibold tracking-widest text-primary font-sans">
                   UPDATE APPOINTMENT
                 </div>
               </div>
 
               {/* Sub-header bar of Details & Action Trigger Row */}
-              <div className="bg-[#0E1B30] border-b border-[rgba(61,142,240,0.15)] px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
+              <div className="bg-[#0E1B30] border-b border-border px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-8">
                   {/* Registration No. Box */}
                   <div className="flex flex-col">
-                    <span className="text-[10px] text-[#3A8ADB] font-bold uppercase tracking-wide">Registration No.</span>
+                    <span className="text-[10px] text-primary font-bold uppercase tracking-wide">Registration No.</span>
                     <input 
                       type="text" 
                       value={formData.regNo} 
                       onChange={e => setFormData(p => ({ ...p, regNo: e.target.value.toUpperCase() }))}
-                      className="text-[14px] font-bold text-[#00AAFF] uppercase bg-transparent border-none p-0 outline-none w-[110px] font-mono"
+                      className="text-[14px] font-bold text-primary uppercase bg-transparent border-none p-0 outline-none w-[110px] font-mono"
                     />
                   </div>
 
                   {/* Vertical separator */}
-                  <div className="hidden md:block border-l border-[rgba(61,142,240,0.15)] h-10"></div>
+                  <div className="hidden md:block border-l border-border h-10"></div>
 
                   <div className="hidden md:flex flex-col items-start w-auto">
-                    <span className="text-[10px] font-extrabold tracking-wide text-[#3A8ADB] uppercase mb-1">
+                    <span className="text-[10px] font-extrabold tracking-wide text-primary uppercase mb-1">
                       CUSTOMER & VEHICLE DETAILS
                     </span>
                     <div className="flex gap-2">
@@ -845,16 +845,16 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
                         type="text" 
                         value={formData.date1} 
                         onChange={e => setFormData(p => ({ ...p, date1: e.target.value }))}
-                        className="text-[11px] bg-[#14223A] border border-[rgba(61,142,240,0.15)] text-foreground font-mono rounded px-2.5 py-1 outline-none w-[130px]"
+                        className="text-[11px] bg-card border border-border text-foreground font-mono rounded px-2.5 py-1 outline-none w-[130px]"
                       />
-                      <div className="relative flex items-center bg-[#14223A] border border-[rgba(61,142,240,0.15)] rounded px-2.5 py-1">
+                      <div className="relative flex items-center bg-card border border-border rounded px-2.5 py-1">
                         <input 
                           type="text" 
                           value={formData.date2} 
                           onChange={e => setFormData(p => ({ ...p, date2: e.target.value }))}
                           className="text-[11px] bg-transparent text-foreground font-mono outline-none w-[115px] mr-1"
                         />
-                        <Calendar size={12} className="text-[#00AAFF] cursor-pointer" />
+                        <Calendar size={12} className="text-primary cursor-pointer" />
                       </div>
                     </div>
                   </div>
@@ -863,8 +863,8 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
                 <div className="flex items-center gap-6">
                   {/* Big Number and Details */}
                   <div className="flex items-center gap-6">
-                    <span className="text-[32px] font-light text-[#3A8ADB] leading-none">0</span>
-                    <button type="button" className="text-[10px] text-[#00AAFF] hover:text-sky-300 font-bold uppercase tracking-wide transition-all">
+                    <span className="text-[32px] font-light text-primary leading-none">0</span>
+                    <button type="button" className="text-[10px] text-primary hover:text-sky-300 font-bold uppercase tracking-wide transition-all">
                       VIEW DETAILS
                     </button>
                   </div>
@@ -883,15 +883,15 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
               <div className="flex-1 overflow-y-auto p-4 md:p-5 grid grid-cols-1 md:grid-cols-12 gap-5">
                 
                 {/* COLUMN 1 (4/12 width) - Service Details */}
-                <div className="md:col-span-4 bg-[#14223A] rounded-lg border border-[rgba(61,142,240,0.15)] p-5 flex flex-col">
-                  <h3 className="text-[13px] font-extrabold uppercase tracking-wider text-[#00AAFF] text-center pb-3 font-sans border-b border-[rgba(61,142,240,0.15)] mb-4">
+                <div className="md:col-span-4 bg-card rounded-lg border border-border p-5 flex flex-col">
+                  <h3 className="text-[13px] font-extrabold uppercase tracking-wider text-primary text-center pb-3 font-sans border-b border-border mb-4">
                     Service Details
                   </h3>
                   
                   <div className="flex flex-col gap-4">
                     {/* LAST ATTENDED SM */}
-                    <div className="border-b border-[rgba(61,142,240,0.15)] pb-1.5">
-                      <label className="block text-[9px] font-bold text-[#3A8ADB] uppercase tracking-wider">
+                    <div className="border-b border-border pb-1.5">
+                      <label className="block text-[9px] font-bold text-primary uppercase tracking-wider">
                         LAST ATTENDED SM
                       </label>
                       <div className="text-[12px] text-foreground font-bold py-1">
@@ -900,8 +900,8 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
                     </div>
 
                     {/* CURRENT SM * with red star */}
-                    <div className="border-b border-[rgba(61,142,240,0.15)] pb-1.5 relative">
-                      <label className="block text-[9px] font-bold text-[#3A8ADB] uppercase tracking-wider">
+                    <div className="border-b border-border pb-1.5 relative">
+                      <label className="block text-[9px] font-bold text-primary uppercase tracking-wider">
                         CURRENT SM <span className="text-red-550 font-bold">*</span>
                       </label>
                       <select 
@@ -909,16 +909,16 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
                         onChange={e => setFormData(p => ({ ...p, currentSm: e.target.value }))}
                         className="w-full text-[12px] bg-transparent text-foreground font-bold py-1 outline-none appearance-none pr-6 cursor-pointer"
                       >
-                        <option value="VISHAL YADAV" className="bg-[#14223A] text-white">VISHAL YADAV</option>
-                        <option value="PARVEEN KUMAR" className="bg-[#14223A] text-white">PARVEEN KUMAR</option>
-                        <option value="AMAN VASHIST" className="bg-[#14223A] text-white">AMAN VASHIST</option>
+                        <option value="VISHAL YADAV" className="bg-card text-white">VISHAL YADAV</option>
+                        <option value="PARVEEN KUMAR" className="bg-card text-white">PARVEEN KUMAR</option>
+                        <option value="AMAN VASHIST" className="bg-card text-white">AMAN VASHIST</option>
                       </select>
                       <ChevronDown size={12} className="absolute right-1 bottom-2.5 text-muted-foreground pointer-events-none" />
                     </div>
 
                     {/* SLOT * with red star */}
-                    <div className="border-b border-[rgba(61,142,240,0.15)] pb-1.5 relative">
-                      <label className="block text-[9px] font-bold text-[#3A8ADB] uppercase tracking-wider">
+                    <div className="border-b border-border pb-1.5 relative">
+                      <label className="block text-[9px] font-bold text-primary uppercase tracking-wider">
                         SLOT <span className="text-red-550 font-bold">*</span>
                       </label>
                       <select 
@@ -926,18 +926,18 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
                         onChange={e => setFormData(p => ({ ...p, slot: e.target.value }))}
                         className="w-full text-[12px] bg-transparent text-foreground font-bold py-1 outline-none appearance-none pr-6 cursor-pointer"
                       >
-                        <option value="-Select-" className="bg-[#14223A] text-white">-Select-</option>
-                        <option value="08:15–08:30" className="bg-[#14223A] text-white">08:15–08:30</option>
-                        <option value="09:15–09:30" className="bg-[#14223A] text-white">09:15–09:30</option>
-                        <option value="10:30–10:45" className="bg-[#14223A] text-white">10:30–10:45</option>
-                        <option value="11:45–12:00" className="bg-[#14223A] text-white">11:45–12:00</option>
+                        <option value="-Select-" className="bg-card text-white">-Select-</option>
+                        <option value="08:15–08:30" className="bg-card text-white">08:15–08:30</option>
+                        <option value="09:15–09:30" className="bg-card text-white">09:15–09:30</option>
+                        <option value="10:30–10:45" className="bg-card text-white">10:30–10:45</option>
+                        <option value="11:45–12:00" className="bg-card text-white">11:45–12:00</option>
                       </select>
                       <ChevronDown size={12} className="absolute right-1 bottom-2.5 text-muted-foreground pointer-events-none" />
                     </div>
 
                     {/* TIME * with red star */}
-                    <div className="border-b border-[rgba(61,142,240,0.15)] pb-1.5 relative">
-                      <label className="block text-[9px] font-bold text-[#3A8ADB] uppercase tracking-wider">
+                    <div className="border-b border-border pb-1.5 relative">
+                      <label className="block text-[9px] font-bold text-primary uppercase tracking-wider">
                         TIME <span className="text-red-550 font-bold">*</span>
                       </label>
                       <select 
@@ -945,18 +945,18 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
                         onChange={e => setFormData(p => ({ ...p, timeSlot: e.target.value }))}
                         className="w-full text-[12px] bg-transparent text-foreground font-bold py-1 outline-none appearance-none pr-6 cursor-pointer"
                       >
-                        <option value="-Select-" className="bg-[#14223A] text-white">-Select-</option>
-                        <option value="08:15" className="bg-[#14223A] text-white">08:15</option>
-                        <option value="09:15" className="bg-[#14223A] text-white">09:15</option>
-                        <option value="10:30" className="bg-[#14223A] text-white">10:30</option>
-                        <option value="11:45" className="bg-[#14223A] text-white">11:45</option>
+                        <option value="-Select-" className="bg-card text-white">-Select-</option>
+                        <option value="08:15" className="bg-card text-white">08:15</option>
+                        <option value="09:15" className="bg-card text-white">09:15</option>
+                        <option value="10:30" className="bg-card text-white">10:30</option>
+                        <option value="11:45" className="bg-card text-white">11:45</option>
                       </select>
                       <ChevronDown size={12} className="absolute right-1 bottom-2.5 text-muted-foreground pointer-events-none" />
                     </div>
 
                     {/* REMARKS(IF NOT SELECTED PREVIOUS SA) * */}
-                    <div className="border-b border-[rgba(61,142,240,0.15)] pb-1.5">
-                      <label className="block text-[9px] font-bold text-[#3A8ADB] uppercase tracking-wider">
+                    <div className="border-b border-border pb-1.5">
+                      <label className="block text-[9px] font-bold text-primary uppercase tracking-wider">
                         REMARKS(IF NOT SELECTED PREVIOUS SA) <span className="text-red-500">*</span>
                       </label>
                       <input 
@@ -968,32 +968,32 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
                     </div>
 
                     {/* OMR(KMS) * with red star */}
-                    <div className="border-b border-[rgba(61,142,240,0.15)] pb-1.5">
-                      <label className="block text-[9px] font-bold text-[#3A8ADB] uppercase tracking-wider">
+                    <div className="border-b border-border pb-1.5">
+                      <label className="block text-[9px] font-bold text-primary uppercase tracking-wider">
                         OMR(KMS) <span className="text-red-500">*</span>
                       </label>
                       <input 
                         type="text" 
                         value={formData.omr}
                         onChange={e => setFormData(p => ({ ...p, omr: e.target.value }))}
-                        className="w-full text-[12px] bg-transparent text-[#00AAFF] font-mono font-bold py-1 outline-none" 
+                        className="w-full text-[12px] bg-transparent text-primary font-mono font-bold py-1 outline-none" 
                       />
                     </div>
 
                     {/* SERVICE TYPE * */}
-                    <div className="border-b border-[rgba(61,142,240,0.15)] pb-1.5 relative">
-                      <label className="block text-[9px] font-bold text-[#3A8ADB] uppercase tracking-wider">
-                        SERVICE TYPE <span className="text-[#00AAFF] font-bold">*</span>
+                    <div className="border-b border-border pb-1.5 relative">
+                      <label className="block text-[9px] font-bold text-primary uppercase tracking-wider">
+                        SERVICE TYPE <span className="text-primary font-bold">*</span>
                       </label>
                       <select 
                         value={formData.serviceType}
                         onChange={e => setFormData(p => ({ ...p, serviceType: e.target.value }))}
                         className="w-full text-[12px] bg-transparent text-foreground font-bold py-1 outline-none appearance-none pr-6 cursor-pointer"
                       >
-                        <option value="PAID SERVICE" className="bg-[#14223A] text-white">PAID SERVICE</option>
-                        <option value="2ND FREE SERVICE" className="bg-[#14223A] text-white">2ND FREE SERVICE</option>
-                        <option value="3RD FREE SERVICE" className="bg-[#14223A] text-white">3RD FREE SERVICE</option>
-                        <option value="RUNNING REPAIR" className="bg-[#14223A] text-white">RUNNING REPAIR</option>
+                        <option value="PAID SERVICE" className="bg-card text-white">PAID SERVICE</option>
+                        <option value="2ND FREE SERVICE" className="bg-card text-white">2ND FREE SERVICE</option>
+                        <option value="3RD FREE SERVICE" className="bg-card text-white">3RD FREE SERVICE</option>
+                        <option value="RUNNING REPAIR" className="bg-card text-white">RUNNING REPAIR</option>
                       </select>
                       <ChevronDown size={12} className="absolute right-1 bottom-2.5 text-muted-foreground pointer-events-none" />
                     </div>
@@ -1003,69 +1003,69 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
                 {/* COLUMN 2 (4/12 width) - Available SM & Vehicle Details */}
                 <div className="md:col-span-4 flex flex-col gap-5">
                   {/* Available SM */}
-                  <div className="bg-[#14223A] rounded-lg border border-[rgba(61,142,240,0.15)] p-5 flex flex-col">
-                    <h3 className="text-[13px] font-extrabold uppercase tracking-wider text-[#00AAFF] text-center pb-3 font-sans border-b border-[rgba(61,142,240,0.15)] mb-3">
+                  <div className="bg-card rounded-lg border border-border p-5 flex flex-col">
+                    <h3 className="text-[13px] font-extrabold uppercase tracking-wider text-primary text-center pb-3 font-sans border-b border-border mb-3">
                       Available SM
                     </h3>
                     <div className="flex flex-col gap-3 text-[11px] py-1 font-mono font-medium">
-                      <div className="flex justify-between items-center text-[#00AAFF] hover:underline cursor-pointer">
+                      <div className="flex justify-between items-center text-primary hover:underline cursor-pointer">
                         <span>AMAN VASHIST</span>
                         <span className="text-muted-foreground font-extrabold">N/A</span>
                       </div>
-                      <div className="flex justify-between items-center text-[#00AAFF] hover:underline cursor-pointer">
+                      <div className="flex justify-between items-center text-primary hover:underline cursor-pointer">
                         <span>ATUL</span>
                         <span className="text-muted-foreground font-extrabold">N/A</span>
                       </div>
-                      <div className="flex justify-between items-center text-[#00AAFF] hover:underline cursor-pointer">
+                      <div className="flex justify-between items-center text-primary hover:underline cursor-pointer">
                         <span>GAJENDER SINGH</span>
                         <span className="text-muted-foreground font-extrabold">N/A</span>
                       </div>
                     </div>
                     
-                    <button type="button" className="text-[#3A8ADB] font-black uppercase tracking-wider text-[9px] text-right mt-2 hover:text-[#00AAFF] transition-colors font-sans">
+                    <button type="button" className="text-primary font-black uppercase tracking-wider text-[9px] text-right mt-2 hover:text-primary transition-colors font-sans">
                       VIEW ALL
                     </button>
                   </div>
 
                   {/* Vehicle Details */}
-                  <div className="bg-[#14223A] rounded-lg border border-[rgba(61,142,240,0.15)] p-5 flex flex-col gap-4">
-                    <h3 className="text-[13px] font-extrabold uppercase tracking-wider text-[#00AAFF] text-center pb-3 font-sans border-b border-[rgba(61,142,240,0.15)] mb-1">
+                  <div className="bg-card rounded-lg border border-border p-5 flex flex-col gap-4">
+                    <h3 className="text-[13px] font-extrabold uppercase tracking-wider text-primary text-center pb-3 font-sans border-b border-border mb-1">
                       Vehicle Details
                     </h3>
                     
                     <div>
-                      <span className="block text-[8.5px] font-bold text-[#3A8ADB] uppercase tracking-wider mb-0.5">MODEL</span>
+                      <span className="block text-[8.5px] font-bold text-primary uppercase tracking-wider mb-0.5">MODEL</span>
                       <input 
                         type="text" 
                         value={formData.model}
                         onChange={e => setFormData(p => ({ ...p, model: e.target.value }))}
-                        className="w-full text-[12px] bg-transparent text-foreground font-bold outline-none border-b border-dashed border-[rgba(61,142,240,0.15)] pb-1" 
+                        className="w-full text-[12px] bg-transparent text-foreground font-bold outline-none border-b border-dashed border-border pb-1" 
                       />
                     </div>
 
                     <div>
-                      <span className="block text-[8.5px] font-bold text-[#3A8ADB] uppercase tracking-wider mb-0.5">VARIANT</span>
+                      <span className="block text-[8.5px] font-bold text-primary uppercase tracking-wider mb-0.5">VARIANT</span>
                       <input 
                         type="text" 
                         value={formData.variant}
                         onChange={e => setFormData(p => ({ ...p, variant: e.target.value }))}
-                        className="w-full text-[12px] bg-transparent text-foreground font-bold outline-none border-b border-dashed border-[rgba(61,142,240,0.15)] pb-1" 
+                        className="w-full text-[12px] bg-transparent text-foreground font-bold outline-none border-b border-dashed border-border pb-1" 
                       />
                     </div>
 
                     <div>
-                      <span className="block text-[8.5px] font-bold text-[#3A8ADB] uppercase tracking-wider mb-0.5">VIN</span>
+                      <span className="block text-[8.5px] font-bold text-primary uppercase tracking-wider mb-0.5">VIN</span>
                       <input 
                         type="text" 
                         value={formData.vin}
                         onChange={e => setFormData(p => ({ ...p, vin: e.target.value.toUpperCase() }))}
-                        className="w-full text-[12px] bg-transparent text-foreground font-mono font-bold outline-none border-b border-dashed border-[rgba(61,142,240,0.15)] pb-1" 
+                        className="w-full text-[12px] bg-transparent text-foreground font-mono font-bold outline-none border-b border-dashed border-border pb-1" 
                       />
                     </div>
 
                     <div>
-                      <span className="block text-[8.5px] font-bold text-[#3A8ADB] uppercase tracking-wider mb-0.5">CUSTOMER CATEGORY</span>
-                      <div className="text-[12.5px] text-[#00AAFF] font-bold uppercase font-mono">
+                      <span className="block text-[8.5px] font-bold text-primary uppercase tracking-wider mb-0.5">CUSTOMER CATEGORY</span>
+                      <div className="text-[12.5px] text-primary font-bold uppercase font-mono">
                         {formData.customerCategory}
                       </div>
                     </div>
@@ -1073,28 +1073,28 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
                 </div>
 
                 {/* COLUMN 3 (4/12 width) - Customer Details */}
-                <div className="md:col-span-4 bg-[#14223A] rounded-lg border border-[rgba(61,142,240,0.15)] p-5 flex flex-col gap-4">
-                  <h3 className="text-[13px] font-extrabold uppercase tracking-wider text-[#00AAFF] text-center pb-3 font-sans border-b border-[rgba(61,142,240,0.15)] mb-1">
+                <div className="md:col-span-4 bg-card rounded-lg border border-border p-5 flex flex-col gap-4">
+                  <h3 className="text-[13px] font-extrabold uppercase tracking-wider text-primary text-center pb-3 font-sans border-b border-border mb-1">
                     Customer Details
                   </h3>
                   
                   <div>
-                    <label className="block text-[8.5px] font-bold text-[#3A8ADB] uppercase tracking-wider mb-0.5">
+                    <label className="block text-[8.5px] font-bold text-primary uppercase tracking-wider mb-0.5">
                       CUSTOMER NAME
                     </label>
                     <input 
                       type="text" 
                       value={formData.customerName}
                       onChange={e => setFormData(p => ({ ...p, customerName: e.target.value }))}
-                      className="w-full text-[12.5px] bg-transparent text-foreground font-bold outline-none border-b border-dashed border-[rgba(61,142,240,0.15)] pb-1" 
+                      className="w-full text-[12.5px] bg-transparent text-foreground font-bold outline-none border-b border-dashed border-border pb-1" 
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[8.5px] font-bold text-[#3A8ADB] uppercase tracking-wider mb-0.5">
+                    <label className="block text-[8.5px] font-bold text-primary uppercase tracking-wider mb-0.5">
                       MOBILE NO.1
                     </label>
-                    <div className="relative flex items-center justify-between border-b border-dashed border-[rgba(61,142,240,0.15)] pb-1">
+                    <div className="relative flex items-center justify-between border-b border-dashed border-border pb-1">
                       <input 
                         type="text" 
                         value={formData.mobile1}
@@ -1108,62 +1108,62 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
                   </div>
 
                   <div>
-                    <label className="block text-[8.5px] font-bold text-[#3A8ADB] uppercase tracking-wider mb-0.5">
+                    <label className="block text-[8.5px] font-bold text-primary uppercase tracking-wider mb-0.5">
                       MOBILE NO.2
                     </label>
                     <input 
                       type="text" 
                       value={formData.mobile2}
                       onChange={e => setFormData(p => ({ ...p, mobile2: e.target.value }))}
-                      className="w-full text-[12.5px] bg-transparent text-foreground font-bold outline-none border-b border-dashed border-[rgba(61,142,240,0.15)] pb-1" 
+                      className="w-full text-[12.5px] bg-transparent text-foreground font-bold outline-none border-b border-dashed border-border pb-1" 
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[8.5px] font-bold text-[#3A8ADB] uppercase tracking-wider mb-0.5">
+                    <label className="block text-[8.5px] font-bold text-primary uppercase tracking-wider mb-0.5">
                       EMAIL
                     </label>
                     <input 
                       type="text" 
                       value={formData.email}
                       onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
-                      className="w-full text-[12px] bg-transparent text-foreground font-bold outline-none border-b border-dashed border-[rgba(61,142,240,0.15)] pb-1" 
+                      className="w-full text-[12px] bg-transparent text-foreground font-bold outline-none border-b border-dashed border-border pb-1" 
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[8.5px] font-bold text-[#3A8ADB] uppercase tracking-wider mb-0.5">
+                    <label className="block text-[8.5px] font-bold text-primary uppercase tracking-wider mb-0.5">
                       ADDRESS
                     </label>
                     <input 
                       type="text" 
                       value={formData.address}
                       onChange={e => setFormData(p => ({ ...p, address: e.target.value }))}
-                      className="w-full text-[12px] bg-transparent text-foreground font-bold outline-none border-b border-dashed border-[rgba(61,142,240,0.15)] pb-1" 
+                      className="w-full text-[12px] bg-transparent text-foreground font-bold outline-none border-b border-dashed border-border pb-1" 
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[8.5px] font-bold text-[#3A8ADB] uppercase tracking-wider mb-0.5">
+                    <label className="block text-[8.5px] font-bold text-primary uppercase tracking-wider mb-0.5">
                       STATE
                     </label>
                     <input 
                       type="text" 
                       value={formData.state}
                       onChange={e => setFormData(p => ({ ...p, state: e.target.value }))}
-                      className="w-full text-[12.5px] bg-transparent text-foreground font-bold outline-none border-b border-dashed border-[rgba(61,142,240,0.15)] pb-1" 
+                      className="w-full text-[12.5px] bg-transparent text-foreground font-bold outline-none border-b border-dashed border-border pb-1" 
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[8.5px] font-bold text-[#3A8ADB] uppercase tracking-wider mb-0.5">
+                    <label className="block text-[8.5px] font-bold text-primary uppercase tracking-wider mb-0.5">
                       CITY
                     </label>
                     <input 
                       type="text" 
                       value={formData.city}
                       onChange={e => setFormData(p => ({ ...p, city: e.target.value }))}
-                      className="w-full text-[12.5px] bg-transparent text-foreground font-bold outline-none border-b border-dashed border-[rgba(61,142,240,0.15)] pb-1" 
+                      className="w-full text-[12.5px] bg-transparent text-foreground font-bold outline-none border-b border-dashed border-border pb-1" 
                     />
                   </div>
                 </div>
@@ -1171,11 +1171,11 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
               </div>
 
               {/* Form Bottom Bar - Dark Theme Styling */}
-              <div className="bg-[#0E1B30] px-6 py-3.5 flex justify-end gap-3 border-t border-[rgba(61,142,240,0.15)]">
+              <div className="bg-[#0E1B30] px-6 py-3.5 flex justify-end gap-3 border-t border-border">
                 <button 
                   type="button" 
                   onClick={() => setShowAddPopup(false)}
-                  className="px-5 py-2 text-[#6A8FAB] bg-[#1C2A3E] hover:bg-[#253347] transition-colors rounded font-extrabold uppercase text-[11px] font-sans tracking-wide"
+                  className="px-5 py-2 text-muted-foreground bg-card hover:bg-muted transition-colors rounded font-extrabold uppercase text-[11px] font-sans tracking-wide"
                 >
                   Cancel
                 </button>
@@ -1204,10 +1204,10 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
               initial={{ scale: 0.95, y: 15 }} 
               animate={{ scale: 1, y: 0 }} 
               exit={{ scale: 0.95, y: 15 }}
-              className="relative w-full max-w-xl bg-[#0A1422] rounded-2xl border border-[rgba(61,142,240,0.25)] overflow-hidden shadow-2xl flex flex-col text-foreground font-sans text-left"
+              className="relative w-full max-w-xl bg-[#0A1422] rounded-2xl border border-border overflow-hidden shadow-2xl flex flex-col text-foreground font-sans text-left"
             >
               {/* Top Banner */}
-              <div className="bg-[#14223A] border-b border-[rgba(61,142,240,0.15)] text-white px-5 py-4 flex items-center justify-between">
+              <div className="bg-card border-b border-border text-white px-5 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-[#00AAFF] animate-pulse" />
                   <span className="text-[13px] font-extrabold uppercase tracking-widest font-serif text-white">N E X A &nbsp; S M S &nbsp; C E N T E R</span>
@@ -1228,7 +1228,7 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
                   </div>
                   <h3 className="text-[18px] font-bold text-white uppercase tracking-wider mb-2">Message Dispatched</h3>
                   <p className="text-neutral-400 text-[12.5px] max-w-xs leading-relaxed">
-                    The SMS has been successfully transmitted via Nexa SMS gateway to <span className="text-[#00AAFF] font-semibold">{smsPhone}</span>.
+                    The SMS has been successfully transmitted via Nexa SMS gateway to <span className="text-primary font-semibold">{smsPhone}</span>.
                   </p>
                   <p className="text-[10px] text-neutral-500 mt-4 font-mono">Payload Reference: SMS_OK_200</p>
                 </div>
@@ -1237,24 +1237,24 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
                   
                   {/* Recipient summary cards */}
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-[#14223A]/60 border border-[rgba(61,142,240,0.1)] rounded-xl p-3">
-                      <p className="text-[#3A8ADB] text-[9.5px] uppercase font-bold tracking-wider mb-1">RECIPIENT CLIENT</p>
+                    <div className="bg-card/60 border border-border rounded-xl p-3">
+                      <p className="text-primary text-[9.5px] uppercase font-bold tracking-wider mb-1">RECIPIENT CLIENT</p>
                       <p className="text-white font-bold text-[13px] tracking-wide uppercase">{smsClientName}</p>
                     </div>
-                    <div className="bg-[#14223A]/60 border border-[rgba(61,142,240,0.1)] rounded-xl p-3">
-                      <p className="text-[#3A8ADB] text-[9.5px] uppercase font-bold tracking-wider mb-1">TARGET MOBILE</p>
+                    <div className="bg-card/60 border border-border rounded-xl p-3">
+                      <p className="text-primary text-[9.5px] uppercase font-bold tracking-wider mb-1">TARGET MOBILE</p>
                       <input 
                         type="text" 
                         value={smsPhone} 
                         onChange={(e) => setSmsPhone(e.target.value)}
-                        className="bg-transparent text-[#00AAFF] font-['JetBrains_Mono'] font-bold text-[13px] outline-none border-b border-dashed border-primary/30 w-full"
+                        className="bg-transparent text-primary font-mono font-bold text-[13px] outline-none border-b border-dashed border-primary/30 w-full"
                       />
                     </div>
                   </div>
 
                   {/* Template Selectors */}
                   <div>
-                    <label className="block text-[9.5px] font-bold text-[#3A8ADB] uppercase tracking-wider mb-2">SELECT COMM TEMPLATE</label>
+                    <label className="block text-[9.5px] font-bold text-primary uppercase tracking-wider mb-2">SELECT COMM TEMPLATE</label>
                     <div className="grid grid-cols-3 gap-2">
                       {[
                         { id: "reminder", label: "Reminder", desc: "Appointment Schedule Slot" },
@@ -1267,10 +1267,10 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
                           className={`p-2.5 rounded-xl text-left border transition-all flex flex-col justify-between h-[65px] ${
                             selectedTemplate === t.id 
                               ? "bg-primary/20 border-primary text-white" 
-                              : "bg-[#14223A]/30 border-border/40 text-neutral-400 hover:bg-[#1C2A3E]/40"
+                              : "bg-card/30 border-border text-neutral-400 hover:bg-card/40"
                           }`}
                         >
-                          <span className={`text-[12px] font-bold ${selectedTemplate === t.id ? "text-[#00AAFF]" : "text-white"}`}>
+                          <span className={`text-[12px] font-bold ${selectedTemplate === t.id ? "text-primary" : "text-white"}`}>
                             {t.label}
                           </span>
                           <span className="text-[9px] leading-tight text-neutral-400 font-sans">{t.desc}</span>
@@ -1282,14 +1282,14 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
                   {/* Custom draft preview box */}
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-[9.5px] font-bold text-[#3A8ADB] uppercase tracking-wider">SMS TRANSMISSION PAYLOAD</label>
+                      <label className="text-[9.5px] font-bold text-primary uppercase tracking-wider">SMS TRANSMISSION PAYLOAD</label>
                       <span className="text-[9.5px] font-mono text-neutral-400">{smsText.length} Characters</span>
                     </div>
                     <textarea
                       rows={4}
                       value={smsText}
                       onChange={(e) => setSmsText(e.target.value)}
-                      className="w-full bg-[#0D1828] border border-border/50 rounded-xl p-3.5 text-[12px] text-[#E2E8F0] leading-relaxed outline-none focus:border-primary/65 resize-none font-sans"
+                      className="w-full bg-[#0D1828] border border-border rounded-xl p-3.5 text-[12px] text-[#E2E8F0] leading-relaxed outline-none focus:border-primary/65 resize-none font-sans"
                     />
                   </div>
 
@@ -1298,7 +1298,7 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
                     <button
                       type="button"
                       onClick={() => setSmsApp(null)}
-                      className="px-4 py-2 text-[#6A8FAB] bg-[#1C2A3E] hover:bg-[#253347] transition-all rounded-lg font-extrabold uppercase text-[10.5px] tracking-wider"
+                      className="px-4 py-2 text-muted-foreground bg-card hover:bg-muted transition-all rounded-lg font-extrabold uppercase text-[10.5px] tracking-wider"
                     >
                       Dismiss
                     </button>
@@ -1408,16 +1408,16 @@ function PlateScanner({ onScan, onClose }: { onScan: (res: string) => void, onCl
   }, [simProgress, selectedSimPlate, isSimulated]);
 
   return (
-    <div className="p-4 rounded-xl border border-[rgba(61,142,240,0.18)] bg-[#0B121F] flex flex-col gap-3 relative max-w-full w-full mx-auto shadow-2xl">
-      <div className="flex items-center justify-between border-b border-border/40 pb-2.5">
-        <span className="text-[12px] font-bold text-foreground font-['Rajdhani'] uppercase tracking-wider flex items-center gap-1.5 animate-pulse">
+    <div className="p-4 rounded-xl border border-border bg-background flex flex-col gap-3 relative max-w-full w-full mx-auto shadow-2xl">
+      <div className="flex items-center justify-between border-b border-border pb-2.5">
+        <span className="text-[12px] font-bold text-foreground font-sans uppercase tracking-wider flex items-center gap-1.5 animate-pulse">
           <Camera size={13} className="text-primary" /> 
           {isSimulated ? "Optical HUD OCR Simulator" : "License Plate OCR Scanner"}
         </span>
-        <button onClick={onClose} className="p-1 text-muted-foreground hover:text-white rounded hover:bg-[#1C2A3E] cursor-pointer transition-colors" title="Close"><X size={14} /></button>
+        <button onClick={onClose} className="p-1 text-muted-foreground hover:text-white rounded hover:bg-card cursor-pointer transition-colors" title="Close"><X size={14} /></button>
       </div>
 
-      <div className="relative rounded-lg overflow-hidden border border-border/80 bg-[#040811] aspect-video flex flex-col items-center justify-center min-h-[170px]">
+      <div className="relative rounded-lg overflow-hidden border border-border bg-background aspect-video flex flex-col items-center justify-center min-h-[170px]">
         {/* Unifying standard overlays across BOTH simulated & raw feed */}
         
         {/* 1. Global Scan Ambient Tech grid overlay */}
@@ -1436,7 +1436,7 @@ function PlateScanner({ onScan, onClose }: { onScan: (res: string) => void, onCl
             </div>
             
             {/* Bottom notification banner */}
-            <div className="absolute bottom-2 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 px-3 py-1 text-[9px] rounded-md font-['Rajdhani'] font-semibold backdrop-blur-sm z-20">
+            <div className="absolute bottom-2 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 px-3 py-1 text-[9px] rounded-md font-sans font-semibold backdrop-blur-sm z-20">
               ℹ️ Sandbox Iframe Constraints Active — Running HUD Emulator Flow
             </div>
           </div>
@@ -1527,15 +1527,15 @@ function PlateScanner({ onScan, onClose }: { onScan: (res: string) => void, onCl
         }
       `}</style>
 
-      <div className="bg-[#1C2A3E]/50 p-2.5 rounded-lg border border-border/40 text-center">
-        <p className="text-[11px] text-muted-foreground font-semibold font-['Rajdhani'] flex items-center justify-center gap-1.5 shrink-0">
+      <div className="bg-card/50 p-2.5 rounded-lg border border-border text-center">
+        <p className="text-[11px] text-muted-foreground font-semibold font-sans flex items-center justify-center gap-1.5 shrink-0">
           <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
           {scanningStatus}
         </p>
       </div>
 
       <div className="flex flex-col gap-1.5 mt-1 border-t border-border pt-2.5">
-        <p className="text-[10px] text-muted-foreground/80 uppercase font-bold font-['Rajdhani'] tracking-widest text-left">Click a vehicle below to target & scan instantly:</p>
+        <p className="text-[10px] text-muted-foreground/80 uppercase font-bold font-sans tracking-widest text-left">Click a vehicle below to target & scan instantly:</p>
         <div className="flex gap-2">
           {["DL6CR1517", "HR26DS6144"].map(plate => (
             <button 
@@ -1544,7 +1544,7 @@ function PlateScanner({ onScan, onClose }: { onScan: (res: string) => void, onCl
                 setSelectedSimPlate(plate);
                 if (isSimulated) setSimProgress(0); // restart progress bar with new target
               }} 
-              className={`px-3 py-1.5 border font-['JetBrains_Mono'] text-[11.5px] rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${selectedSimPlate === plate ? 'bg-primary/20 border-primary text-primary font-bold' : 'bg-[#1C2A3E] border-border/80 text-foreground hover:border-primary/50'}`}
+              className={`px-3 py-1.5 border font-mono text-[11.5px] rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${selectedSimPlate === plate ? 'bg-primary/20 border-primary text-primary font-bold' : 'bg-card border-border text-foreground hover:border-primary/50'}`}
             >
               🚗 {plate}
             </button>
@@ -1599,17 +1599,17 @@ function VehicleHistoryPanel({ initialReg }: { initialReg?: string }) {
             <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input value={regNo} onChange={e => setRegNo(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSearch()}
               placeholder="Enter Reg No or VIN…"
-              className="w-full pl-8 pr-3 py-2.5 text-[13px] bg-[#1C2A3E] border border-border rounded-lg text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 font-['JetBrains_Mono'] uppercase" />
+              className="w-full pl-8 pr-3 py-2.5 text-[13px] bg-card border border-border rounded-lg text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 font-mono uppercase" />
           </div>
           
           <button onClick={() => setIsScanningPlate(true)} id="plate-camera-trigger"
-            className="px-4 py-2.5 bg-[#1C2A3E] border border-border text-primary hover:text-white hover:bg-[#253347] text-[13px] font-bold rounded-lg transition-all font-['Rajdhani'] flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2.5 bg-card border border-border text-primary hover:text-white hover:bg-muted text-[13px] font-bold rounded-lg transition-all font-sans flex items-center gap-1.5 cursor-pointer"
             title="Scan License Plate using Camera">
             <Camera size={14} /> SCAN
           </button>
           
           <button onClick={handleSearch}
-            className="px-5 py-2.5 bg-primary text-white text-[13px] font-bold rounded-lg hover:bg-primary/90 transition-all font-['Rajdhani'] cursor-pointer">GO</button>
+            className="px-5 py-2.5 bg-primary text-white text-[13px] font-bold rounded-lg hover:bg-primary/90 transition-all font-sans cursor-pointer">GO</button>
         </div>
       )}
       {searched && !vehicleData && (
@@ -1619,23 +1619,23 @@ function VehicleHistoryPanel({ initialReg }: { initialReg?: string }) {
       )}
       {searched && vehicleData && (
         <>
-          <div className="flex items-center justify-between p-3 rounded-xl bg-[#1C2A3E]/50 border border-border">
+          <div className="flex items-center justify-between p-3 rounded-xl bg-card/50 border border-border">
             <div className="flex gap-6 text-[12px]">
-              <div><p className="text-muted-foreground text-[10px] uppercase font-['Rajdhani'] tracking-wide">Reg No</p>
-                <p className="text-primary font-['JetBrains_Mono'] font-medium">{regNo.toUpperCase()}</p></div>
-              <div><p className="text-muted-foreground text-[10px] uppercase font-['Rajdhani'] tracking-wide">Model</p>
+              <div><p className="text-muted-foreground text-[10px] uppercase font-sans tracking-wide">Reg No</p>
+                <p className="text-primary font-mono font-medium">{regNo.toUpperCase()}</p></div>
+              <div><p className="text-muted-foreground text-[10px] uppercase font-sans tracking-wide">Model</p>
                 <p className="text-foreground">{vehicleData.model}</p></div>
-              <div><p className="text-muted-foreground text-[10px] uppercase font-['Rajdhani'] tracking-wide">VIN</p>
-                <p className="text-foreground font-['JetBrains_Mono']">{vehicleData.vin}</p></div>
-              <div><p className="text-muted-foreground text-[10px] uppercase font-['Rajdhani'] tracking-wide">Records</p>
-                <p className="text-foreground font-['JetBrains_Mono']">{allRecords.length} total</p></div>
+              <div><p className="text-muted-foreground text-[10px] uppercase font-sans tracking-wide">VIN</p>
+                <p className="text-foreground font-mono">{vehicleData.vin}</p></div>
+              <div><p className="text-muted-foreground text-[10px] uppercase font-sans tracking-wide">Records</p>
+                <p className="text-foreground font-mono">{allRecords.length} total</p></div>
             </div>
             <div className="relative">
               <select value={yearFilter} onChange={e => {
                 const val = e.target.value as "2" | "5" | "5+"
                 if (val !== "2") setShowConfirm(val); else setYearFilter("2")
               }}
-                className="appearance-none px-3 py-1.5 pr-7 text-[12px] bg-[#1C2A3E] border border-border rounded-lg text-foreground outline-none font-['Rajdhani'] font-semibold cursor-pointer">
+                className="appearance-none px-3 py-1.5 pr-7 text-[12px] bg-card border border-border rounded-lg text-foreground outline-none font-sans font-semibold cursor-pointer">
                 <option value="2">Last 2 Years</option>
                 <option value="5">Last 5 Years</option>
                 <option value="5+">More than 5 Years</option>
@@ -1650,9 +1650,9 @@ function VehicleHistoryPanel({ initialReg }: { initialReg?: string }) {
                 <p className="text-[#FACC15]">Fetching {showConfirm === "5+" ? "history older than 5 years" : "last 5 years"} may include third-party records. Confirm?</p>
                 <div className="flex gap-2">
                   <button onClick={() => { setYearFilter(showConfirm); setShowConfirm(null) }}
-                    className="px-3 py-1 bg-[#FACC15]/20 border border-[#FACC15]/30 text-[#FACC15] rounded-lg font-semibold font-['Rajdhani']">Confirm</button>
+                    className="px-3 py-1 bg-[#FACC15]/20 border border-[#FACC15]/30 text-[#FACC15] rounded-lg font-semibold font-sans">Confirm</button>
                   <button onClick={() => setShowConfirm(null)}
-                    className="px-3 py-1 bg-[#1C2A3E] text-muted-foreground rounded-lg font-['Rajdhani']">Cancel</button>
+                    className="px-3 py-1 bg-card text-muted-foreground rounded-lg font-sans">Cancel</button>
                 </div>
               </motion.div>
             )}
@@ -1663,20 +1663,20 @@ function VehicleHistoryPanel({ initialReg }: { initialReg?: string }) {
             <div className="overflow-x-auto rounded-xl border border-border">
               <table className="w-full text-[11.5px]">
                 <thead>
-                  <tr className="border-b border-border bg-[#1C2A3E]/60">
+                  <tr className="border-b border-border bg-card/60">
                     {["#", "Service Date", "Service Type", "Mileage", "Dealer / Description"].map(h => (
-                      <th key={h} className="px-3 py-2.5 text-left font-semibold text-muted-foreground font-['Rajdhani'] text-[11px] tracking-wide uppercase whitespace-nowrap">{h}</th>
+                      <th key={h} className="px-3 py-2.5 text-left font-semibold text-muted-foreground font-sans text-[11px] tracking-wide uppercase whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {records.map((r, i) => (
                     <tr key={i} onClick={() => setSelectedRecord(selectedRecord?.jcNo === r.jcNo ? null : r)}
-                      className={`border-b border-border/50 cursor-pointer transition-colors hover:bg-[#1C2A3E]/40 ${selectedRecord?.jcNo === r.jcNo ? "bg-primary/8 border-l-2 border-l-primary" : ""}`}>
+                      className={`border-b border-border cursor-pointer transition-colors hover:bg-card/40 ${selectedRecord?.jcNo === r.jcNo ? "bg-primary/8 border-l-2 border-l-primary" : ""}`}>
                       <td className="px-3 py-2.5 text-muted-foreground">{i + 1}</td>
-                      <td className="px-3 py-2.5 text-primary font-['JetBrains_Mono'] font-medium">{r.date}</td>
+                      <td className="px-3 py-2.5 text-primary font-mono font-medium">{r.date}</td>
                       <td className="px-3 py-2.5 text-foreground whitespace-nowrap">{r.serviceType}</td>
-                      <td className="px-3 py-2.5 text-foreground font-['JetBrains_Mono']">{r.mileage.toLocaleString()} km</td>
+                      <td className="px-3 py-2.5 text-foreground font-mono">{r.mileage.toLocaleString()} km</td>
                       <td className="px-3 py-2.5 text-foreground">{r.dealer}</td>
                     </tr>
                   ))}
@@ -1688,23 +1688,23 @@ function VehicleHistoryPanel({ initialReg }: { initialReg?: string }) {
             {selectedRecord && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden rounded-xl border border-primary/20 bg-[#0A1422] p-4 mt-3">
-                <p className="text-[11px] text-muted-foreground uppercase font-['Rajdhani'] font-semibold tracking-wide mb-3">JC Details — {selectedRecord.jcNo}</p>
+                <p className="text-[11px] text-muted-foreground uppercase font-sans font-semibold tracking-wide mb-3">JC Details — {selectedRecord.jcNo}</p>
                 <div className="grid grid-cols-3 gap-3 text-[12px] mb-3">
-                  <div><p className="text-muted-foreground text-[10px] uppercase font-['Rajdhani'] tracking-wide mb-0.5">JC Number</p>
-                    <p className="text-primary font-['JetBrains_Mono']">{selectedRecord.jcNo}</p></div>
-                  <div><p className="text-muted-foreground text-[10px] uppercase font-['Rajdhani'] tracking-wide mb-0.5">Service Type</p>
+                  <div><p className="text-muted-foreground text-[10px] uppercase font-sans tracking-wide mb-0.5">JC Number</p>
+                    <p className="text-primary font-mono">{selectedRecord.jcNo}</p></div>
+                  <div><p className="text-muted-foreground text-[10px] uppercase font-sans tracking-wide mb-0.5">Service Type</p>
                     <p className="text-foreground">{selectedRecord.serviceType}</p></div>
-                  <div><p className="text-muted-foreground text-[10px] uppercase font-['Rajdhani'] tracking-wide mb-0.5">Mileage at Visit</p>
-                    <p className="text-foreground font-['JetBrains_Mono']">{selectedRecord.mileage.toLocaleString()} km</p></div>
+                  <div><p className="text-muted-foreground text-[10px] uppercase font-sans tracking-wide mb-0.5">Mileage at Visit</p>
+                    <p className="text-foreground font-mono">{selectedRecord.mileage.toLocaleString()} km</p></div>
                 </div>
                 <div className="text-[12px] mb-3">
-                  <p className="text-muted-foreground text-[10px] uppercase font-['Rajdhani'] tracking-wide mb-0.5">Dealer</p>
+                  <p className="text-muted-foreground text-[10px] uppercase font-sans tracking-wide mb-0.5">Dealer</p>
                   <p className="text-foreground">{selectedRecord.dealer}</p>
                 </div>
                 <div className="flex gap-2">
-                  <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1C2A3E] text-foreground text-[11px] font-semibold rounded-lg hover:bg-[#253347] font-['Rajdhani']"><Eye size={12} /> View JC</button>
-                  <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1C2A3E] text-foreground text-[11px] font-semibold rounded-lg hover:bg-[#253347] font-['Rajdhani']"><Download size={12} /> Download</button>
-                  <button className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1C2A3E] text-foreground text-[11px] font-semibold rounded-lg hover:bg-[#253347] font-['Rajdhani']"><Printer size={12} /> Print</button>
+                  <button className="flex items-center gap-1.5 px-3 py-1.5 bg-card text-foreground text-[11px] font-semibold rounded-lg hover:bg-muted font-sans"><Eye size={12} /> View JC</button>
+                  <button className="flex items-center gap-1.5 px-3 py-1.5 bg-card text-foreground text-[11px] font-semibold rounded-lg hover:bg-muted font-sans"><Download size={12} /> Download</button>
+                  <button className="flex items-center gap-1.5 px-3 py-1.5 bg-card text-foreground text-[11px] font-semibold rounded-lg hover:bg-muted font-sans"><Printer size={12} /> Print</button>
                 </div>
               </motion.div>
             )}
@@ -1712,7 +1712,7 @@ function VehicleHistoryPanel({ initialReg }: { initialReg?: string }) {
         </>
       )}
       {!searched && (
-        <p className="text-[12px] text-muted-foreground">Try: <span className="text-primary font-['JetBrains_Mono'] cursor-pointer" onClick={() => { setRegNo("DL6CR1517"); setSearched(true) }}>DL6CR1517</span> or <span className="text-primary font-['JetBrains_Mono'] cursor-pointer" onClick={() => { setRegNo("HR26DS6144"); setSearched(true) }}>HR26DS6144</span></p>
+        <p className="text-[12px] text-muted-foreground">Try: <span className="text-primary font-mono cursor-pointer" onClick={() => { setRegNo("DL6CR1517"); setSearched(true) }}>DL6CR1517</span> or <span className="text-primary font-mono cursor-pointer" onClick={() => { setRegNo("HR26DS6144"); setSearched(true) }}>HR26DS6144</span></p>
       )}
     </div>
   )
@@ -1805,7 +1805,7 @@ function SignaturePad({ value, onChange }: { value: string | null; onChange: (v:
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="relative h-24 rounded-lg border border-[rgba(61,142,240,0.14)] bg-[#070D18] overflow-hidden flex flex-col justify-between">
+      <div className="relative h-24 rounded-lg border border-border bg-background overflow-hidden flex flex-col justify-between">
         <canvas
           ref={canvasRef}
           width={400}
@@ -1820,7 +1820,7 @@ function SignaturePad({ value, onChange }: { value: string | null; onChange: (v:
           className="w-full h-full cursor-crosshair touch-none"
         />
         {value === null && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-muted-foreground/35 text-[11px] uppercase tracking-wider font-semibold font-['Rajdhani']">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-muted-foreground/35 text-[11px] uppercase tracking-wider font-semibold font-sans">
             Draw customer signature here
           </div>
         )}
@@ -1829,7 +1829,7 @@ function SignaturePad({ value, onChange }: { value: string | null; onChange: (v:
         <button
           type="button"
           onClick={clear}
-          className="px-2.5 py-1 text-[10px] uppercase tracking-wider bg-[#1C2A3E] text-muted-foreground hover:text-foreground font-bold font-['Rajdhani'] rounded hover:bg-[#253347] transition-all cursor-pointer"
+          className="px-2.5 py-1 text-[10px] uppercase tracking-wider bg-card text-muted-foreground hover:text-foreground font-bold font-sans rounded hover:bg-muted transition-all cursor-pointer"
         >
           Clear Pad
         </button>
@@ -1920,14 +1920,14 @@ function JCOpeningPanel({ initialReg }: { initialReg?: string }) {
           <CheckCircle size={32} className="text-[#4ADE80]" />
         </div>
         <div className="text-center">
-          <p className="text-lg font-bold text-foreground font-['Rajdhani']">Job Card Generated!</p>
+          <p className="text-lg font-bold text-foreground font-sans">Job Card Generated!</p>
           <p className="text-[13px] text-muted-foreground">JC26000512 — {regNo}</p>
           <p className="text-[12px] text-muted-foreground mt-1">OCAS sent to customer for approval</p>
         </div>
         <div className="flex gap-2 mt-2">
-          <button onClick={() => handleActionClick('print')} className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-[12px] font-semibold rounded-lg font-['Rajdhani'] cursor-pointer"><Eye size={13} /> View JC</button>
-          <button onClick={() => handleActionClick('download')} className="flex items-center gap-2 px-4 py-2 bg-[#1C2A3E] text-foreground text-[12px] font-semibold rounded-lg font-['Rajdhani'] cursor-pointer"><Download size={13} /> Download</button>
-          <button onClick={() => handleActionClick('print')} className="flex items-center gap-2 px-4 py-2 bg-[#1C2A3E] text-foreground text-[12px] font-semibold rounded-lg font-['Rajdhani'] cursor-pointer"><Printer size={13} /> Print</button>
+          <button onClick={() => handleActionClick('print')} className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-[12px] font-semibold rounded-lg font-sans cursor-pointer"><Eye size={13} /> View JC</button>
+          <button onClick={() => handleActionClick('download')} className="flex items-center gap-2 px-4 py-2 bg-card text-foreground text-[12px] font-semibold rounded-lg font-sans cursor-pointer"><Download size={13} /> Download</button>
+          <button onClick={() => handleActionClick('print')} className="flex items-center gap-2 px-4 py-2 bg-card text-foreground text-[12px] font-semibold rounded-lg font-sans cursor-pointer"><Printer size={13} /> Print</button>
         </div>
       </motion.div>
     )
@@ -1940,10 +1940,10 @@ function JCOpeningPanel({ initialReg }: { initialReg?: string }) {
         {STEP_LABELS.map((label, i) => (
           <div key={i} className="flex items-center flex-1 last:flex-none">
             <div className="flex flex-col items-center gap-1">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold font-['Rajdhani'] transition-all ${i < step ? "bg-[#4ADE80] text-[#070C16]" : i === step ? "bg-primary text-white" : "bg-[#1C2A3E] text-muted-foreground"}`}>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold font-sans transition-all ${i < step ? "bg-[#4ADE80] text-[#070C16]" : i === step ? "bg-primary text-white" : "bg-card text-muted-foreground"}`}>
                 {i < step ? <Check size={13} /> : i + 1}
               </div>
-              <p className={`text-[10px] font-['Rajdhani'] font-semibold whitespace-nowrap ${i === step ? "text-primary" : i < step ? "text-[#4ADE80]" : "text-muted-foreground"}`}>{label}</p>
+              <p className={`text-[10px] font-sans font-semibold whitespace-nowrap ${i === step ? "text-primary" : i < step ? "text-[#4ADE80]" : "text-muted-foreground"}`}>{label}</p>
             </div>
             {i < STEP_LABELS.length - 1 && (
               <div className={`flex-1 h-px mx-1 transition-all ${i < step ? "bg-[#4ADE80]/50" : "bg-border"}`} />
@@ -1963,23 +1963,23 @@ function JCOpeningPanel({ initialReg }: { initialReg?: string }) {
             <>
               <div className="flex gap-2">
                 <input value={regNo} onChange={e => setRegNo(e.target.value.toUpperCase())} placeholder="Enter Reg No or VIN…"
-                  className="flex-1 px-3 py-2.5 text-[13px] bg-[#1C2A3E] border border-border rounded-lg text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 font-['JetBrains_Mono'] uppercase" />
+                  className="flex-1 px-3 py-2.5 text-[13px] bg-card border border-border rounded-lg text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 font-mono uppercase" />
                 <button onClick={simulateScan}
-                  className="px-4 py-2.5 bg-[#1C2A3E] border border-border text-foreground text-[12px] font-semibold rounded-lg hover:bg-[#253347] transition-all font-['Rajdhani'] flex items-center gap-2">
+                  className="px-4 py-2.5 bg-card border border-border text-foreground text-[12px] font-semibold rounded-lg hover:bg-muted transition-all font-sans flex items-center gap-2">
                   <Camera size={13} /> Scan
                 </button>
               </div>
               {scanned && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                   className="flex items-center gap-2 p-3 rounded-lg bg-[#0D2E1A]/60 border border-[#4ADE80]/20 text-[#4ADE80] text-[12px]">
-                  <CheckCircle size={14} /> Scanned: <span className="font-['JetBrains_Mono'] font-medium">{regNo}</span>
+                  <CheckCircle size={14} /> Scanned: <span className="font-mono font-medium">{regNo}</span>
                 </motion.div>
               )}
             </>
           )}
           
           <button disabled={!regNo} onClick={() => setStep(1)}
-            className="self-end flex items-center gap-2 px-5 py-2.5 bg-primary text-white text-[13px] font-bold rounded-lg hover:bg-primary/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed font-['Rajdhani']">
+            className="self-end flex items-center gap-2 px-5 py-2.5 bg-primary text-white text-[13px] font-bold rounded-lg hover:bg-primary/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed font-sans">
             Next <ArrowRight size={14} />
           </button>
         </motion.div>
@@ -1989,47 +1989,47 @@ function JCOpeningPanel({ initialReg }: { initialReg?: string }) {
       {step === 1 && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-3">
           <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-[12px]">
-            <div className="col-span-2 p-3 rounded-xl bg-[#1C2A3E]/40 border border-border flex gap-6">
-              <div><p className="text-muted-foreground text-[10px] uppercase font-['Rajdhani'] tracking-wide mb-0.5">Model</p><p className="text-foreground font-semibold">MARUTI BALENO PETROL</p></div>
-              <div><p className="text-muted-foreground text-[10px] uppercase font-['Rajdhani'] tracking-wide mb-0.5">Reg No</p><p className="text-primary font-['JetBrains_Mono']">{regNo}</p></div>
-              <div><p className="text-muted-foreground text-[10px] uppercase font-['Rajdhani'] tracking-wide mb-0.5">VIN</p><p className="text-foreground font-['JetBrains_Mono']">MA3FJEB1SND789012</p></div>
-              <div><p className="text-muted-foreground text-[10px] uppercase font-['Rajdhani'] tracking-wide mb-0.5">FC OK Date</p><p className="text-foreground">21-MAY-27</p></div>
+            <div className="col-span-2 p-3 rounded-xl bg-card/40 border border-border flex gap-6">
+              <div><p className="text-muted-foreground text-[10px] uppercase font-sans tracking-wide mb-0.5">Model</p><p className="text-foreground font-semibold">MARUTI BALENO PETROL</p></div>
+              <div><p className="text-muted-foreground text-[10px] uppercase font-sans tracking-wide mb-0.5">Reg No</p><p className="text-primary font-mono">{regNo}</p></div>
+              <div><p className="text-muted-foreground text-[10px] uppercase font-sans tracking-wide mb-0.5">VIN</p><p className="text-foreground font-mono">MA3FJEB1SND789012</p></div>
+              <div><p className="text-muted-foreground text-[10px] uppercase font-sans tracking-wide mb-0.5">FC OK Date</p><p className="text-foreground">21-MAY-27</p></div>
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] uppercase font-['Rajdhani'] font-semibold tracking-wide text-muted-foreground">Odometer Reading *</label>
+              <label className="text-[10px] uppercase font-sans font-semibold tracking-wide text-muted-foreground">Odometer Reading *</label>
               <input value={odometer} onChange={e => setOdometer(e.target.value)}
-                className="px-3 py-2 bg-[#1C2A3E] border border-border rounded-lg text-foreground outline-none focus:border-primary/50 font-['JetBrains_Mono']" />
+                className="px-3 py-2 bg-card border border-border rounded-lg text-foreground outline-none focus:border-primary/50 font-mono" />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] uppercase font-['Rajdhani'] font-semibold tracking-wide text-muted-foreground">Service Type *</label>
+              <label className="text-[10px] uppercase font-sans font-semibold tracking-wide text-muted-foreground">Service Type *</label>
               <div className="relative">
                 <select value={serviceType} onChange={e => setServiceType(e.target.value)}
-                  className="w-full appearance-none px-3 py-2 bg-[#1C2A3E] border border-border rounded-lg text-foreground outline-none font-['Rajdhani']">
+                  className="w-full appearance-none px-3 py-2 bg-card border border-border rounded-lg text-foreground outline-none font-sans">
                   {["PAID SERVICE", "1ST FREE SERVICE", "2ND FREE SERVICE", "3RD FREE SERVICE", "RUNNING REPAIR", "PMS"].map(s => <option key={s}>{s}</option>)}
                 </select>
                 <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
               </div>
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] uppercase font-['Rajdhani'] font-semibold tracking-wide text-muted-foreground">Customer Name</label>
-              <input defaultValue="PREM MOTORS TRUE VALUE" className="px-3 py-2 bg-[#1C2A3E]/50 border border-border/50 rounded-lg text-muted-foreground outline-none font-['Rajdhani'] cursor-not-allowed" readOnly />
+              <label className="text-[10px] uppercase font-sans font-semibold tracking-wide text-muted-foreground">Customer Name</label>
+              <input defaultValue="PREM MOTORS TRUE VALUE" className="px-3 py-2 bg-card/50 border border-border rounded-lg text-muted-foreground outline-none font-sans cursor-not-allowed" readOnly />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] uppercase font-['Rajdhani'] font-semibold tracking-wide text-muted-foreground">Mobile No. *</label>
-              <input defaultValue="8708 467 728" className="px-3 py-2 bg-[#1C2A3E] border border-border rounded-lg text-foreground outline-none focus:border-primary/50 font-['JetBrains_Mono']" />
+              <label className="text-[10px] uppercase font-sans font-semibold tracking-wide text-muted-foreground">Mobile No. *</label>
+              <input defaultValue="8708 467 728" className="px-3 py-2 bg-card border border-border rounded-lg text-foreground outline-none focus:border-primary/50 font-mono" />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] uppercase font-['Rajdhani'] font-semibold tracking-wide text-muted-foreground">Email *</label>
-              <input defaultValue="ab@123gmail.com" className="px-3 py-2 bg-[#1C2A3E] border border-border rounded-lg text-foreground outline-none focus:border-primary/50 font-['JetBrains_Mono']" />
+              <label className="text-[10px] uppercase font-sans font-semibold tracking-wide text-muted-foreground">Email *</label>
+              <input defaultValue="ab@123gmail.com" className="px-3 py-2 bg-card border border-border rounded-lg text-foreground outline-none focus:border-primary/50 font-mono" />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] uppercase font-['Rajdhani'] font-semibold tracking-wide text-muted-foreground">Gate In Date / Time</label>
-              <input defaultValue="21-May-2026 10:30" className="px-3 py-2 bg-[#1C2A3E] border border-border rounded-lg text-foreground outline-none focus:border-primary/50 font-['JetBrains_Mono']" />
+              <label className="text-[10px] uppercase font-sans font-semibold tracking-wide text-muted-foreground">Gate In Date / Time</label>
+              <input defaultValue="21-May-2026 10:30" className="px-3 py-2 bg-card border border-border rounded-lg text-foreground outline-none focus:border-primary/50 font-mono" />
             </div>
           </div>
           <div className="flex justify-between mt-2">
-            <button onClick={() => setStep(0)} className="flex items-center gap-2 px-4 py-2 bg-[#1C2A3E] text-foreground text-[12px] font-semibold rounded-lg hover:bg-[#253347] font-['Rajdhani']"><ChevronLeft size={13} /> Back</button>
-            <button onClick={() => setStep(2)} className="flex items-center gap-2 px-5 py-2 bg-primary text-white text-[12px] font-bold rounded-lg hover:bg-primary/90 font-['Rajdhani']">Next <ArrowRight size={13} /></button>
+            <button onClick={() => setStep(0)} className="flex items-center gap-2 px-4 py-2 bg-card text-foreground text-[12px] font-semibold rounded-lg hover:bg-muted font-sans"><ChevronLeft size={13} /> Back</button>
+            <button onClick={() => setStep(2)} className="flex items-center gap-2 px-5 py-2 bg-primary text-white text-[12px] font-bold rounded-lg hover:bg-primary/90 font-sans">Next <ArrowRight size={13} /></button>
           </div>
         </motion.div>
       )}
@@ -2038,22 +2038,22 @@ function JCOpeningPanel({ initialReg }: { initialReg?: string }) {
       {step === 2 && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-[#1C2A3E]/40 border border-border">
-              <p className="text-[11px] uppercase font-['Rajdhani'] font-semibold tracking-wide text-muted-foreground mb-3 flex items-center gap-1.5"><Fuel size={12} /> Fuel Level</p>
+            <div className="p-4 rounded-xl bg-card/40 border border-border">
+              <p className="text-[11px] uppercase font-sans font-semibold tracking-wide text-muted-foreground mb-3 flex items-center gap-1.5"><Fuel size={12} /> Fuel Level</p>
               <div className="flex gap-2 mb-3">
                 {fuelLevels.map(level => (
                   <button key={level} onClick={() => setFuel(level)}
-                    className={`flex-1 py-2 text-[11px] font-bold rounded-lg transition-all font-['Rajdhani'] ${fuel === level ? "bg-primary text-white" : "bg-[#1C2A3E] text-muted-foreground hover:text-foreground"}`}>
+                    className={`flex-1 py-2 text-[11px] font-bold rounded-lg transition-all font-sans ${fuel === level ? "bg-primary text-white" : "bg-card text-muted-foreground hover:text-foreground"}`}>
                     {level}%
                   </button>
                 ))}
               </div>
-              <div className="h-3 rounded-full bg-[#1C2A3E] overflow-hidden">
+              <div className="h-3 rounded-full bg-card overflow-hidden">
                 <motion.div animate={{ width: `${fuel}%` }} className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all" />
               </div>
             </div>
-            <div className="p-4 rounded-xl bg-[#1C2A3E]/40 border border-border">
-              <p className="text-[11px] uppercase font-['Rajdhani'] font-semibold tracking-wide text-muted-foreground mb-3 flex items-center gap-1.5"><Wrench size={12} /> Vehicle Inventory</p>
+            <div className="p-4 rounded-xl bg-card/40 border border-border">
+              <p className="text-[11px] uppercase font-sans font-semibold tracking-wide text-muted-foreground mb-3 flex items-center gap-1.5"><Wrench size={12} /> Vehicle Inventory</p>
               <div className="flex flex-col gap-2">
                 {["Spare Tyre", "Service Schedule", "Wheel Cover", "Toolkit", "Music System"].map((item, i) => (
                   <label key={item} className="flex items-center gap-2 text-[12px] text-foreground cursor-pointer">
@@ -2069,8 +2069,8 @@ function JCOpeningPanel({ initialReg }: { initialReg?: string }) {
             Please capture at least 3 interior images before proceeding. Smart Eye process recommended for exterior.
           </div>
           <div className="flex justify-between">
-            <button onClick={() => setStep(1)} className="flex items-center gap-2 px-4 py-2 bg-[#1C2A3E] text-foreground text-[12px] font-semibold rounded-lg hover:bg-[#253347] font-['Rajdhani']"><ChevronLeft size={13} /> Back</button>
-            <button onClick={() => setStep(3)} className="flex items-center gap-2 px-5 py-2 bg-primary text-white text-[12px] font-bold rounded-lg hover:bg-primary/90 font-['Rajdhani']">Next <ArrowRight size={13} /></button>
+            <button onClick={() => setStep(1)} className="flex items-center gap-2 px-4 py-2 bg-card text-foreground text-[12px] font-semibold rounded-lg hover:bg-muted font-sans"><ChevronLeft size={13} /> Back</button>
+            <button onClick={() => setStep(3)} className="flex items-center gap-2 px-5 py-2 bg-primary text-white text-[12px] font-bold rounded-lg hover:bg-primary/90 font-sans">Next <ArrowRight size={13} /></button>
           </div>
         </motion.div>
       )}
@@ -2079,48 +2079,48 @@ function JCOpeningPanel({ initialReg }: { initialReg?: string }) {
       {step === 3 && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-[#1C2A3E]/40 border border-border">
-              <p className="text-[11px] uppercase font-['Rajdhani'] font-semibold tracking-wide text-muted-foreground mb-4">Tyre Health (mm)</p>
+            <div className="p-4 rounded-xl bg-card/40 border border-border">
+              <p className="text-[11px] uppercase font-sans font-semibold tracking-wide text-muted-foreground mb-4">Tyre Health (mm)</p>
               <div className="grid grid-cols-2 gap-3">
                 {(["fl", "fr", "rl", "rr"] as const).map(k => (
                   <div key={k} className="flex flex-col gap-1">
-                    <label className="text-[10px] uppercase font-['Rajdhani'] font-semibold text-muted-foreground tracking-wide">{k.toUpperCase()}</label>
+                    <label className="text-[10px] uppercase font-sans font-semibold text-muted-foreground tracking-wide">{k.toUpperCase()}</label>
                     <div className="flex items-center gap-1">
                       <button onClick={() => setTyre(t => ({ ...t, [k]: String(Math.max(0, parseInt(t[k]) - 1)) }))}
-                        className="w-7 h-7 rounded-lg bg-[#1C2A3E] text-muted-foreground hover:text-foreground flex items-center justify-center"><Minus size={11} /></button>
+                        className="w-7 h-7 rounded-lg bg-card text-muted-foreground hover:text-foreground flex items-center justify-center"><Minus size={11} /></button>
                       <input value={tyre[k]} onChange={e => setTyre(t => ({ ...t, [k]: e.target.value }))}
-                        className="flex-1 px-2 py-1.5 bg-[#1C2A3E] border border-border rounded-lg text-foreground text-center text-[13px] outline-none font-['JetBrains_Mono']" />
+                        className="flex-1 px-2 py-1.5 bg-card border border-border rounded-lg text-foreground text-center text-[13px] outline-none font-mono" />
                       <button onClick={() => setTyre(t => ({ ...t, [k]: String(parseInt(t[k]) + 1) }))}
-                        className="w-7 h-7 rounded-lg bg-[#1C2A3E] text-muted-foreground hover:text-foreground flex items-center justify-center"><Plus size={11} /></button>
+                        className="w-7 h-7 rounded-lg bg-card text-muted-foreground hover:text-foreground flex items-center justify-center"><Plus size={11} /></button>
                     </div>
                     {parseInt(tyre[k]) < 3 && (
-                      <p className="text-[#F87171] text-[10px] font-['Rajdhani']">Critical — replacement needed</p>
+                      <p className="text-[#F87171] text-[10px] font-sans">Critical — replacement needed</p>
                     )}
                   </div>
                 ))}
               </div>
             </div>
-            <div className="p-4 rounded-xl bg-[#1C2A3E]/40 border border-border">
-              <p className="text-[11px] uppercase font-['Rajdhani'] font-semibold tracking-wide text-muted-foreground mb-4">Battery Health</p>
+            <div className="p-4 rounded-xl bg-card/40 border border-border">
+              <p className="text-[11px] uppercase font-sans font-semibold tracking-wide text-muted-foreground mb-4">Battery Health</p>
               <div className="flex flex-col gap-2">
                 {["Good", "Charge and Test", "Poor"].map(opt => (
                   <label key={opt} onClick={() => setBattery(opt)}
-                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${battery === opt ? "border-primary bg-primary/10" : "border-border hover:border-border/80"}`}>
+                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${battery === opt ? "border-primary bg-primary/10" : "border-border hover:border-border"}`}>
                     <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${battery === opt ? "border-primary" : "border-muted-foreground"}`}>
                       {battery === opt && <div className="w-2 h-2 rounded-full bg-primary" />}
                     </div>
-                    <span className={`text-[13px] font-['Rajdhani'] font-semibold ${battery === opt ? "text-primary" : "text-foreground"}`}>{opt}</span>
+                    <span className={`text-[13px] font-sans font-semibold ${battery === opt ? "text-primary" : "text-foreground"}`}>{opt}</span>
                   </label>
                 ))}
               </div>
               {battery === "Poor" && (
-                <p className="text-[#F87171] text-[11px] mt-2 font-['Rajdhani']">Battery replacement demand will be auto-added.</p>
+                <p className="text-[#F87171] text-[11px] mt-2 font-sans">Battery replacement demand will be auto-added.</p>
               )}
             </div>
           </div>
           <div className="flex justify-between">
-            <button onClick={() => setStep(2)} className="flex items-center gap-2 px-4 py-2 bg-[#1C2A3E] text-foreground text-[12px] font-semibold rounded-lg hover:bg-[#253347] font-['Rajdhani']"><ChevronLeft size={13} /> Back</button>
-            <button onClick={() => setStep(4)} className="flex items-center gap-2 px-5 py-2 bg-primary text-white text-[12px] font-bold rounded-lg hover:bg-primary/90 font-['Rajdhani']">Next <ArrowRight size={13} /></button>
+            <button onClick={() => setStep(2)} className="flex items-center gap-2 px-4 py-2 bg-card text-foreground text-[12px] font-semibold rounded-lg hover:bg-muted font-sans"><ChevronLeft size={13} /> Back</button>
+            <button onClick={() => setStep(4)} className="flex items-center gap-2 px-5 py-2 bg-primary text-white text-[12px] font-bold rounded-lg hover:bg-primary/90 font-sans">Next <ArrowRight size={13} /></button>
           </div>
         </motion.div>
       )}
@@ -2129,39 +2129,39 @@ function JCOpeningPanel({ initialReg }: { initialReg?: string }) {
       {step === 4 && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-3">
           <div className="flex items-center justify-between mb-1">
-            <p className="text-[11px] text-muted-foreground uppercase font-['Rajdhani'] font-semibold tracking-wide">Service Menu Detail List (Demanded Repair)</p>
+            <p className="text-[11px] text-muted-foreground uppercase font-sans font-semibold tracking-wide">Service Menu Detail List (Demanded Repair)</p>
             <button 
               onClick={() => { setShowAddDemandRow(!showAddDemandRow); setNewDesc(""); setNewCode(""); setNewPrice(0); setNewQty(1); }}
-              className="flex items-center gap-1.5 text-primary text-[11px] font-semibold font-['Rajdhani'] hover:text-accent transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 text-primary text-[11px] font-semibold font-sans hover:text-accent transition-colors cursor-pointer"
             >
               <Plus size={12} /> Add Demand
             </button>
           </div>
 
           {showAddDemandRow && (
-            <div className="p-4 rounded-xl border border-primary/20 bg-[#0E1626] flex flex-wrap gap-3 items-end transition-all">
+            <div className="p-4 rounded-xl border border-primary/20 bg-card flex flex-wrap gap-3 items-end transition-all">
               <div className="flex-1 min-w-[100px]">
-                <label className="text-[10px] uppercase font-['Rajdhani'] text-muted-foreground block mb-1 font-bold">Type</label>
-                <select value={newType} onChange={e => setNewType(e.target.value as "L" | "P")} className="w-full text-[12px] px-3.5 py-2 bg-[#1C2A3E] border border-border/60 rounded focus:border-primary/50 text-foreground outline-none cursor-pointer">
+                <label className="text-[10px] uppercase font-sans text-muted-foreground block mb-1 font-bold">Type</label>
+                <select value={newType} onChange={e => setNewType(e.target.value as "L" | "P")} className="w-full text-[12px] px-3.5 py-2 bg-card border border-border rounded focus:border-primary/50 text-foreground outline-none cursor-pointer">
                   <option value="L">Labour (L)</option>
                   <option value="P">Part (P)</option>
                 </select>
               </div>
               <div className="flex-[3] min-w-[200px]">
-                <label className="text-[10px] uppercase font-['Rajdhani'] text-muted-foreground block mb-1 font-bold">Description</label>
-                <input value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="e.g. Front Brake Pads Replacement" className="w-full text-[12px] px-3.5 py-2 bg-[#1C2A3E] border border-border/60 rounded focus:border-primary/50 text-foreground outline-none font-sans" />
+                <label className="text-[10px] uppercase font-sans text-muted-foreground block mb-1 font-bold">Description</label>
+                <input value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="e.g. Front Brake Pads Replacement" className="w-full text-[12px] px-3.5 py-2 bg-card border border-border rounded focus:border-primary/50 text-foreground outline-none font-sans" />
               </div>
               <div className="flex-1 min-w-[120px]">
-                <label className="text-[10px] uppercase font-['Rajdhani'] text-muted-foreground block mb-1 font-bold">Code</label>
-                <input value={newCode} onChange={e => setNewCode(e.target.value.toUpperCase())} placeholder="e.g. BRK-PAD-01" className="w-full text-[12px] px-3.5 py-2 bg-[#1C2A3E] border border-border/60 rounded focus:border-primary/50 text-foreground outline-none font-['JetBrains_Mono']" />
+                <label className="text-[10px] uppercase font-sans text-muted-foreground block mb-1 font-bold">Code</label>
+                <input value={newCode} onChange={e => setNewCode(e.target.value.toUpperCase())} placeholder="e.g. BRK-PAD-01" className="w-full text-[12px] px-3.5 py-2 bg-card border border-border rounded focus:border-primary/50 text-foreground outline-none font-mono" />
               </div>
               <div className="w-[70px]">
-                <label className="text-[10px] uppercase font-['Rajdhani'] text-muted-foreground block mb-1 font-bold">Qty</label>
-                <input type="number" value={newQty} onChange={e => setNewQty(parseInt(e.target.value) || 1)} className="w-full text-[12px] px-3.5 py-2 bg-[#1C2A3E] border border-border/60 rounded focus:border-primary/50 text-foreground outline-none font-['JetBrains_Mono']" />
+                <label className="text-[10px] uppercase font-sans text-muted-foreground block mb-1 font-bold">Qty</label>
+                <input type="number" value={newQty} onChange={e => setNewQty(parseInt(e.target.value) || 1)} className="w-full text-[12px] px-3.5 py-2 bg-card border border-border rounded focus:border-primary/50 text-foreground outline-none font-mono" />
               </div>
               <div className="w-[100px]">
-                <label className="text-[10px] uppercase font-['Rajdhani'] text-muted-foreground block mb-1 font-bold">Price (₹)</label>
-                <input type="number" value={newPrice} onChange={e => setNewPrice(parseInt(e.target.value) || 0)} className="w-full text-[12px] px-3.5 py-2 bg-[#1C2A3E] border border-border/60 rounded focus:border-primary/50 text-foreground outline-none font-['JetBrains_Mono']" />
+                <label className="text-[10px] uppercase font-sans text-muted-foreground block mb-1 font-bold">Price (₹)</label>
+                <input type="number" value={newPrice} onChange={e => setNewPrice(parseInt(e.target.value) || 0)} className="w-full text-[12px] px-3.5 py-2 bg-card border border-border rounded focus:border-primary/50 text-foreground outline-none font-mono" />
               </div>
               <div className="flex gap-2">
                 <button 
@@ -2177,13 +2177,13 @@ function JCOpeningPanel({ initialReg }: { initialReg?: string }) {
                     }]);
                     setShowAddDemandRow(false);
                   }} 
-                  className="px-4 py-2 bg-primary hover:bg-primary/95 text-white font-bold text-[12px] rounded font-['Rajdhani'] cursor-pointer animate-pulse"
+                  className="px-4 py-2 bg-primary hover:bg-primary/95 text-white font-bold text-[12px] rounded font-sans cursor-pointer animate-pulse"
                 >
                   ADD
                 </button>
                 <button 
                   onClick={() => setShowAddDemandRow(false)} 
-                  className="px-4 py-2 bg-[#1C2A3E] border border-border/60 text-foreground font-bold text-[12px] rounded font-['Rajdhani'] cursor-pointer"
+                  className="px-4 py-2 bg-card border border-border text-foreground font-bold text-[12px] rounded font-sans cursor-pointer"
                 >
                   CANCEL
                 </button>
@@ -2193,31 +2193,31 @@ function JCOpeningPanel({ initialReg }: { initialReg?: string }) {
           <div className="overflow-x-auto rounded-xl border border-border">
             <table className="w-full text-[11.5px]">
               <thead>
-                <tr className="border-b border-border bg-[#1C2A3E]/60">
+                <tr className="border-b border-border bg-card/60">
                   {["Type", "Description", "Part/Labour Code", "QTY", "Price", "Accepted"].map(h => (
-                    <th key={h} className="px-3 py-2.5 text-left font-semibold text-muted-foreground font-['Rajdhani'] text-[10px] tracking-wide uppercase whitespace-nowrap">{h}</th>
+                    <th key={h} className="px-3 py-2.5 text-left font-semibold text-muted-foreground font-sans text-[10px] tracking-wide uppercase whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {demands.map((d, i) => (
-                  <tr key={i} className="border-b border-border/50">
+                  <tr key={i} className="border-b border-border">
                     <td className="px-3 py-2.5">
-                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold font-['Rajdhani'] ${d.type === "L" ? "bg-primary/20 text-primary" : "bg-accent/20 text-accent"}`}>{d.type}</span>
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold font-sans ${d.type === "L" ? "bg-primary/20 text-primary" : "bg-accent/20 text-accent"}`}>{d.type}</span>
                     </td>
                     <td className="px-3 py-2.5 text-foreground max-w-[140px] truncate">{d.desc}</td>
-                    <td className="px-3 py-2.5 text-muted-foreground font-['JetBrains_Mono'] text-[10px]">{d.code}</td>
-                    <td className="px-3 py-2.5 text-foreground font-['JetBrains_Mono']">{d.qty}</td>
-                    <td className="px-3 py-2.5 text-foreground font-['JetBrains_Mono']">₹{d.price.toLocaleString()}</td>
+                    <td className="px-3 py-2.5 text-muted-foreground font-mono text-[10px]">{d.code}</td>
+                    <td className="px-3 py-2.5 text-foreground font-mono">{d.qty}</td>
+                    <td className="px-3 py-2.5 text-foreground font-mono">₹{d.price.toLocaleString()}</td>
                     <td className="px-3 py-2.5">
-                      <span className="text-[#4ADE80] font-['Rajdhani'] font-semibold text-[11px]">YES</span>
+                      <span className="text-[#4ADE80] font-sans font-semibold text-[11px]">YES</span>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <div className="flex justify-between items-center p-3 rounded-xl bg-[#1C2A3E]/40 border border-border text-[12px] font-['JetBrains_Mono']">
+          <div className="flex justify-between items-center p-3 rounded-xl bg-card/40 border border-border text-[12px] font-mono">
             <div className="flex gap-6">
               <span className="text-muted-foreground">Labour: <span className="text-foreground font-semibold">₹{labourTotal.toLocaleString()}</span></span>
               <span className="text-muted-foreground">Parts: <span className="text-foreground font-semibold">₹{partsTotal.toLocaleString()}</span></span>
@@ -2225,8 +2225,8 @@ function JCOpeningPanel({ initialReg }: { initialReg?: string }) {
             <span className="text-foreground font-bold text-[14px]">Grand Total: ₹{(labourTotal + partsTotal).toLocaleString()}</span>
           </div>
           <div className="flex justify-between">
-            <button onClick={() => setStep(3)} className="flex items-center gap-2 px-4 py-2 bg-[#1C2A3E] text-foreground text-[12px] font-semibold rounded-lg hover:bg-[#253347] font-['Rajdhani']"><ChevronLeft size={13} /> Back</button>
-            <button onClick={() => setStep(5)} className="flex items-center gap-2 px-5 py-2 bg-primary text-white text-[12px] font-bold rounded-lg hover:bg-primary/90 font-['Rajdhani']">Next <ArrowRight size={13} /></button>
+            <button onClick={() => setStep(3)} className="flex items-center gap-2 px-4 py-2 bg-card text-foreground text-[12px] font-semibold rounded-lg hover:bg-muted font-sans"><ChevronLeft size={13} /> Back</button>
+            <button onClick={() => setStep(5)} className="flex items-center gap-2 px-5 py-2 bg-primary text-white text-[12px] font-bold rounded-lg hover:bg-primary/90 font-sans">Next <ArrowRight size={13} /></button>
           </div>
         </motion.div>
       )}
@@ -2234,34 +2234,34 @@ function JCOpeningPanel({ initialReg }: { initialReg?: string }) {
       {/* Step 5: Summary */}
       {step === 5 && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4">
-          <div className="p-4 rounded-xl bg-[#1C2A3E]/40 border border-border">
-            <p className="text-[11px] uppercase font-['Rajdhani'] font-semibold tracking-wide text-muted-foreground mb-3">Job Card Summary</p>
+          <div className="p-4 rounded-xl bg-card/40 border border-border">
+            <p className="text-[11px] uppercase font-sans font-semibold tracking-wide text-muted-foreground mb-3">Job Card Summary</p>
             <div className="grid grid-cols-3 gap-3 text-[12px] mb-4">
-              <div><p className="text-muted-foreground text-[10px] uppercase font-['Rajdhani'] tracking-wide mb-0.5">Registration</p><p className="text-primary font-['JetBrains_Mono']">{regNo}</p></div>
-              <div><p className="text-muted-foreground text-[10px] uppercase font-['Rajdhani'] tracking-wide mb-0.5">Model</p><p className="text-foreground">MARUTI BALENO PETROL</p></div>
-              <div><p className="text-muted-foreground text-[10px] uppercase font-['Rajdhani'] tracking-wide mb-0.5">Service Type</p><p className="text-foreground">{serviceType}</p></div>
-              <div><p className="text-muted-foreground text-[10px] uppercase font-['Rajdhani'] tracking-wide mb-0.5">Odometer</p><p className="text-foreground font-['JetBrains_Mono']">{parseInt(odometer).toLocaleString()} KMS</p></div>
-              <div><p className="text-muted-foreground text-[10px] uppercase font-['Rajdhani'] tracking-wide mb-0.5">Total Est. Amount</p><p className="text-foreground font-['JetBrains_Mono'] font-bold">₹{(labourTotal + partsTotal).toLocaleString()}</p></div>
-              <div><p className="text-muted-foreground text-[10px] uppercase font-['Rajdhani'] tracking-wide mb-0.5">Battery</p><p className="text-foreground">{battery}</p></div>
+              <div><p className="text-muted-foreground text-[10px] uppercase font-sans tracking-wide mb-0.5">Registration</p><p className="text-primary font-mono">{regNo}</p></div>
+              <div><p className="text-muted-foreground text-[10px] uppercase font-sans tracking-wide mb-0.5">Model</p><p className="text-foreground">MARUTI BALENO PETROL</p></div>
+              <div><p className="text-muted-foreground text-[10px] uppercase font-sans tracking-wide mb-0.5">Service Type</p><p className="text-foreground">{serviceType}</p></div>
+              <div><p className="text-muted-foreground text-[10px] uppercase font-sans tracking-wide mb-0.5">Odometer</p><p className="text-foreground font-mono">{parseInt(odometer).toLocaleString()} KMS</p></div>
+              <div><p className="text-muted-foreground text-[10px] uppercase font-sans tracking-wide mb-0.5">Total Est. Amount</p><p className="text-foreground font-mono font-bold">₹{(labourTotal + partsTotal).toLocaleString()}</p></div>
+              <div><p className="text-muted-foreground text-[10px] uppercase font-sans tracking-wide mb-0.5">Battery</p><p className="text-foreground">{battery}</p></div>
             </div>
             <div className="border-t border-border pt-3">
-              <p className="text-[10px] uppercase font-['Rajdhani'] font-semibold tracking-wide text-muted-foreground mb-2">Demand Repairs ({demands.length})</p>
+              <p className="text-[10px] uppercase font-sans font-semibold tracking-wide text-muted-foreground mb-2">Demand Repairs ({demands.length})</p>
               {demands.map((d, i) => (
-                <div key={i} className="flex justify-between text-[11px] py-1 border-b border-border/30 last:border-0">
+                <div key={i} className="flex justify-between text-[11px] py-1 border-b border-border last:border-0">
                   <span className="text-foreground">{d.desc}</span>
-                  <span className="text-muted-foreground font-['JetBrains_Mono']">₹{(d.price * d.qty).toLocaleString()}</span>
+                  <span className="text-muted-foreground font-mono">₹{(d.price * d.qty).toLocaleString()}</span>
                 </div>
               ))}
             </div>
           </div>
-          <div className="p-3 rounded-xl bg-[#1C2A3E]/40 border border-border">
-            <p className="text-[10px] uppercase font-['Rajdhani'] font-semibold tracking-wide text-muted-foreground mb-2">Customer Signature</p>
+          <div className="p-3 rounded-xl bg-card/40 border border-border">
+            <p className="text-[10px] uppercase font-sans font-semibold tracking-wide text-muted-foreground mb-2">Customer Signature</p>
             <SignaturePad value={signatureData} onChange={setSignatureData} />
           </div>
           <div className="flex justify-between">
-            <button onClick={() => setStep(4)} className="flex items-center gap-2 px-4 py-2 bg-[#1C2A3E] text-foreground text-[12px] font-semibold rounded-lg hover:bg-[#253347] font-['Rajdhani']"><ChevronLeft size={13} /> Back</button>
+            <button onClick={() => setStep(4)} className="flex items-center gap-2 px-4 py-2 bg-card text-foreground text-[12px] font-semibold rounded-lg hover:bg-muted font-sans"><ChevronLeft size={13} /> Back</button>
             <button onClick={() => setSubmitted(true)}
-              className="flex items-center gap-2 px-6 py-2.5 bg-[#4ADE80] text-[#070C16] text-[13px] font-bold rounded-lg hover:bg-[#4ADE80]/90 transition-all font-['Rajdhani']">
+              className="flex items-center gap-2 px-6 py-2.5 bg-[#4ADE80] text-[#070C16] text-[13px] font-bold rounded-lg hover:bg-[#4ADE80]/90 transition-all font-sans">
               <Zap size={14} /> Generate Job Card
             </button>
           </div>
@@ -2533,8 +2533,8 @@ function JCDetailModal({ jcNo, onClose }: { jcNo: string; onClose: () => void })
 
   const Field = ({ label, value, mono = false }: { label: string; value: string | number; mono?: boolean }) => (
     <div className="flex flex-col gap-0.5">
-      <p className="text-[9px] uppercase tracking-wide text-muted-foreground font-['Rajdhani'] font-semibold">{label}</p>
-      <p className={`text-[12px] text-foreground ${mono ? "font-['JetBrains_Mono']" : "font-['Rajdhani'] font-semibold"}`}>{value || "—"}</p>
+      <p className="text-[9px] uppercase tracking-wide text-muted-foreground font-sans font-semibold">{label}</p>
+      <p className={`text-[12px] text-foreground ${mono ? "font-mono" : "font-sans font-semibold"}`}>{value || "—"}</p>
     </div>
   )
 
@@ -2544,30 +2544,30 @@ function JCDetailModal({ jcNo, onClose }: { jcNo: string; onClose: () => void })
         className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
       <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="relative w-full max-w-4xl bg-[#0E1626] border border-[rgba(61,142,240,0.25)] rounded-2xl shadow-2xl overflow-hidden z-10 flex flex-col max-h-[90vh]">
+        className="relative w-full max-w-4xl bg-card border border-border rounded-2xl shadow-2xl overflow-hidden z-10 flex flex-col max-h-[90vh]">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 bg-[#070C16] border-b border-[rgba(61,142,240,0.15)]">
+        <div className="flex items-center justify-between px-6 py-4 bg-background border-b border-border">
           <div className="flex items-center gap-4">
             <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
               <FileText size={16} className="text-primary" />
             </div>
             <div>
-              <p className="text-[16px] font-bold font-['Rajdhani'] text-foreground tracking-wide">Job Card — <span className="text-primary font-['JetBrains_Mono']">{jc.jcNo}</span></p>
+              <p className="text-[16px] font-bold font-sans text-foreground tracking-wide">Job Card — <span className="text-primary font-mono">{jc.jcNo}</span></p>
               <p className="text-[11px] text-muted-foreground">{jc.customer.model} · {jc.customer.regNo} · {jc.visitDate}</p>
             </div>
           </div>
           <button onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-[#1C2A3E] hover:bg-[#253347] border border-border flex items-center justify-center transition-colors text-muted-foreground hover:text-foreground text-[16px] font-bold">
+            className="w-8 h-8 rounded-lg bg-card hover:bg-muted border border-border flex items-center justify-center transition-colors text-muted-foreground hover:text-foreground text-[16px] font-bold">
             ×
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-[rgba(61,142,240,0.15)] bg-[#070C16] px-4 gap-0.5 overflow-x-auto">
+        <div className="flex border-b border-border bg-background px-4 gap-0.5 overflow-x-auto">
           {tabs.map((t, i) => (
             <button key={i} onClick={() => setTab(i)}
-              className={`px-4 py-3 text-[11px] font-semibold font-['Rajdhani'] tracking-wide whitespace-nowrap transition-all border-b-2 ${tab === i
+              className={`px-4 py-3 text-[11px] font-semibold font-sans tracking-wide whitespace-nowrap transition-all border-b-2 ${tab === i
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground hover:border-primary/30"}`}>
               {t}
@@ -2596,19 +2596,19 @@ function JCDetailModal({ jcNo, onClose }: { jcNo: string; onClose: () => void })
                 <Field label="Payment Mode" value={jc.paymentMode} />
                 <Field label="Promised Date & Time" value={`${jc.promisedDate} ${jc.promisedTime}`} />
                 <div className="col-span-3 border-t border-border pt-4 mt-1">
-                  <p className="text-[9px] uppercase tracking-wide text-muted-foreground font-['Rajdhani'] font-semibold mb-1.5">Remark</p>
-                  <p className="text-[12px] text-foreground font-['Rajdhani'] font-semibold">{jc.remark}</p>
+                  <p className="text-[9px] uppercase tracking-wide text-muted-foreground font-sans font-semibold mb-1.5">Remark</p>
+                  <p className="text-[12px] text-foreground font-sans font-semibold">{jc.remark}</p>
                 </div>
                 <div className="col-span-3">
-                  <p className="text-[9px] uppercase tracking-wide text-muted-foreground font-['Rajdhani'] font-semibold mb-1.5">Unauthorized Fitments</p>
-                  <p className={`text-[12px] font-['Rajdhani'] font-semibold ${jc.unauthorizedFitments === "None" ? "text-[#4ADE80]" : "text-[#F87171]"}`}>{jc.unauthorizedFitments}</p>
+                  <p className="text-[9px] uppercase tracking-wide text-muted-foreground font-sans font-semibold mb-1.5">Unauthorized Fitments</p>
+                  <p className={`text-[12px] font-sans font-semibold ${jc.unauthorizedFitments === "None" ? "text-[#4ADE80]" : "text-[#F87171]"}`}>{jc.unauthorizedFitments}</p>
                 </div>
               </motion.div>
             )}
             {tab === 1 && (
               <motion.div key="tab1" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -8 }} className="flex flex-col gap-6">
                 <div>
-                  <p className="text-[11px] uppercase font-['Rajdhani'] font-bold tracking-widest text-primary mb-4">Customer Information</p>
+                  <p className="text-[11px] uppercase font-sans font-bold tracking-widest text-primary mb-4">Customer Information</p>
                   <div className="grid grid-cols-3 gap-x-8 gap-y-5">
                     <Field label="Customer Name" value={jc.customer.name} />
                     <Field label="Mobile 1" value={jc.customer.mobile1} mono />
@@ -2625,7 +2625,7 @@ function JCDetailModal({ jcNo, onClose }: { jcNo: string; onClose: () => void })
                   </div>
                 </div>
                 <div className="border-t border-border pt-6">
-                  <p className="text-[11px] uppercase font-['Rajdhani'] font-bold tracking-widest text-accent mb-4">Vehicle Information</p>
+                  <p className="text-[11px] uppercase font-sans font-bold tracking-widest text-accent mb-4">Vehicle Information</p>
                   <div className="grid grid-cols-3 gap-x-8 gap-y-5">
                     <Field label="Registration No." value={jc.customer.regNo} mono />
                     <Field label="Model" value={jc.customer.model} />
@@ -2643,21 +2643,21 @@ function JCDetailModal({ jcNo, onClose }: { jcNo: string; onClose: () => void })
                 <div className="overflow-x-auto rounded-xl border border-border">
                   <table className="w-full text-[11.5px]">
                     <thead>
-                      <tr className="border-b border-border bg-[#1C2A3E]/60">
+                      <tr className="border-b border-border bg-card/60">
                         {["S.No", "Type", "Demand Code", "Demand Description", "Customer Voice"].map(h => (
-                          <th key={h} className="px-3 py-2.5 text-left font-semibold text-muted-foreground font-['Rajdhani'] text-[10px] tracking-wide uppercase whitespace-nowrap">{h}</th>
+                          <th key={h} className="px-3 py-2.5 text-left font-semibold text-muted-foreground font-sans text-[10px] tracking-wide uppercase whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {jc.demands.map((d, i) => (
-                        <tr key={i} className="border-b border-border/50 hover:bg-[#1C2A3E]/20 transition-colors">
-                          <td className="px-3 py-3 text-muted-foreground font-['JetBrains_Mono']">{d.sno}</td>
+                        <tr key={i} className="border-b border-border hover:bg-card/20 transition-colors">
+                          <td className="px-3 py-3 text-muted-foreground font-mono">{d.sno}</td>
                           <td className="px-3 py-3">
-                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold font-['Rajdhani'] ${d.type === "L" ? "bg-primary/20 text-primary" : "bg-accent/20 text-accent"}`}>{d.type}</span>
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold font-sans ${d.type === "L" ? "bg-primary/20 text-primary" : "bg-accent/20 text-accent"}`}>{d.type}</span>
                           </td>
-                          <td className="px-3 py-3 text-muted-foreground font-['JetBrains_Mono'] text-[10px]">{d.code}</td>
-                          <td className="px-3 py-3 text-foreground font-['Rajdhani'] font-semibold">{d.desc}</td>
+                          <td className="px-3 py-3 text-muted-foreground font-mono text-[10px]">{d.code}</td>
+                          <td className="px-3 py-3 text-foreground font-sans font-semibold">{d.desc}</td>
                           <td className="px-3 py-3 text-muted-foreground italic">{d.voice}</td>
                         </tr>
                       ))}
@@ -2669,63 +2669,63 @@ function JCDetailModal({ jcNo, onClose }: { jcNo: string; onClose: () => void })
             {tab === 3 && (
               <motion.div key="tab3" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -8 }} className="flex flex-col gap-6">
                 <div>
-                  <p className="text-[11px] uppercase font-['Rajdhani'] font-bold tracking-widest text-primary mb-3">Labour</p>
+                  <p className="text-[11px] uppercase font-sans font-bold tracking-widest text-primary mb-3">Labour</p>
                   <div className="overflow-x-auto rounded-xl border border-border">
                     <table className="w-full text-[11.5px]">
                       <thead>
-                        <tr className="border-b border-border bg-[#1C2A3E]/60">
+                        <tr className="border-b border-border bg-card/60">
                           {["S.No", "Labour Code", "Description", "Qty", "PRN Hrs", "Billable Type", "Amount"].map(h => (
-                            <th key={h} className="px-3 py-2.5 text-left font-semibold text-muted-foreground font-['Rajdhani'] text-[10px] tracking-wide uppercase whitespace-nowrap">{h}</th>
+                            <th key={h} className="px-3 py-2.5 text-left font-semibold text-muted-foreground font-sans text-[10px] tracking-wide uppercase whitespace-nowrap">{h}</th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
                         {jc.labour.map((l, i) => (
-                          <tr key={i} className="border-b border-border/50 hover:bg-[#1C2A3E]/20 transition-colors">
-                            <td className="px-3 py-2.5 text-muted-foreground font-['JetBrains_Mono']">{l.sno}</td>
-                            <td className="px-3 py-2.5 text-muted-foreground font-['JetBrains_Mono'] text-[10px]">{l.code}</td>
-                            <td className="px-3 py-2.5 text-foreground font-['Rajdhani'] font-semibold max-w-[160px]">{l.desc}</td>
-                            <td className="px-3 py-2.5 text-foreground font-['JetBrains_Mono']">{l.qty}</td>
-                            <td className="px-3 py-2.5 text-foreground font-['JetBrains_Mono']">{l.prnHrs}</td>
+                          <tr key={i} className="border-b border-border hover:bg-card/20 transition-colors">
+                            <td className="px-3 py-2.5 text-muted-foreground font-mono">{l.sno}</td>
+                            <td className="px-3 py-2.5 text-muted-foreground font-mono text-[10px]">{l.code}</td>
+                            <td className="px-3 py-2.5 text-foreground font-sans font-semibold max-w-[160px]">{l.desc}</td>
+                            <td className="px-3 py-2.5 text-foreground font-mono">{l.qty}</td>
+                            <td className="px-3 py-2.5 text-foreground font-mono">{l.prnHrs}</td>
                             <td className="px-3 py-2.5">
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold font-['Rajdhani'] bg-primary/10 text-primary">{l.billableType}</span>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold font-sans bg-primary/10 text-primary">{l.billableType}</span>
                             </td>
-                            <td className="px-3 py-2.5 text-foreground font-['JetBrains_Mono'] font-medium">₹{l.amount.toLocaleString()}</td>
+                            <td className="px-3 py-2.5 text-foreground font-mono font-medium">₹{l.amount.toLocaleString()}</td>
                           </tr>
                         ))}
-                        <tr className="bg-[#1C2A3E]/40">
-                          <td colSpan={6} className="px-3 py-2 text-right text-[11px] font-bold text-muted-foreground font-['Rajdhani'] uppercase tracking-wide">Labour Total</td>
-                          <td className="px-3 py-2 text-primary font-['JetBrains_Mono'] font-bold">₹{labourTotal.toLocaleString()}</td>
+                        <tr className="bg-card/40">
+                          <td colSpan={6} className="px-3 py-2 text-right text-[11px] font-bold text-muted-foreground font-sans uppercase tracking-wide">Labour Total</td>
+                          <td className="px-3 py-2 text-primary font-mono font-bold">₹{labourTotal.toLocaleString()}</td>
                         </tr>
                       </tbody>
                     </table>
                   </div>
                 </div>
                 <div>
-                  <p className="text-[11px] uppercase font-['Rajdhani'] font-bold tracking-widest text-accent mb-3">Parts</p>
+                  <p className="text-[11px] uppercase font-sans font-bold tracking-widest text-accent mb-3">Parts</p>
                   <div className="overflow-x-auto rounded-xl border border-border">
                     <table className="w-full text-[11.5px]">
                       <thead>
-                        <tr className="border-b border-border bg-[#1C2A3E]/60">
+                        <tr className="border-b border-border bg-card/60">
                           {["S.No", "Part Code", "Description", "Qty", "Price", "Amount"].map(h => (
-                            <th key={h} className="px-3 py-2.5 text-left font-semibold text-muted-foreground font-['Rajdhani'] text-[10px] tracking-wide uppercase whitespace-nowrap">{h}</th>
+                            <th key={h} className="px-3 py-2.5 text-left font-semibold text-muted-foreground font-sans text-[10px] tracking-wide uppercase whitespace-nowrap">{h}</th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
                         {jc.parts.map((p, i) => (
-                          <tr key={i} className="border-b border-border/50 hover:bg-[#1C2A3E]/20 transition-colors">
-                            <td className="px-3 py-2.5 text-muted-foreground font-['JetBrains_Mono']">{p.sno}</td>
-                            <td className="px-3 py-2.5 text-muted-foreground font-['JetBrains_Mono'] text-[10px]">{p.code}</td>
-                            <td className="px-3 py-2.5 text-foreground font-['Rajdhani'] font-semibold">{p.desc}</td>
-                            <td className="px-3 py-2.5 text-foreground font-['JetBrains_Mono']">{p.qty}</td>
-                            <td className="px-3 py-2.5 text-foreground font-['JetBrains_Mono']">₹{p.price.toLocaleString()}</td>
-                            <td className="px-3 py-2.5 text-foreground font-['JetBrains_Mono'] font-medium">₹{p.amount.toLocaleString()}</td>
+                          <tr key={i} className="border-b border-border hover:bg-card/20 transition-colors">
+                            <td className="px-3 py-2.5 text-muted-foreground font-mono">{p.sno}</td>
+                            <td className="px-3 py-2.5 text-muted-foreground font-mono text-[10px]">{p.code}</td>
+                            <td className="px-3 py-2.5 text-foreground font-sans font-semibold">{p.desc}</td>
+                            <td className="px-3 py-2.5 text-foreground font-mono">{p.qty}</td>
+                            <td className="px-3 py-2.5 text-foreground font-mono">₹{p.price.toLocaleString()}</td>
+                            <td className="px-3 py-2.5 text-foreground font-mono font-medium">₹{p.amount.toLocaleString()}</td>
                           </tr>
                         ))}
-                        <tr className="bg-[#1C2A3E]/40">
-                          <td colSpan={5} className="px-3 py-2 text-right text-[11px] font-bold text-muted-foreground font-['Rajdhani'] uppercase tracking-wide">Parts Total</td>
-                          <td className="px-3 py-2 text-accent font-['JetBrains_Mono'] font-bold">₹{partsTotal.toLocaleString()}</td>
+                        <tr className="bg-card/40">
+                          <td colSpan={5} className="px-3 py-2 text-right text-[11px] font-bold text-muted-foreground font-sans uppercase tracking-wide">Parts Total</td>
+                          <td className="px-3 py-2 text-accent font-mono font-bold">₹{partsTotal.toLocaleString()}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -2742,35 +2742,35 @@ function JCDetailModal({ jcNo, onClose }: { jcNo: string; onClose: () => void })
                     { label: "Estimated Labour Cost", value: jc.pricing.estLabour, color: "text-primary" },
                     { label: "Estimated Parts Cost", value: jc.pricing.estParts, color: "text-accent" },
                   ].map((item, i) => (
-                    <div key={i} className="p-4 rounded-xl bg-[#1C2A3E]/40 border border-border flex flex-col gap-1">
-                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-['Rajdhani'] font-semibold">{item.label}</p>
-                      <p className={`text-[20px] font-bold font-['JetBrains_Mono'] ${item.color}`}>₹{item.value.toLocaleString()}</p>
+                    <div key={i} className="p-4 rounded-xl bg-card/40 border border-border flex flex-col gap-1">
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-sans font-semibold">{item.label}</p>
+                      <p className={`text-[20px] font-bold font-mono ${item.color}`}>₹{item.value.toLocaleString()}</p>
                     </div>
                   ))}
                 </div>
                 <div className="p-5 rounded-xl bg-gradient-to-r from-primary/10 to-accent/5 border border-primary/30 flex items-center justify-between">
                   <div>
-                    <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-['Rajdhani'] font-semibold">Grand Total (Tax not included)</p>
-                    <p className="text-[28px] font-bold font-['JetBrains_Mono'] text-foreground mt-1">₹{grandTotal.toLocaleString()}</p>
+                    <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-sans font-semibold">Grand Total (Tax not included)</p>
+                    <p className="text-[28px] font-bold font-mono text-foreground mt-1">₹{grandTotal.toLocaleString()}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] uppercase text-muted-foreground font-['Rajdhani'] font-semibold mb-1">Payment Mode</p>
-                    <p className="text-[14px] font-bold font-['Rajdhani'] text-foreground">{jc.paymentMode}</p>
-                    <p className="text-[10px] text-muted-foreground font-['Rajdhani'] mt-0.5">Promised by {jc.promisedDate} {jc.promisedTime}</p>
+                    <p className="text-[10px] uppercase text-muted-foreground font-sans font-semibold mb-1">Payment Mode</p>
+                    <p className="text-[14px] font-bold font-sans text-foreground">{jc.paymentMode}</p>
+                    <p className="text-[10px] text-muted-foreground font-sans mt-0.5">Promised by {jc.promisedDate} {jc.promisedTime}</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-3 text-[11px]">
-                  <div className="p-3 rounded-lg bg-[#1C2A3E]/30 border border-border text-center">
-                    <p className="text-muted-foreground font-['Rajdhani'] mb-0.5">Labour</p>
-                    <p className="text-primary font-bold font-['JetBrains_Mono']">₹{labourTotal.toLocaleString()}</p>
+                  <div className="p-3 rounded-lg bg-card/30 border border-border text-center">
+                    <p className="text-muted-foreground font-sans mb-0.5">Labour</p>
+                    <p className="text-primary font-bold font-mono">₹{labourTotal.toLocaleString()}</p>
                   </div>
-                  <div className="p-3 rounded-lg bg-[#1C2A3E]/30 border border-border text-center">
-                    <p className="text-muted-foreground font-['Rajdhani'] mb-0.5">Parts</p>
-                    <p className="text-accent font-bold font-['JetBrains_Mono']">₹{partsTotal.toLocaleString()}</p>
+                  <div className="p-3 rounded-lg bg-card/30 border border-border text-center">
+                    <p className="text-muted-foreground font-sans mb-0.5">Parts</p>
+                    <p className="text-accent font-bold font-mono">₹{partsTotal.toLocaleString()}</p>
                   </div>
-                  <div className="p-3 rounded-lg bg-[#1C2A3E]/30 border border-border text-center">
-                    <p className="text-muted-foreground font-['Rajdhani'] mb-0.5">Items</p>
-                    <p className="text-foreground font-bold font-['JetBrains_Mono']">{jc.labour.length + jc.parts.length}</p>
+                  <div className="p-3 rounded-lg bg-card/30 border border-border text-center">
+                    <p className="text-muted-foreground font-sans mb-0.5">Items</p>
+                    <p className="text-foreground font-bold font-mono">{jc.labour.length + jc.parts.length}</p>
                   </div>
                 </div>
               </motion.div>
@@ -2779,34 +2779,34 @@ function JCDetailModal({ jcNo, onClose }: { jcNo: string; onClose: () => void })
         </div>
 
         {/* Footer Action Buttons */}
-        <div className="px-6 py-4 bg-[#070C16] border-t border-[rgba(61,142,240,0.15)] flex items-center justify-between gap-3">
+        <div className="px-6 py-4 bg-background border-t border-border flex items-center justify-between gap-3">
           <div className="flex gap-2">
-            <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#1C2A3E] hover:bg-[#253347] border border-border text-[11px] font-semibold font-['Rajdhani'] text-muted-foreground hover:text-foreground transition-all">
+            <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-card hover:bg-muted border border-border text-[11px] font-semibold font-sans text-muted-foreground hover:text-foreground transition-all">
               <Mail size={12} /> Email JC
             </button>
             <button 
               onClick={() => generateJcPdf(jc, 'print')}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#1C2A3E] hover:bg-[#253347] border border-border text-[11px] font-semibold font-['Rajdhani'] text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-card hover:bg-muted border border-border text-[11px] font-semibold font-sans text-muted-foreground hover:text-foreground transition-all cursor-pointer"
             >
               <Eye size={12} /> View JC
             </button>
             <button 
               onClick={() => generateJcPdf(jc, 'print')}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#1C2A3E] hover:bg-[#253347] border border-border text-[11px] font-semibold font-['Rajdhani'] text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-card hover:bg-muted border border-border text-[11px] font-semibold font-sans text-muted-foreground hover:text-foreground transition-all cursor-pointer"
             >
               <Printer size={12} /> Print JC
             </button>
             <button 
               onClick={() => generateJcPdf(jc, 'download')}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#1C2A3E] hover:bg-[#253347] border border-border text-[11px] font-semibold font-['Rajdhani'] text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-card hover:bg-muted border border-border text-[11px] font-semibold font-sans text-muted-foreground hover:text-foreground transition-all cursor-pointer"
             >
               <Download size={12} /> Download JC
             </button>
-            <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#1C2A3E] hover:bg-[#253347] border border-border text-[11px] font-semibold font-['Rajdhani'] text-muted-foreground hover:text-foreground transition-all">
+            <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-card hover:bg-muted border border-border text-[11px] font-semibold font-sans text-muted-foreground hover:text-foreground transition-all">
               <Hash size={12} /> Probing Sheet
             </button>
           </div>
-          <button className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 text-[11px] font-bold font-['Rajdhani'] text-white transition-all">
+          <button className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 text-[11px] font-bold font-sans text-white transition-all">
             <RefreshCw size={12} /> OCAS Status
           </button>
         </div>
@@ -2839,32 +2839,32 @@ function Tab1ActionModal({
         initial={{ opacity: 0, scale: 0.95 }} 
         animate={{ opacity: 1, scale: 1 }} 
         exit={{ opacity: 0, scale: 0.95 }}
-        className="relative w-full max-w-sm bg-[#0E1626] border border-[rgba(61,142,240,0.25)] rounded-2xl shadow-2xl p-6 overflow-hidden z-10 flex flex-col gap-4 font-sans text-white"
+        className="relative w-full max-w-sm bg-card border border-border rounded-2xl shadow-2xl p-6 overflow-hidden z-10 flex flex-col gap-4 font-sans text-white"
       >
-        <div className="flex justify-between items-center pb-2 border-b border-border/20">
-          <p className="text-[14px] font-bold font-['Rajdhani'] uppercase tracking-wider text-primary">TAB1 Action Panel</p>
+        <div className="flex justify-between items-center pb-2 border-b border-border">
+          <p className="text-[14px] font-bold font-sans uppercase tracking-wider text-primary">TAB1 Action Panel</p>
           <button onClick={onClose} className="text-muted-foreground hover:text-white font-bold text-lg leading-none cursor-pointer">×</button>
         </div>
         <div className="text-center py-2">
           <p className="text-[12px] text-muted-foreground">Select Required Action for</p>
-          <p className="text-[15px] font-bold text-secondary font-['JetBrains_Mono'] mt-1">{jcNo}</p>
+          <p className="text-[15px] font-bold text-secondary font-mono mt-1">{jcNo}</p>
         </div>
         <div className="flex flex-col gap-2.5">
           <button 
             onClick={() => onSelectAction("find_id")}
-            className="w-full py-2.5 text-[12px] font-bold text-primary border border-primary/30 hover:border-primary hover:bg-primary/5 rounded-xl transition-all cursor-pointer font-['Rajdhani'] uppercase tracking-wider bg-[#1C2A3E]/30"
+            className="w-full py-2.5 text-[12px] font-bold text-primary border border-primary/30 hover:border-primary hover:bg-primary/5 rounded-xl transition-all cursor-pointer font-sans uppercase tracking-wider bg-card/30"
           >
             Find ID (View Details)
           </button>
           <button 
             onClick={() => onSelectAction("update")}
-            className="w-full py-2.5 text-[12px] font-bold text-[#FACC15] border border-[#FACC15]/30 hover:border-[#FACC15] hover:bg-[#FACC15]/5 rounded-xl transition-all cursor-pointer font-['Rajdhani'] uppercase tracking-wider bg-[#1C2A3E]/30"
+            className="w-full py-2.5 text-[12px] font-bold text-[#FACC15] border border-[#FACC15]/30 hover:border-[#FACC15] hover:bg-[#FACC15]/5 rounded-xl transition-all cursor-pointer font-sans uppercase tracking-wider bg-card/30"
           >
             Update Jobcard
           </button>
           <button 
             onClick={() => onSelectAction("close")}
-            className="w-full py-2.5 text-[12.5px] font-bold text-white bg-primary hover:bg-primary/95 rounded-xl transition-all cursor-pointer font-['Rajdhani'] uppercase tracking-wider shadow-lg shadow-primary/20"
+            className="w-full py-2.5 text-[12.5px] font-bold text-white bg-primary hover:bg-primary/95 rounded-xl transition-all cursor-pointer font-sans uppercase tracking-wider shadow-lg shadow-primary/20"
           >
             ✅ Close Jobcard
           </button>
@@ -3101,7 +3101,7 @@ function CloseJobCardPanel({
   const [dentDot, setDentDot] = useState<number[]>([2, 5]);
 
   return (
-    <div className="relative flex flex-col h-full bg-[#070C16] text-white overflow-hidden font-sans">
+    <div className="relative flex flex-col h-full bg-background text-white overflow-hidden font-sans">
       
       {/* Absolute Toast */}
       <AnimatePresence>
@@ -3121,9 +3121,9 @@ function CloseJobCardPanel({
       {/* Confirmation Step 10 Modal */}
       {showConfirmation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
-          <div className="bg-[#0E1626] border border-[#155DFC]/20 p-6 rounded-2xl max-w-sm w-full text-center flex flex-col gap-4">
+          <div className="bg-card border border-[#155DFC]/20 p-6 rounded-2xl max-w-sm w-full text-center flex flex-col gap-4">
             <AlertTriangle className="text-amber-500 mx-auto" size={40} />
-            <h4 className="text-[15px] font-bold font-['Rajdhani'] uppercase tracking-wider text-white">Verification Check</h4>
+            <h4 className="text-[15px] font-bold font-sans uppercase tracking-wider text-white">Verification Check</h4>
             <p className="text-[12.5px] text-muted-foreground">Please make sure all the information filled by you is correct. Do you wish to continue?</p>
             <div className="grid grid-cols-2 gap-3 mt-2">
               <button 
@@ -3149,12 +3149,12 @@ function CloseJobCardPanel({
       {/* Success Modal */}
       {showSuccessCard && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-          <div className="bg-[#0E1626] border border-[#4ADE80]/30 p-8 rounded-2xl max-w-md w-full text-center flex flex-col gap-4 shadow-2xl justify-center items-center">
+          <div className="bg-card border border-[#4ADE80]/30 p-8 rounded-2xl max-w-md w-full text-center flex flex-col gap-4 shadow-2xl justify-center items-center">
             <div className="w-16 h-16 rounded-full bg-[#10B981]/15 flex items-center justify-center border-2 border-[#10B981] animate-pulse">
               <Check className="text-[#10B981]" size={36} />
             </div>
-            <h3 className="text-[18px] font-black font-['Rajdhani'] uppercase text-[#10B981]">Job Card Closed Successfully!</h3>
-            <div className="bg-[#070C16] border border-border/10 p-4 rounded-xl w-full text-[12px] font-mono text-left flex flex-col gap-1.5 mt-2">
+            <h3 className="text-[18px] font-black font-sans uppercase text-[#10B981]">Job Card Closed Successfully!</h3>
+            <div className="bg-background border border-border p-4 rounded-xl w-full text-[12px] font-mono text-left flex flex-col gap-1.5 mt-2">
               <p><span className="text-muted-foreground">Invoice No:</span> <strong className="text-white">INV-2026-NEXA3802</strong></p>
               <p><span className="text-muted-foreground">Registration:</span> <strong className="text-white">{jc.customer.regNo}</strong></p>
               <p><span className="text-muted-foreground">Total Paid:</span> <strong className="text-[#4ADE80]">₹ {grandTotal.toLocaleString()}</strong></p>
@@ -3189,7 +3189,7 @@ function CloseJobCardPanel({
             </div>
             <button 
               onClick={onBack} 
-              className="mt-2 w-full py-2.5 bg-primary hover:bg-primary-hover text-white text-[12px] font-black rounded-lg transition-all font-['Rajdhani'] uppercase tracking-wider shadow-lg"
+              className="mt-2 w-full py-2.5 bg-primary hover:bg-primary-hover text-white text-[12px] font-black rounded-lg transition-all font-sans uppercase tracking-wider shadow-lg"
             >
               Return to Homepage
             </button>
@@ -3198,25 +3198,25 @@ function CloseJobCardPanel({
       )}
 
       {/* Header bar */}
-      <div className="bg-[#0A1020] border-b border-border/25 px-4 h-12 flex items-center justify-between shrink-0 select-none">
+      <div className="bg-background border-b border-border px-4 h-12 flex items-center justify-between shrink-0 select-none">
         <div className="flex items-center gap-3">
           <button onClick={handlePrevStep} className="flex items-center gap-1 text-[11.5px] font-bold text-muted-foreground hover:text-white transition-colors cursor-pointer">
             <ChevronLeft size={14} /> Back
           </button>
           <div className="h-4 w-[1px] bg-border/20" />
-          <p className="text-[12.5px] font-black tracking-widest font-['Rajdhani'] text-primary uppercase">CLOSE JOB CARD</p>
-          <span className="text-[10px] font-mono text-[#8F9CAE] bg-[#1C2A3E] px-2 py-0.5 rounded border border-border/30">{jc.jcNo}</span>
+          <p className="text-[12.5px] font-black tracking-widest font-sans text-primary uppercase">CLOSE JOB CARD</p>
+          <span className="text-[10px] font-mono text-[#8F9CAE] bg-card px-2 py-0.5 rounded border border-border">{jc.jcNo}</span>
         </div>
         <div className="flex items-center gap-4 text-[10.5px] font-semibold text-muted-foreground">
           <div className="flex gap-1.5 items-center">
-            <span className="text-[#3D8EF0] font-mono font-bold">{jc.customer.regNo}</span> · <span className="uppercase text-white">{jc.customer.model}</span>
+            <span className="text-primary font-mono font-bold">{jc.customer.regNo}</span> · <span className="uppercase text-white">{jc.customer.model}</span>
           </div>
-          <p className="font-['JetBrains_Mono'] text-white">v11.2 DEV</p>
+          <p className="font-mono text-white">v11.2 DEV</p>
         </div>
       </div>
 
       {/* Progress step dots */}
-      <div className="bg-[#070C16] border-b border-border/10 py-2.5 px-4 flex items-center gap-1.5 overflow-x-auto select-none scrollbar-none shrink-0">
+      <div className="bg-background border-b border-border py-2.5 px-4 flex items-center gap-1.5 overflow-x-auto select-none scrollbar-none shrink-0">
         {stepsLabels.map((lab, i) => (
           <React.Fragment key={i}>
             {i > 0 && <div className={`h-[1.5px] w-4 shrink-0 rounded ${step >= i ? "bg-primary" : "bg-border/20"}`} />}
@@ -3225,12 +3225,12 @@ function CloseJobCardPanel({
                 // SAs can jump to any previous step or next if allowed. Let's let them navigate easily.
                 if (i <= step) setStep(i);
               }}
-              className={`flex items-center gap-1.5 px-3 py-1 text-[10.5px] font-bold rounded-full border transition-all shrink-0 font-['Rajdhani'] uppercase ${
+              className={`flex items-center gap-1.5 px-3 py-1 text-[10.5px] font-bold rounded-full border transition-all shrink-0 font-sans uppercase ${
                 step === i 
                   ? "bg-primary text-white border-primary" 
                   : step > i 
-                    ? "bg-[#1C2A3E]/30 text-primary border-primary/30" 
-                    : "text-muted-foreground border-border/10"
+                    ? "bg-card/30 text-primary border-primary/30" 
+                    : "text-muted-foreground border-border"
               }`}
             >
               <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[8px] ${step > i ? "bg-[#10B981]/20 text-[#10B981]" : "bg-black/20"}`}>
@@ -3243,17 +3243,17 @@ function CloseJobCardPanel({
       </div>
 
       {/* Persistent Details Strip */}
-      <div className="bg-[#0A1020]/25 px-4 py-2 border-b border-border/15 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10.5px] shrink-0 font-sans">
+      <div className="bg-background/25 px-4 py-2 border-b border-border grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10.5px] shrink-0 font-sans">
         <div>
-          <p className="text-muted-foreground uppercase text-[8px] font-bold font-['Rajdhani']">Jobcard Opened</p>
+          <p className="text-muted-foreground uppercase text-[8px] font-bold font-sans">Jobcard Opened</p>
           <p className="text-white font-semibold mt-0.5">02-SEP-2025 12:45</p>
         </div>
         <div>
-          <p className="text-muted-foreground uppercase text-[8px] font-bold font-['Rajdhani']">Est. Delivery Target</p>
+          <p className="text-muted-foreground uppercase text-[8px] font-bold font-sans">Est. Delivery Target</p>
           <p className="text-white font-semibold mt-0.5">03-SEP-2025 12:44</p>
         </div>
         <div>
-          <p className="text-muted-foreground uppercase text-[8px] font-bold font-['Rajdhani'] flex items-center gap-1">Revised Target ✏️</p>
+          <p className="text-muted-foreground uppercase text-[8px] font-bold font-sans flex items-center gap-1">Revised Target ✏️</p>
           <input 
             value={revisedDate}
             onChange={(e) => setRevisedDate(e.target.value)}
@@ -3261,23 +3261,23 @@ function CloseJobCardPanel({
           />
         </div>
         <div>
-          <p className="text-muted-foreground uppercase text-[8px] font-bold font-['Rajdhani']">Estimations (Current)</p>
-          <p className="text-[#3D8EF0] font-black mt-0.5">₹ {grandTotal.toLocaleString()} <span className="text-muted-foreground font-light text-[9.5px]">(Excl. tax)</span></p>
+          <p className="text-muted-foreground uppercase text-[8px] font-bold font-sans">Estimations (Current)</p>
+          <p className="text-primary font-black mt-0.5">₹ {grandTotal.toLocaleString()} <span className="text-muted-foreground font-light text-[9.5px]">(Excl. tax)</span></p>
         </div>
       </div>
 
       {/* Main step container */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-[#070C16]">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-background">
         <div className="max-w-4xl mx-auto w-full flex flex-col gap-5">
           
           {step === 0 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4">
-              <h3 className="text-[15px] font-bold font-['Rajdhani'] text-primary uppercase tracking-wide border-b border-border/10 pb-1">CUSTOMER & VEHICLE DETAILS</h3>
+              <h3 className="text-[15px] font-bold font-sans text-primary uppercase tracking-wide border-b border-border pb-1">CUSTOMER & VEHICLE DETAILS</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Odometer column */}
-                <div className="bg-[#0E1626] border border-border/35 p-4 rounded-xl flex flex-col gap-2.5">
-                  <p className="text-[12px] font-bold font-['Rajdhani'] text-secondary uppercase">Current Operations</p>
+                <div className="bg-card border border-border p-4 rounded-xl flex flex-col gap-2.5">
+                  <p className="text-[12px] font-bold font-sans text-secondary uppercase">Current Operations</p>
                   <div>
                     <label className="text-[10px] text-muted-foreground block mb-1 uppercase font-bold">Odometer Value (KMS) *</label>
                     <input 
@@ -3285,16 +3285,16 @@ function CloseJobCardPanel({
                       value={odometer} 
                       onChange={(e) => setOdometer(e.target.value)}
                       placeholder="e.g. 42376"
-                      className="w-full bg-[#1C2A3E] border border-border rounded-lg py-2 px-3 text-[12.5px] outline-none text-white focus:border-primary/50 font-mono font-bold"
+                      className="w-full bg-card border border-border rounded-lg py-2 px-3 text-[12.5px] outline-none text-white focus:border-primary/50 font-mono font-bold"
                     />
                   </div>
                   <p className="text-[10px] text-muted-foreground italic mt-1">Note: Odometer measurement is highly critical for running campaigns audit.</p>
                 </div>
 
                 {/* Patient Contacts Info */}
-                <div className="col-span-2 bg-[#0E1626] border border-border/15 p-4 rounded-xl grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  <div className="sm:col-span-2 border-b border-border/10 pb-1">
-                    <p className="text-[11px] font-bold font-['Rajdhani'] text-secondary uppercase">Contact & DMS Sync Profile</p>
+                <div className="col-span-2 bg-card border border-border p-4 rounded-xl grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="sm:col-span-2 border-b border-border pb-1">
+                    <p className="text-[11px] font-bold font-sans text-secondary uppercase">Contact & DMS Sync Profile</p>
                   </div>
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5 uppercase">Customer Name</label>
@@ -3313,7 +3313,7 @@ function CloseJobCardPanel({
                     <input 
                       value={mobile1}
                       onChange={(e) => setMobile1(e.target.value)}
-                      className="w-full mt-0.5 bg-[#1C2A3E]/60 border border-border/50 focus:border-primary rounded px-2.5 py-1 text-[12px] font-mono outline-none"
+                      className="w-full mt-0.5 bg-card/60 border border-border focus:border-primary rounded px-2.5 py-1 text-[12px] font-mono outline-none"
                     />
                   </div>
                   <div>
@@ -3322,7 +3322,7 @@ function CloseJobCardPanel({
                       value={mobile2}
                       onChange={(e) => setMobile2(e.target.value)}
                       placeholder="Optional"
-                      className="w-full mt-0.5 bg-[#1C2A3E]/60 border border-border/50 focus:border-primary rounded px-2.5 py-1 text-[12px] font-mono outline-none"
+                      className="w-full mt-0.5 bg-card/60 border border-border focus:border-primary rounded px-2.5 py-1 text-[12px] font-mono outline-none"
                     />
                   </div>
                   <div>
@@ -3330,21 +3330,21 @@ function CloseJobCardPanel({
                     <input 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full mt-0.5 bg-[#1C2A3E]/60 border border-border/50 focus:border-primary rounded px-2.5 py-1 text-[12px] outline-none"
+                      className="w-full mt-0.5 bg-card/60 border border-border focus:border-primary rounded px-2.5 py-1 text-[12px] outline-none"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Readonly technical status box */}
-              <div className="bg-[#1C2A3E]/30 p-4 rounded-xl border border-border/10 grid grid-cols-2 sm:grid-cols-5 gap-4 text-[11px]">
+              <div className="bg-card/30 p-4 rounded-xl border border-border grid grid-cols-2 sm:grid-cols-5 gap-4 text-[11px]">
                 <div>
                   <span className="text-[8.5px] block text-muted-foreground uppercase">Service Category</span>
                   <strong className="text-white uppercase">{jc.serviceType}</strong>
                 </div>
                 <div>
                   <span className="text-[8.5px] block text-muted-foreground uppercase">Appointment Type</span>
-                  <strong className="text-[#3D8EF0]">DMS Walk-In</strong>
+                  <strong className="text-primary">DMS Walk-In</strong>
                 </div>
                 <div>
                   <span className="text-[8.5px] block text-muted-foreground uppercase">EW Type Status</span>
@@ -3364,16 +3364,16 @@ function CloseJobCardPanel({
 
           {step === 1 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4">
-              <h3 className="text-[15px] font-bold font-['Rajdhani'] text-primary uppercase tracking-wide border-b border-border/10 pb-1">JOBCARD DETAILS</h3>
+              <h3 className="text-[15px] font-bold font-sans text-primary uppercase tracking-wide border-b border-border pb-1">JOBCARD DETAILS</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 
                 {/* Card 1: Bay Details */}
-                <div className="bg-[#0E1626] border border-border/15 p-4 rounded-xl flex flex-col gap-3">
-                  <p className="text-[11.5px] font-bold font-['Rajdhani'] text-secondary uppercase border-b border-border/10 pb-1">Bay Details</p>
+                <div className="bg-card border border-border p-4 rounded-xl flex flex-col gap-3">
+                  <p className="text-[11.5px] font-bold font-sans text-secondary uppercase border-b border-border pb-1">Bay Details</p>
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5">BAY CODE *</label>
-                    <select value={bay} onChange={(e) => setBay(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none font-bold">
+                    <select value={bay} onChange={(e) => setBay(e.target.value)} className="w-full bg-card text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none font-bold">
                       <option value="">Select Bay</option>
                       <option value="BODY REPAIRS">BODY REPAIRS</option>
                       <option value="BAY-01">BAY-01 (PMS STANDARD)</option>
@@ -3383,7 +3383,7 @@ function CloseJobCardPanel({
                   </div>
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5">GROUP CODE *</label>
-                    <select value={group} onChange={(e) => setGroup(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none">
+                    <select value={group} onChange={(e) => setGroup(e.target.value)} className="w-full bg-card text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none">
                       <option value="Other Group 2">Other Group 2</option>
                       <option value="GRP-A">GROUP-A (PMS/BODY)</option>
                       <option value="GRP-B">GROUP-B (CAR WASHING)</option>
@@ -3391,7 +3391,7 @@ function CloseJobCardPanel({
                   </div>
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5">TECHNICIAN *</label>
-                    <select value={technician} onChange={(e) => setTechnician(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none font-bold">
+                    <select value={technician} onChange={(e) => setTechnician(e.target.value)} className="w-full bg-card text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none font-bold">
                       <option value="">Select Technician</option>
                       <option value="Technician 3">Technician 3 (Sandeep S)</option>
                       <option value="RAJESH KUMAR">RAJESH KUMAR</option>
@@ -3400,7 +3400,7 @@ function CloseJobCardPanel({
                   </div>
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5">TECHNICAL EXPERT</label>
-                    <select value={techExpert} onChange={(e) => setTechExpert(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none">
+                    <select value={techExpert} onChange={(e) => setTechExpert(e.target.value)} className="w-full bg-card text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none">
                       <option value="Expert 2">Technical Expert 2</option>
                       <option value="Expert 1">Technical Advisor/Trainer</option>
                     </select>
@@ -3408,48 +3408,48 @@ function CloseJobCardPanel({
                 </div>
 
                 {/* Card 2: Last Follow-up details */}
-                <div className="bg-[#0E1626] border border-border/15 p-4 rounded-xl flex flex-col gap-3">
-                  <p className="text-[11.5px] font-bold font-['Rajdhani'] text-secondary uppercase border-b border-border/10 pb-1 font-semibold">Last Follow-Up Details</p>
+                <div className="bg-card border border-border p-4 rounded-xl flex flex-col gap-3">
+                  <p className="text-[11.5px] font-bold font-sans text-secondary uppercase border-b border-border pb-1 font-semibold">Last Follow-Up Details</p>
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5">FOLLOW UP DATE</label>
-                    <input type="text" value={followUpDate} onChange={(e) => setFollowUpDate(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none font-mono" />
+                    <input type="text" value={followUpDate} onChange={(e) => setFollowUpDate(e.target.value)} className="w-full bg-card text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none font-mono" />
                   </div>
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5">CS% VALUE</label>
-                    <input type="text" value={csPercent} onChange={(e) => setCsPercent(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none font-mono" />
+                    <input type="text" value={csPercent} onChange={(e) => setCsPercent(e.target.value)} className="w-full bg-card text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none font-mono" />
                   </div>
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5">FOLLOW UP DONE BY</label>
-                    <select value={followUpDoneBy} onChange={(e) => setFollowUpDoneBy(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none">
+                    <select value={followUpDoneBy} onChange={(e) => setFollowUpDoneBy(e.target.value)} className="w-full bg-card text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none">
                       <option value="CEO">CEO (Customer Experience Officer)</option>
                       <option value="Advisor CRM">Advisor CRM Team</option>
                     </select>
                   </div>
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5">CEO APPROVAL STATUS</label>
-                    <input type="text" readOnly value={ceoApprovalStatus} className="w-full bg-[#070C16] text-[#8F9CAE] text-[11px] px-2.5 py-1.5 rounded border border-border/15 outline-none font-mono" />
+                    <input type="text" readOnly value={ceoApprovalStatus} className="w-full bg-background text-[#8F9CAE] text-[11px] px-2.5 py-1.5 rounded border border-border outline-none font-mono" />
                   </div>
                 </div>
 
                 {/* Card 3: Road Test Details */}
-                <div className="bg-[#0E1626] border border-border/15 p-4 rounded-xl flex flex-col gap-3">
-                  <p className="text-[11.5px] font-bold font-['Rajdhani'] text-secondary uppercase border-b border-border/10 pb-1">Road Test Details</p>
+                <div className="bg-card border border-border p-4 rounded-xl flex flex-col gap-3">
+                  <p className="text-[11.5px] font-bold font-sans text-secondary uppercase border-b border-border pb-1">Road Test Details</p>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="text-[9px] text-muted-foreground block mb-0.5">START TIME</label>
-                      <input type="text" value={roadTestStartTime} onChange={(e) => setRoadTestStartTime(e.target.value)} className="w-full bg-[#1C2A3E] text-[11.5px] p-1.5 rounded border border-border text-center font-mono" />
+                      <input type="text" value={roadTestStartTime} onChange={(e) => setRoadTestStartTime(e.target.value)} className="w-full bg-card text-[11.5px] p-1.5 rounded border border-border text-center font-mono" />
                     </div>
                     <div>
                       <label className="text-[9px] text-muted-foreground block mb-0.5">START KMS</label>
-                      <input type="text" value={roadTestStartKms} onChange={(e) => setRoadTestStartKms(e.target.value)} className="w-full bg-[#1C2A3E] text-[11.5px] p-1.5 rounded border border-border text-center font-mono font-bold" />
+                      <input type="text" value={roadTestStartKms} onChange={(e) => setRoadTestStartKms(e.target.value)} className="w-full bg-card text-[11.5px] p-1.5 rounded border border-border text-center font-mono font-bold" />
                     </div>
                     <div>
                       <label className="text-[9px] text-muted-foreground block mb-0.5">END TIME</label>
-                      <input type="text" value={roadTestEndTime} onChange={(e) => setRoadTestEndTime(e.target.value)} className="w-full bg-[#1C2A3E] text-[11.5px] p-1.5 rounded border border-border text-center font-mono" />
+                      <input type="text" value={roadTestEndTime} onChange={(e) => setRoadTestEndTime(e.target.value)} className="w-full bg-card text-[11.5px] p-1.5 rounded border border-border text-center font-mono" />
                     </div>
                     <div>
                       <label className="text-[9px] text-muted-foreground block mb-0.5">END KMS</label>
-                      <input type="text" value={roadTestEndKms} onChange={(e) => setRoadTestEndKms(e.target.value)} className="w-full bg-[#1C2A3E] text-[11.5px] p-1.5 rounded border border-border text-center font-mono font-bold" />
+                      <input type="text" value={roadTestEndKms} onChange={(e) => setRoadTestEndKms(e.target.value)} className="w-full bg-card text-[11.5px] p-1.5 rounded border border-border text-center font-mono font-bold" />
                     </div>
                   </div>
                   <p className="text-[9.5px] text-[#8F9CAE] italic mt-1 leading-snug">Road test validates wheel alignment and brake efficiency. Ensure values are locked into DMS.</p>
@@ -3461,21 +3461,21 @@ function CloseJobCardPanel({
 
           {step === 2 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4">
-              <h3 className="text-[15px] font-bold font-['Rajdhani'] text-primary uppercase tracking-wide border-b border-border/10 pb-1">VEHICLE STATUS (INSPECTION & RECORDING)</h3>
+              <h3 className="text-[15px] font-bold font-sans text-primary uppercase tracking-wide border-b border-border pb-1">VEHICLE STATUS (INSPECTION & RECORDING)</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 
                 {/* Left Panel: Car Interactive Hotspots */}
-                <div className="bg-[#0E1626] border border-border/15 p-4 rounded-xl flex flex-col gap-3">
+                <div className="bg-card border border-border p-4 rounded-xl flex flex-col gap-3">
                   <div className="flex justify-between items-center">
-                    <p className="text-[12.5px] font-bold font-['Rajdhani'] text-secondary uppercase font-semibold">Overhead Damage Diagram</p>
+                    <p className="text-[12.5px] font-bold font-sans text-secondary uppercase font-semibold">Overhead Damage Diagram</p>
                     <div className="flex gap-1">
-                      <button onClick={() => { setScratchDot([3, 7]); setDentDot([1, 10]); }} className="text-[9.5px] bg-[#1C2A3E] border border-border/30 hover:border-white px-2 py-0.5 rounded font-bold transition-all">RESET</button>
+                      <button onClick={() => { setScratchDot([3, 7]); setDentDot([1, 10]); }} className="text-[9.5px] bg-card border border-border hover:border-white px-2 py-0.5 rounded font-bold transition-all">RESET</button>
                     </div>
                   </div>
 
                   {/* SVG Top View Car Diagram with 14 spots */}
-                  <div className="relative border border-border/10 rounded-xl bg-black p-4 select-none">
+                  <div className="relative border border-border rounded-xl bg-black p-4 select-none">
                     <div className="absolute top-2 left-2 text-[9px] text-muted-foreground">TOP VIEW CAR OVERLAY</div>
                     
                     <svg viewBox="0 0 400 160" className="w-full h-[120px] filter drop-shadow(0 0 10px rgba(61,142,240,0.06))">
@@ -3527,7 +3527,7 @@ function CloseJobCardPanel({
                     </svg>
                   </div>
                   
-                  <div className="flex gap-4 justify-between text-[11px] bg-[#1C2A3E]/30 p-2.5 rounded-lg border border-border/10 font-bold tracking-tight select-none">
+                  <div className="flex gap-4 justify-between text-[11px] bg-card/30 p-2.5 rounded-lg border border-border font-bold tracking-tight select-none">
                     <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Scratches: <strong className="text-amber-400 font-mono">{scratchDot.length}</strong></span>
                     <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-red-400" /> Dents: <strong className="text-red-400 font-mono">{dentDot.length}</strong></span>
                     <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded bg-blue-500" /> Total Elements: <strong className="font-mono">{scratchDot.length + dentDot.length}</strong></span>
@@ -3539,11 +3539,11 @@ function CloseJobCardPanel({
                 </div>
 
                 {/* Right Panel: Side view + Image checklist */}
-                <div className="bg-[#0E1626] border border-border/15 p-4 rounded-xl flex flex-col gap-3">
-                  <p className="text-[12.5px] font-bold font-['Rajdhani'] text-secondary uppercase border-b border-border/10 pb-1">Media Checklist & Fuel Gauge</p>
+                <div className="bg-card border border-border p-4 rounded-xl flex flex-col gap-3">
+                  <p className="text-[12.5px] font-bold font-sans text-secondary uppercase border-b border-border pb-1">Media Checklist & Fuel Gauge</p>
                   
                   {/* Photo logs count */}
-                  <div className="flex flex-col gap-2 bg-[#1C2A3E]/30 p-3 rounded-lg border border-border/10">
+                  <div className="flex flex-col gap-2 bg-card/30 p-3 rounded-lg border border-border">
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="text-[11px] font-bold uppercase text-white">Interior Snaps Count: {interiorImagesCount}</p>
@@ -3552,13 +3552,13 @@ function CloseJobCardPanel({
                       <div className="flex gap-1.5">
                         <button 
                           onClick={() => setInteriorImagesCount(Math.max(0, interiorImagesCount - 1))}
-                          className="w-7 h-7 rounded bg-[#070C16] border border-border/20 flex items-center justify-center font-black select-none text-[14px]"
+                          className="w-7 h-7 rounded bg-background border border-border flex items-center justify-center font-black select-none text-[14px]"
                         >
                           -
                         </button>
                         <button 
                           onClick={() => setInteriorImagesCount(interiorImagesCount + 1)}
-                          className="w-7 h-7 rounded bg-[#070C16] border border-border/20 flex items-center justify-center font-black select-none text-[14px]"
+                          className="w-7 h-7 rounded bg-background border border-border flex items-center justify-center font-black select-none text-[14px]"
                         >
                           +
                         </button>
@@ -3578,7 +3578,7 @@ function CloseJobCardPanel({
                       <select 
                         value={fuelLevel} 
                         onChange={(e) => setFuelLevel(e.target.value)}
-                        className="bg-[#1C2A3E] text-white border border-border rounded px-2.5 py-1.5 text-[12px] font-bold outline-none cursor-pointer"
+                        className="bg-card text-white border border-border rounded px-2.5 py-1.5 text-[12px] font-bold outline-none cursor-pointer"
                       >
                         <option value="E">E (0%)</option>
                         <option value="1/4">1/4 (25%)</option>
@@ -3588,7 +3588,7 @@ function CloseJobCardPanel({
                       </select>
                       
                       {/* Visual fuel display meter */}
-                      <div className="flex-1 h-3.5 bg-black/50 border border-border/10 rounded overflow-hidden flex divide-x divide-black">
+                      <div className="flex-1 h-3.5 bg-black/50 border border-border rounded overflow-hidden flex divide-x divide-black">
                         {Array.from({ length: 4 }).map((_, segmentIdx) => {
                           const levelsArr = ["E", "1/4", "1/2", "3/4", "F"];
                           let selectedIdx = levelsArr.indexOf(fuelLevel);
@@ -3597,7 +3597,7 @@ function CloseJobCardPanel({
                           return (
                             <div 
                               key={segmentIdx} 
-                              className={`h-full flex-1 transition-all duration-300 ${filled ? "bg-gradient-to-r from-primary to-accent" : "bg-[#1C2A3E]/10"}`} 
+                              className={`h-full flex-1 transition-all duration-300 ${filled ? "bg-gradient-to-r from-primary to-accent" : "bg-card/10"}`} 
                             />
                           );
                         })}
@@ -3626,33 +3626,33 @@ function CloseJobCardPanel({
 
           {step === 3 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4">
-              <h3 className="text-[15px] font-bold font-['Rajdhani'] text-primary uppercase tracking-wide border-b border-border/10 pb-1">SERVICE MENU DETAILS</h3>
+              <h3 className="text-[15px] font-bold font-sans text-primary uppercase tracking-wide border-b border-border pb-1">SERVICE MENU DETAILS</h3>
               
-              <div className="bg-[#0E1626] border border-border/20 p-5 rounded-2xl flex flex-col gap-4 font-sans">
-                <div className="border-b border-border/10 pb-2">
-                  <span className="text-[13px] font-bold font-['Rajdhani'] text-secondary uppercase">Operational Closeout Matrix</span>
+              <div className="bg-card border border-border p-5 rounded-2xl flex flex-col gap-4 font-sans">
+                <div className="border-b border-border pb-2">
+                  <span className="text-[13px] font-bold font-sans text-secondary uppercase">Operational Closeout Matrix</span>
                   <p className="text-[10px] text-muted-foreground mt-0.5">Please confirm payment configuration and technician checklist assignments.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                   <div>
                     <label className="text-[10px] text-muted-foreground block mb-1 uppercase font-bold">Group Segment</label>
-                    <p className="text-[12px] text-white font-bold bg-[#1C2A3E]/30 p-2.5 rounded border border-border/10 font-mono">{group}</p>
+                    <p className="text-[12px] text-white font-bold bg-card/30 p-2.5 rounded border border-border font-mono">{group}</p>
                   </div>
                   <div>
                     <label className="text-[10px] text-muted-foreground block mb-1 uppercase font-bold">Closed By Expert</label>
-                    <p className="text-[12px] text-white font-bold bg-[#1C2A3E]/30 p-2.5 rounded border border-border/10 font-mono">{techExpert}</p>
+                    <p className="text-[12px] text-white font-bold bg-card/30 p-2.5 rounded border border-border font-mono">{techExpert}</p>
                   </div>
                   <div>
                     <label className="text-[10px] text-muted-foreground block mb-1 uppercase font-bold">Primary Technician Assigned</label>
-                    <p className="text-[12px] text-white font-bold bg-[#1C2A3E]/30 p-2.5 rounded border border-border/10 font-mono">{technician}</p>
+                    <p className="text-[12px] text-white font-bold bg-card/30 p-2.5 rounded border border-border font-mono">{technician}</p>
                   </div>
                   <div>
                     <label className="text-[10px] text-muted-foreground block mb-1 uppercase font-bold text-primary">Payment Mode *</label>
                     <select 
                       value={paymentMode} 
                       onChange={(e) => setPaymentMode(e.target.value)}
-                      className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none font-bold cursor-pointer"
+                      className="w-full bg-card text-white text-[12px] p-2 rounded border border-border outline-none font-bold cursor-pointer"
                     >
                       <option value="UPI">UPI / Digital Gateway</option>
                       <option value="Cash">Cash payment</option>
@@ -3663,16 +3663,16 @@ function CloseJobCardPanel({
                   </div>
                   <div>
                     <label className="text-[10px] text-muted-foreground block mb-1 uppercase font-bold">Subtotal parts cost</label>
-                    <p className="text-[12.5px] text-amber-400 font-bold bg-[#1C2A3E]/30 p-2 rounded border border-border/10 font-mono">₹ {partsTotal.toLocaleString()}</p>
+                    <p className="text-[12.5px] text-amber-400 font-bold bg-card/30 p-2 rounded border border-border font-mono">₹ {partsTotal.toLocaleString()}</p>
                   </div>
                   <div>
                     <label className="text-[10px] text-muted-foreground block mb-1 uppercase font-bold">Subtotal labour cost</label>
-                    <p className="text-[12.5px] text-amber-400 font-bold bg-[#1C2A3E]/30 p-2 rounded border border-border/10 font-mono font-bold">₹ {labourTotal.toLocaleString()}</p>
+                    <p className="text-[12.5px] text-amber-400 font-bold bg-card/30 p-2 rounded border border-border font-mono font-bold">₹ {labourTotal.toLocaleString()}</p>
                   </div>
                 </div>
 
                 <div className="bg-primary/10 border border-primary/20 px-4 py-3 rounded-xl mt-2 flex justify-between items-center text-[13px]">
-                  <span className="text-secondary tracking-wide uppercase font-['Rajdhani'] font-bold">TOTAL ESTIMATE INVOICE AMOUNT (EXCLUDING SALES TAX):</span>
+                  <span className="text-secondary tracking-wide uppercase font-sans font-bold">TOTAL ESTIMATE INVOICE AMOUNT (EXCLUDING SALES TAX):</span>
                   <strong className="text-primary font-mono text-[16px] font-black">₹ {grandTotal.toLocaleString()}</strong>
                 </div>
               </div>
@@ -3681,19 +3681,19 @@ function CloseJobCardPanel({
 
           {step === 4 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4">
-              <div className="flex justify-between items-center border-b border-border/10 pb-1">
-                <h3 className="text-[15px] font-bold font-['Rajdhani'] text-primary uppercase tracking-wide">DEMAND REPAIR DETAIL LIST</h3>
+              <div className="flex justify-between items-center border-b border-border pb-1">
+                <h3 className="text-[15px] font-bold font-sans text-primary uppercase tracking-wide">DEMAND REPAIR DETAIL LIST</h3>
                 <div className="flex gap-2 items-center text-[10px] text-muted-foreground font-semibold">
                   <span>Vehicle History</span> · <span>Email demands</span>
                 </div>
               </div>
 
               {/* Table of repairs */}
-              <div className="bg-[#0E1626] border border-border/20 rounded-xl overflow-hidden font-sans">
+              <div className="bg-card border border-border rounded-xl overflow-hidden font-sans">
                 <div className="overflow-x-auto">
                   <table className="w-full text-[11px] text-left">
                     <thead>
-                      <tr className="bg-[#0A1020] border-b border-border/20 text-[9px] uppercase font-['Rajdhani'] text-muted-foreground">
+                      <tr className="bg-background border-b border-border text-[9px] uppercase font-sans text-muted-foreground">
                         <th className="p-3 w-12 text-center">S.No</th>
                         <th className="p-3">Demand Code</th>
                         <th className="p-3">Demand Desc</th>
@@ -3707,7 +3707,7 @@ function CloseJobCardPanel({
                       {demands.map((dem, idx) => (
                         <tr key={idx} className="hover:bg-white/5 transition-colors">
                           <td className="p-3 font-mono text-center text-muted-foreground">{dem.sno}</td>
-                          <td className="p-3 font-mono text-[#3D8EF0] font-bold">{dem.code}</td>
+                          <td className="p-3 font-mono text-primary font-bold">{dem.code}</td>
                           <td className="p-3 text-foreground font-semibold uppercase">{dem.desc}</td>
                           <td className="p-3 text-center">
                             <input 
@@ -3754,16 +3754,16 @@ function CloseJobCardPanel({
               </div>
 
               {/* Codes block */}
-              <div className="bg-[#0E1626] border border-border/15 p-4 rounded-xl flex flex-col gap-3 font-sans">
-                <p className="text-[12px] font-bold font-['Rajdhani'] text-secondary uppercase">Problem / Fault / Action Classification *</p>
+              <div className="bg-card border border-border p-4 rounded-xl flex flex-col gap-3 font-sans">
+                <p className="text-[12px] font-bold font-sans text-secondary uppercase">Problem / Fault / Action Classification *</p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5 uppercase">Problem classification code *</label>
-                    <input value={problemCode} onChange={(e) => setProblemCode(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border font-mono outline-none" />
+                    <input value={problemCode} onChange={(e) => setProblemCode(e.target.value)} className="w-full bg-card text-white text-[12px] p-2 rounded border border-border font-mono outline-none" />
                   </div>
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5 uppercase">Fault code classification *</label>
-                    <select value={faultCode} onChange={(e) => setFaultCode(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none">
+                    <select value={faultCode} onChange={(e) => setFaultCode(e.target.value)} className="w-full bg-card text-white text-[12px] p-2 rounded border border-border outline-none">
                       <option value="FA09">FA09 (ELECTRICAL NOISE)</option>
                       <option value="FA12">FA12 (WHEEL ALIGNMENT OUT)</option>
                       <option value="FA15">FA15 (OIL DISCOLORATION)</option>
@@ -3771,7 +3771,7 @@ function CloseJobCardPanel({
                   </div>
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5">ACTION CLASSIFICATION *</label>
-                    <select value={actionCode} onChange={(e) => setActionCode(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none">
+                    <select value={actionCode} onChange={(e) => setActionCode(e.target.value)} className="w-full bg-card text-white text-[12px] p-2 rounded border border-border outline-none">
                       <option value="AC45">AC45 (REPLACE FILTER AND FLUID)</option>
                       <option value="AC12">AC12 (ADJUST AND RE-ALIGN)</option>
                       <option value="AC01">AC01 (WASH CLEANING)</option>
@@ -3786,13 +3786,13 @@ function CloseJobCardPanel({
                       placeholder="Enter closing diagnostic remarks…" 
                       value={commentText} 
                       onChange={(e) => setCommentText(e.target.value)}
-                      className="w-full bg-[#1C2A3E] text-white text-[11.5px] p-2 rounded border border-border outline-none h-14 resize-none"
+                      className="w-full bg-card text-white text-[11.5px] p-2 rounded border border-border outline-none h-14 resize-none"
                     />
                   </div>
                   
                   {/* Mock voice recorder button 🎙️ */}
-                  <div className="w-full sm:w-48 bg-[#070C16] border border-border/15 p-3 rounded-xl flex flex-col justify-center items-center text-center select-none">
-                    <p className="text-[9.5px] text-muted-foreground uppercase font-bold font-['Rajdhani'] mb-1">🎙️ Voice Closing Memo</p>
+                  <div className="w-full sm:w-48 bg-background border border-border p-3 rounded-xl flex flex-col justify-center items-center text-center select-none">
+                    <p className="text-[9.5px] text-muted-foreground uppercase font-bold font-sans mb-1">🎙️ Voice Closing Memo</p>
                     <button 
                       onClick={() => {
                         if (recordVoiceActive) {
@@ -3802,7 +3802,7 @@ function CloseJobCardPanel({
                           setVoiceSec(0);
                         }
                       }}
-                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer ${recordVoiceActive ? "bg-red-500 animate-pulse border-2 border-white scale-110" : "bg-[#1C2A3E] hover:bg-white/5 border border-border/30"}`}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer ${recordVoiceActive ? "bg-red-500 animate-pulse border-2 border-white scale-110" : "bg-card hover:bg-white/5 border border-border"}`}
                     >
                       <Mic size={15} className={recordVoiceActive ? "text-white" : "text-muted-foreground"} />
                     </button>
@@ -3815,10 +3815,10 @@ function CloseJobCardPanel({
 
           {step === 5 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4 font-sans">
-              <h3 className="text-[15px] font-bold font-['Rajdhani'] text-primary uppercase tracking-wide border-b border-border/10 pb-1">PART & LABOUR DETAILS</h3>
+              <h3 className="text-[15px] font-bold font-sans text-primary uppercase tracking-wide border-b border-border pb-1">PART & LABOUR DETAILS</h3>
               
               {/* Tabs */}
-              <div className="grid grid-cols-2 gap-2 bg-[#0A1020] p-1.5 rounded-xl border border-border/10 text-center text-[12.5px] font-bold select-none font-['Rajdhani'] uppercase tracking-wider">
+              <div className="grid grid-cols-2 gap-2 bg-background p-1.5 rounded-xl border border-border text-center text-[12.5px] font-bold select-none font-sans uppercase tracking-wider">
                 <button 
                   onClick={() => setShowAddLabour(false)} 
                   className={`py-2 rounded-lg transition-all ${!showAddLabour ? "bg-[#155DFC] text-white shadow-md shadow-[#155DFC]/20" : "text-muted-foreground hover:text-white"}`}
@@ -3836,10 +3836,10 @@ function CloseJobCardPanel({
               {!showAddLabour ? (
                 // Labour details tab
                 <div className="flex flex-col gap-3 font-sans">
-                  <div className="bg-[#0E1626] border border-border/10 rounded-xl overflow-hidden text-[11px]">
+                  <div className="bg-card border border-border rounded-xl overflow-hidden text-[11px]">
                     <table className="w-full text-left">
                       <thead>
-                        <tr className="bg-[#0A1020] text-muted-foreground text-[9.5px] font-bold font-['Rajdhani'] uppercase tracking-wider border-b border-border/20">
+                        <tr className="bg-background text-muted-foreground text-[9.5px] font-bold font-sans uppercase tracking-wider border-b border-border">
                           <th className="p-3 w-12 text-center">S.No</th>
                           <th className="p-3">Labour Code</th>
                           <th className="p-3">Labour Description</th>
@@ -3852,7 +3852,7 @@ function CloseJobCardPanel({
                         {labourItems.map((item, idx) => (
                           <tr key={idx} className="hover:bg-white/5 transition-all">
                             <td className="p-3 text-center text-muted-foreground font-mono">{idx + 1}</td>
-                            <td className="p-3 font-mono text-[#3D8EF0] font-bold">{item.code}</td>
+                            <td className="p-3 font-mono text-primary font-bold">{item.code}</td>
                             <td className="p-3 text-white font-semibold uppercase">{item.desc}</td>
                             <td className="p-3 text-right font-mono text-[#4ADE80] font-semibold">₹ {item.price.toLocaleString()}</td>
                             <td className="p-3 font-mono text-muted-foreground">{item.billableType}</td>
@@ -3881,18 +3881,18 @@ function CloseJobCardPanel({
                           billableType: "Customer"
                         }]);
                       }}
-                      className="px-4 py-2 bg-[#1C2A3E] hover:bg-white/5 border border-border/30 rounded-lg text-[11.5px] font-bold uppercase tracking-wider font-['Rajdhani'] flex items-center gap-1 cursor-pointer text-primary"
+                      className="px-4 py-2 bg-card hover:bg-white/5 border border-border rounded-lg text-[11.5px] font-bold uppercase tracking-wider font-sans flex items-center gap-1 cursor-pointer text-primary"
                     >
                       <Plus size={13} /> Add Labour Item
                     </button>
 
-                    <div className="flex items-center gap-4 text-[11.5px] bg-[#1C2A3E]/30 p-2.5 rounded-lg border border-border/15">
+                    <div className="flex items-center gap-4 text-[11.5px] bg-card/30 p-2.5 rounded-lg border border-border">
                       <div>
                         <label className="text-[9.5px] text-muted-foreground uppercase block font-bold">Labour Discount %</label>
                         <select 
                           value={labourDiscPercent} 
                           onChange={(e) => setLabourDiscPercent(e.target.value)} 
-                          className="bg-[#1D2E49] text-white border border-border/20 px-2 py-0.5 rounded outline-none font-mono font-bold font-semibold text-[11px]"
+                          className="bg-[#1D2E49] text-white border border-border px-2 py-0.5 rounded outline-none font-mono font-bold font-semibold text-[11px]"
                         >
                           <option value="0">0% Discount</option>
                           <option value="5">5% Discount</option>
@@ -3905,13 +3905,13 @@ function CloseJobCardPanel({
                         <select 
                           value={authBy} 
                           onChange={(e) => setAuthBy(e.target.value)} 
-                          className="bg-[#1D2E49] text-white border border-border/20 px-2 py-0.5 rounded outline-none font-bold text-[11px]"
+                          className="bg-[#1D2E49] text-white border border-border px-2 py-0.5 rounded outline-none font-bold text-[11px]"
                         >
                           <option value="ASHWANI CHAUHAN">ASHWANI CHAUHAN (CRM)</option>
                           <option value="MANISH TIWARI">MANISH TIWARI (SA)</option>
                         </select>
                       </div>
-                      <div className="font-sans font-bold border-l border-border/20 pl-4">
+                      <div className="font-sans font-bold border-l border-border pl-4">
                         <span className="text-muted-foreground font-light block uppercase text-[8.5px]">LABOUR SUM:</span>
                         <strong className="text-[#4ADE80] font-mono text-[13.5px]">₹ {labourTotal.toLocaleString()}</strong>
                       </div>
@@ -3921,10 +3921,10 @@ function CloseJobCardPanel({
               ) : (
                 // Part details tab
                 <div className="flex flex-col gap-3 font-sans">
-                  <div className="bg-[#0E1626] border border-border/10 rounded-xl overflow-hidden text-[11px] font-sans">
+                  <div className="bg-card border border-border rounded-xl overflow-hidden text-[11px] font-sans">
                     <table className="w-full text-left">
                       <thead>
-                        <tr className="bg-[#0A1020] text-muted-foreground text-[9.5px] font-bold font-['Rajdhani'] uppercase tracking-wider border-b border-border/20">
+                        <tr className="bg-background text-muted-foreground text-[9.5px] font-bold font-sans uppercase tracking-wider border-b border-border">
                           <th className="p-3 w-12 text-center">S.No</th>
                           <th className="p-3">Part Name</th>
                           <th className="p-3 text-right">Price</th>
@@ -3950,7 +3950,7 @@ function CloseJobCardPanel({
                                   newP[idx].qty = Number(e.target.value);
                                   setPartsItems(newP);
                                 }}
-                                className="bg-[#1C2A3E] text-white border border-border/30 rounded px-1 text-center text-[10.5px] font-bold outline-none"
+                                className="bg-card text-white border border-border rounded px-1 text-center text-[10.5px] font-bold outline-none"
                               >
                                 {Array.from({ length: 5 }).map((_, i) => (
                                   <option key={i + 1} value={i + 1}>{i + 1}</option>
@@ -3983,7 +3983,7 @@ function CloseJobCardPanel({
                           qty: 1
                         }]);
                       }}
-                      className="px-4 py-2 bg-[#1C2A3E] hover:bg-white/5 border border-border/30 rounded-lg text-[11.5px] font-bold uppercase tracking-wider font-['Rajdhani'] flex items-center gap-1 cursor-pointer text-primary"
+                      className="px-4 py-2 bg-card hover:bg-white/5 border border-border rounded-lg text-[11.5px] font-bold uppercase tracking-wider font-sans flex items-center gap-1 cursor-pointer text-primary"
                     >
                       <Plus size={13} /> Add Parts Item
                     </button>
@@ -4018,10 +4018,10 @@ function CloseJobCardPanel({
 
           {step === 6 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4 font-sans">
-              <h3 className="text-[15px] font-bold font-['Rajdhani'] text-primary uppercase tracking-wide border-b border-border/10 pb-1">LOYALTY POINTS & CCP ELIGIBILITY</h3>
+              <h3 className="text-[15px] font-bold font-sans text-primary uppercase tracking-wide border-b border-border pb-1">LOYALTY POINTS & CCP ELIGIBILITY</h3>
               
-              <div className="bg-[#0E1626] border border-border/15 p-5 rounded-xl flex flex-col gap-4 max-w-md mx-auto w-full font-sans shadow-md">
-                <div className="text-center pb-2 border-b border-border/10 select-none">
+              <div className="bg-card border border-border p-5 rounded-xl flex flex-col gap-4 max-w-md mx-auto w-full font-sans shadow-md">
+                <div className="text-center pb-2 border-b border-border select-none">
                   <span className="text-[11.5px] bg-[#FACC15]/15 text-[#FACC15] border border-[#FACC15]/20 px-3 py-1 font-bold font-mono rounded-full text-[10.5px]">NEXA PLATINUM ELIGIBLE CUSTOMER</span>
                   <p className="text-[11px] text-muted-foreground mt-3 font-sans">Customer is eligible to redeem existing dealer CCP loyalty cash credits instantly.</p>
                 </div>
@@ -4029,7 +4029,7 @@ function CloseJobCardPanel({
                 <div className="grid grid-cols-2 gap-3.5 text-[11.5px]">
                   <div>
                     <label className="text-[9px] text-muted-foreground uppercase font-bold">CCP Tier Style</label>
-                    <p className="text-white font-bold font-['Rajdhani'] text-[13px] uppercase">👑 Nexa Gold Tier</p>
+                    <p className="text-white font-bold font-sans text-[13px] uppercase">👑 Nexa Gold Tier</p>
                   </div>
                   <div>
                     <label className="text-[9px] text-muted-foreground uppercase font-bold">Loyalty Card Register</label>
@@ -4046,7 +4046,7 @@ function CloseJobCardPanel({
                 </div>
 
                 {!otpConfirmed ? (
-                  <div className="bg-[#070C16] p-4 rounded-xl border border-border/10 flex flex-col gap-3.5 shrink-0 select-none">
+                  <div className="bg-background p-4 rounded-xl border border-border flex flex-col gap-3.5 shrink-0 select-none">
                     <p className="text-[11.5px] font-bold text-white uppercase tracking-tight">Verify Secure CCP Redemption Code</p>
                     <div className="flex gap-2">
                       <input 
@@ -4054,7 +4054,7 @@ function CloseJobCardPanel({
                         value={ccpRedeemVal} 
                         onChange={(e) => setCcpRedeemVal(e.target.value)}
                         placeholder="Points count (max 542)"
-                        className="bg-[#1C2A3E] text-white border border-border/30 rounded px-2 text-[12px] w-2/3 outline-none"
+                        className="bg-card text-white border border-border rounded px-2 text-[12px] w-2/3 outline-none"
                       />
                       <button 
                         onClick={() => {
@@ -4062,20 +4062,20 @@ function CloseJobCardPanel({
                           triggerToast("Secure verification OTP text sent successfully to " + ccpMobile);
                           setCcpOtpVal("8022"); // default mock otp code
                         }}
-                        className="flex-1 py-1.5 bg-primary hover:bg-primary-hover text-white text-[11px] font-bold uppercase tracking-wider rounded transition-all font-['Rajdhani']"
+                        className="flex-1 py-1.5 bg-primary hover:bg-primary-hover text-white text-[11px] font-bold uppercase tracking-wider rounded transition-all font-sans"
                       >
                         {otpSent ? "SEND RE-OTP" : "SEND OTP"}
                       </button>
                     </div>
 
                     {otpSent && (
-                      <div className="flex items-center gap-2 animate-fade-in border-t border-border/5 pt-2.5 mt-1 shrink-0">
+                      <div className="flex items-center gap-2 animate-fade-in border-t border-border pt-2.5 mt-1 shrink-0">
                         <input 
                           type="text" 
                           placeholder="Enter 4-digit code" 
                           value={otpCode}
                           onChange={(e) => setOtpCode(e.target.value)}
-                          className="bg-[#1C2A3E] text-white text-[12px] p-1.5 rounded border border-border/30 text-center font-mono w-1/2 outline-none font-bold"
+                          className="bg-card text-white text-[12px] p-1.5 rounded border border-border text-center font-mono w-1/2 outline-none font-bold"
                         />
                         <button 
                           onClick={() => {
@@ -4086,7 +4086,7 @@ function CloseJobCardPanel({
                               triggerToast("Invalid OTP code! Please use mock code 8022 to proceed.");
                             }
                           }}
-                          className="flex-1 py-1.5 bg-[#10B981] hover:bg-[#10B981]/90 text-white text-[11px] font-bold uppercase rounded font-['Rajdhani']"
+                          className="flex-1 py-1.5 bg-[#10B981] hover:bg-[#10B981]/90 text-white text-[11px] font-bold uppercase rounded font-sans"
                         >
                           CONFIRM OTP
                         </button>
@@ -4119,19 +4119,19 @@ function CloseJobCardPanel({
 
           {step === 7 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4 font-sans">
-              <h3 className="text-[15px] font-bold font-['Rajdhani'] text-primary uppercase tracking-wide border-b border-border/10 pb-1">PICK UP & DROP DETAILS</h3>
+              <h3 className="text-[15px] font-bold font-sans text-primary uppercase tracking-wide border-b border-border pb-1">PICK UP & DROP DETAILS</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 
                 {/* Pick up Details Card */}
-                <div className="bg-[#0E1626] border border-border/15 p-4 rounded-xl flex flex-col gap-3 font-sans">
-                  <div className="flex justify-between items-center border-b border-border/10 pb-1">
-                    <p className="text-[12px] font-bold font-['Rajdhani'] text-secondary uppercase">Pick Up Metrics</p>
+                <div className="bg-card border border-border p-4 rounded-xl flex flex-col gap-3 font-sans">
+                  <div className="flex justify-between items-center border-b border-border pb-1">
+                    <p className="text-[12px] font-bold font-sans text-secondary uppercase">Pick Up Metrics</p>
                     <span className="text-[9.5px] text-muted-foreground uppercase cursor-pointer hover:text-white" onClick={() => setPickupRemarks("N/A")}>Reset</span>
                   </div>
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5">PICK UP TYPE *</label>
-                    <select value={pickupType} onChange={(e) => setPickupType(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none font-semibold">
+                    <select value={pickupType} onChange={(e) => setPickupType(e.target.value)} className="w-full bg-card text-white text-[12px] p-2 rounded border border-border outline-none font-semibold">
                       <option value="2. Drop Only">2. Drop Only (Standard)</option>
                       <option value="1. Full PnD">1. Pick and Drop both</option>
                       <option value="MMS">MMS (Mobility Service)</option>
@@ -4139,18 +4139,18 @@ function CloseJobCardPanel({
                   </div>
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5">PICK UP LOCATION</label>
-                    <select value={pickupLoc} onChange={(e) => setPickupLoc(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none">
+                    <select value={pickupLoc} onChange={(e) => setPickupLoc(e.target.value)} className="w-full bg-card text-white text-[12px] p-2 rounded border border-border outline-none">
                       <option value="Location 2">Gurgaon Sector 2</option>
                       <option value="Location 1">Gurgaon Sector 14</option>
                     </select>
                   </div>
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5">PICK UP ADDRESS</label>
-                    <input value={pickupAddr} onChange={(e) => setPickupAddr(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none" />
+                    <input value={pickupAddr} onChange={(e) => setPickupAddr(e.target.value)} className="w-full bg-card text-white text-[12px] p-2 rounded border border-border outline-none" />
                   </div>
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5">ASSOCIATED DRIVER</label>
-                    <select value={pndAssociate} onChange={(e) => setPndAssociate(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none">
+                    <select value={pndAssociate} onChange={(e) => setPndAssociate(e.target.value)} className="w-full bg-card text-white text-[12px] p-2 rounded border border-border outline-none">
                       <option value="Associate 2">Associate Driver 2</option>
                       <option value="Associate 1">Associate Driver 1 (Ramesh)</option>
                     </select>
@@ -4158,9 +4158,9 @@ function CloseJobCardPanel({
                 </div>
 
                 {/* Drop Details Card */}
-                <div className="bg-[#0E1626] border border-border/15 p-4 rounded-xl flex flex-col gap-3">
-                  <div className="flex justify-between items-center border-b border-border/10 pb-1">
-                    <p className="text-[12px] font-bold font-['Rajdhani'] text-secondary uppercase font-semibold">Drop Out Details</p>
+                <div className="bg-card border border-border p-4 rounded-xl flex flex-col gap-3">
+                  <div className="flex justify-between items-center border-b border-border pb-1">
+                    <p className="text-[12px] font-bold font-sans text-secondary uppercase font-semibold">Drop Out Details</p>
                     <div className="flex items-center gap-1.5 select-none">
                       <input 
                         type="checkbox" 
@@ -4180,22 +4180,22 @@ function CloseJobCardPanel({
                   </div>
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5">DROP TIME & TARGET DATE</label>
-                    <input value={dropTimeDate} onChange={(e) => setDropTimeDate(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none font-mono" />
+                    <input value={dropTimeDate} onChange={(e) => setDropTimeDate(e.target.value)} className="w-full bg-card text-white text-[12px] p-2 rounded border border-border outline-none font-mono" />
                   </div>
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5">DROP LOCATION</label>
-                    <select value={dropLoc} onChange={(e) => setDropLoc(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none">
+                    <select value={dropLoc} onChange={(e) => setDropLoc(e.target.value)} className="w-full bg-card text-white text-[12px] p-2 rounded border border-border outline-none">
                       <option value="Location 2">Gurgaon Sector 2</option>
                       <option value="Location 1">Gurgaon Sector 14</option>
                     </select>
                   </div>
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5">DROP ARRIVAL ADDRESS</label>
-                    <input value={dropAddr} onChange={(e) => setDropAddr(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none" />
+                    <input value={dropAddr} onChange={(e) => setDropAddr(e.target.value)} className="w-full bg-card text-white text-[12px] p-2 rounded border border-border outline-none" />
                   </div>
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5">DROP ASSOCIATED DRIVER</label>
-                    <select value={dropAssociate} onChange={(e) => setDropAssociate(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none">
+                    <select value={dropAssociate} onChange={(e) => setDropAssociate(e.target.value)} className="w-full bg-card text-white text-[12px] p-2 rounded border border-border outline-none">
                       <option value="Associate 2">Associate Driver 2</option>
                       <option value="Associate 1">Associate Driver 1</option>
                     </select>
@@ -4208,32 +4208,32 @@ function CloseJobCardPanel({
 
           {step === 8 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4 font-sans max-w-lg mx-auto w-full">
-              <h3 className="text-[15px] font-bold font-['Rajdhani'] text-primary uppercase tracking-wide border-b border-border/10 pb-1">TCS DETAILS & FISCAL POLICY</h3>
+              <h3 className="text-[15px] font-bold font-sans text-primary uppercase tracking-wide border-b border-border pb-1">TCS DETAILS & FISCAL POLICY</h3>
               
-              <div className="bg-[#0E1626] border border-border/15 p-5 rounded-xl flex flex-col gap-3 font-sans shadow-md">
+              <div className="bg-card border border-border p-5 rounded-xl flex flex-col gap-3 font-sans shadow-md">
                 <p className="text-[9.5px] text-muted-foreground leading-relaxed font-semibold uppercase text-secondary">TCS section 206C(1H) @ 0.1% audit declaration details</p>
-                <div className="bg-black/40 text-[10px] text-[#8F9CAE] p-3 rounded border border-border/10 leading-relaxed font-mono">
+                <div className="bg-black/40 text-[10px] text-[#8F9CAE] p-3 rounded border border-border leading-relaxed font-mono">
                   TCS under section 206C(1H) @0.1% is applicable on receipt of consideration for sale of any goods. The aggregate of TDS and TCS for any of the two immediately preceding FY is checked before invoicing.
                 </div>
 
                 <div className="flex flex-col gap-2.5 pt-1 text-[11.5px] select-none">
-                  <div className="flex justify-between items-center bg-[#1C2A3E]/30 p-2 rounded border border-border/10">
+                  <div className="flex justify-between items-center bg-card/30 p-2 rounded border border-border">
                     <span>Tax TCS on Customer ?</span>
-                    <select value={tcsCust} onChange={(e) => setTcsCust(e.target.value)} className="bg-[#070C16] text-[#4ADE80] border border-border/30 rounded px-2.5 py-1 text-[11px] font-bold outline-none cursor-pointer">
+                    <select value={tcsCust} onChange={(e) => setTcsCust(e.target.value)} className="bg-background text-[#4ADE80] border border-border rounded px-2.5 py-1 text-[11px] font-bold outline-none cursor-pointer">
                       <option value="NO">NO TCS</option>
                       <option value="YES">YES APPLICABLE (@0.1%)</option>
                     </select>
                   </div>
-                  <div className="flex justify-between items-center bg-[#1C2A3E]/30 p-2 rounded border border-border/10">
+                  <div className="flex justify-between items-center bg-card/30 p-2 rounded border border-border">
                     <span>Tax TCS on Insurance portion ?</span>
-                    <select value={tcsIns} onChange={(e) => setTcsIns(e.target.value)} className="bg-[#070C16] text-[#4ADE80] border border-border/30 rounded px-2.5 py-1 text-[11px] font-bold outline-none cursor-pointer">
+                    <select value={tcsIns} onChange={(e) => setTcsIns(e.target.value)} className="bg-background text-[#4ADE80] border border-border rounded px-2.5 py-1 text-[11px] font-bold outline-none cursor-pointer">
                       <option value="NO">NO TCS</option>
                       <option value="YES">YES APPLICABLE (@0.1%)</option>
                     </select>
                   </div>
-                  <div className="flex justify-between items-center bg-[#1C2A3E]/30 p-2 rounded border border-border/10">
+                  <div className="flex justify-between items-center bg-card/30 p-2 rounded border border-border">
                     <span>Tax TCS on EWR / TWN parameters ?</span>
-                    <select value={tcsEwrVal} onChange={(e) => setTcsEwrVal(e.target.value)} className="bg-[#070C16] text-[#4ADE80] border border-border/30 rounded px-2.5 py-1 text-[11px] font-bold outline-none cursor-pointer">
+                    <select value={tcsEwrVal} onChange={(e) => setTcsEwrVal(e.target.value)} className="bg-background text-[#4ADE80] border border-border rounded px-2.5 py-1 text-[11px] font-bold outline-none cursor-pointer">
                       <option value="NO">NO TCS</option>
                       <option value="YES">YES APPLICABLE (@0.1%)</option>
                     </select>
@@ -4245,12 +4245,12 @@ function CloseJobCardPanel({
 
           {step === 9 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4 font-sans">
-              <h3 className="text-[15px] font-bold font-['Rajdhani'] text-primary uppercase tracking-wide border-b border-border/10 pb-1">Pre-Invoice Bill Summary</h3>
+              <h3 className="text-[15px] font-bold font-sans text-primary uppercase tracking-wide border-b border-border pb-1">Pre-Invoice Bill Summary</h3>
               
-              <div className="bg-[#0E1626] border border-border/20 p-5 rounded-2xl flex flex-col gap-4 text-[12px] font-sans">
-                <div className="flex justify-between items-center border-b border-border/10 pb-2 select-none">
+              <div className="bg-card border border-border p-5 rounded-2xl flex flex-col gap-4 text-[12px] font-sans">
+                <div className="flex justify-between items-center border-b border-border pb-2 select-none">
                   <div>
-                    <h4 className="text-[13.5px] font-bold font-['Rajdhani'] text-secondary uppercase">Pre-Invoice Summary Billed Summary</h4>
+                    <h4 className="text-[13.5px] font-bold font-sans text-secondary uppercase">Pre-Invoice Summary Billed Summary</h4>
                     <p className="text-[10px] text-muted-foreground mt-0.5">Locked Date: 25-MAY-2026, 03:58 PM</p>
                   </div>
                   <span className="text-[11px] text-[#4ADE80] font-mono bg-[#10B981]/15 px-2.5 py-1 rounded border border-[#10B981]/30">PRE-CALCULATIONS APPROVED</span>
@@ -4259,8 +4259,8 @@ function CloseJobCardPanel({
                 {/* Grid list details */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Labour cost panel */}
-                  <div className="border border-border/10 rounded-xl bg-black/30 p-3.5">
-                    <p className="text-[10.5px] font-bold uppercase tracking-wider text-primary mb-2 font-['Rajdhani']">Billed Labour Items</p>
+                  <div className="border border-border rounded-xl bg-black/30 p-3.5">
+                    <p className="text-[10.5px] font-bold uppercase tracking-wider text-primary mb-2 font-sans">Billed Labour Items</p>
                     <div className="flex flex-col gap-1.5 font-sans divide-y divide-border/5">
                       {labourItems.map((item, idx) => (
                         <div key={idx} className="flex justify-between items-center pt-1.5 text-[11px]">
@@ -4272,8 +4272,8 @@ function CloseJobCardPanel({
                   </div>
 
                   {/* Parts billing panel */}
-                  <div className="border border-border/10 rounded-xl bg-black/30 p-3.5 font-sans">
-                    <p className="text-[10.5px] font-bold uppercase tracking-wider text-accent mb-2 font-['Rajdhani']">Billed Parts Spares</p>
+                  <div className="border border-border rounded-xl bg-black/30 p-3.5 font-sans">
+                    <p className="text-[10.5px] font-bold uppercase tracking-wider text-accent mb-2 font-sans">Billed Parts Spares</p>
                     <div className="flex flex-col gap-1.5 divide-y divide-border/5">
                       {partsItems.map((item, idx) => (
                         <div key={idx} className="flex justify-between items-center pt-1.5 text-[11px]">
@@ -4286,7 +4286,7 @@ function CloseJobCardPanel({
                 </div>
 
                 {/* Summary block */}
-                <div className="bg-[#070C16] border border-border/15 p-4 rounded-xl flex flex-col gap-1.5 font-sans mt-1">
+                <div className="bg-background border border-border p-4 rounded-xl flex flex-col gap-1.5 font-sans mt-1">
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Total Parts Cost Spares portion:</span>
                     <span className="font-mono text-white">₹ {partsTotal.toLocaleString()}</span>
@@ -4301,8 +4301,8 @@ function CloseJobCardPanel({
                       <span className="font-mono">- ₹ {ccpRedeemVal}</span>
                     </div>
                   )}
-                  <div className="border-t border-border/10 my-2 pt-2 flex justify-between items-center text-[14px] font-bold">
-                    <span className="text-primary font-['Rajdhani'] uppercase tracking-wider">Estimated Gross Total (Tax exclusive):</span>
+                  <div className="border-t border-border my-2 pt-2 flex justify-between items-center text-[14px] font-bold">
+                    <span className="text-primary font-sans uppercase tracking-wider">Estimated Gross Total (Tax exclusive):</span>
                     <strong className="text-primary font-mono select-all">₹ {grandTotal.toLocaleString()}.00</strong>
                   </div>
                 </div>
@@ -4314,7 +4314,7 @@ function CloseJobCardPanel({
                       setIsPreinvoicePdfSimulated(true);
                       triggerToast("PDF generated and downloaded successfully inside browser sandbox!");
                     }} 
-                    className="py-1.5 px-4 bg-[#1C2A3E]/70 hover:bg-[#1C2A3E] text-white rounded border border-border/25 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors font-['Rajdhani']"
+                    className="py-1.5 px-4 bg-card/70 hover:bg-card text-white rounded border border-border text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors font-sans"
                   >
                     <Eye size={12} /> {isPreinvoicePdfSimulated ? "Re-preview PDF" : "Preview Invoice"}
                   </button>
@@ -4322,7 +4322,7 @@ function CloseJobCardPanel({
                     onClick={() => {
                       triggerToast("Sent PDF print job successfully to workshop floor printer #4.");
                     }} 
-                    className="py-1.5 px-4 bg-[#1C2A3E]/70 hover:bg-[#1C2A3E] text-white rounded border border-border/25 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors font-['Rajdhani']"
+                    className="py-1.5 px-4 bg-card/70 hover:bg-card text-white rounded border border-border text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors font-sans"
                   >
                     <Printer size={12} /> Print Draft
                   </button>
@@ -4331,7 +4331,7 @@ function CloseJobCardPanel({
                       setIsPreinvoiceEmailed(true);
                       triggerToast("Preinvoice summary successfully emailed to " + email);
                     }} 
-                    className="py-1.5 px-4 bg-[#1C2A3E]/70 hover:bg-[#1C2A3E] text-[#10B981] hover:text-[#10B981] border border-[#10B981]/30 rounded text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors font-['Rajdhani']"
+                    className="py-1.5 px-4 bg-card/70 hover:bg-card text-[#10B981] hover:text-[#10B981] border border-[#10B981]/30 rounded text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors font-sans"
                   >
                     <Mail size={12} /> {isPreinvoiceEmailed ? "Re-email Invoice Draft" : "Email Draft"}
                   </button>
@@ -4344,10 +4344,10 @@ function CloseJobCardPanel({
       </div>
 
       {/* Button navigation floor bar */}
-      <div className="bg-[#0A1020] border-t border-border/20 px-6 py-4 flex items-center justify-between shrink-0 select-none text-[12px] font-bold">
+      <div className="bg-background border-t border-border px-6 py-4 flex items-center justify-between shrink-0 select-none text-[12px] font-bold">
         <button 
           onClick={handlePrevStep}
-          className="flex items-center gap-1 px-4 py-2 bg-[#1B293E] hover:bg-white/5 border border-border/30 rounded-lg text-muted-foreground hover:text-white transition-all font-['Rajdhani'] uppercase tracking-wider font-bold"
+          className="flex items-center gap-1 px-4 py-2 bg-[#1B293E] hover:bg-white/5 border border-border rounded-lg text-muted-foreground hover:text-white transition-all font-sans uppercase tracking-wider font-bold"
         >
           {step === 0 ? "✖ Cancel and exit" : "↩ Previous step"}
         </button>
@@ -4355,7 +4355,7 @@ function CloseJobCardPanel({
         {step === 7 ? (
           <button 
             onClick={handleNextStep}
-            className="flex items-center gap-1 px-5 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg transition-all font-['Rajdhani'] uppercase tracking-wider font-extrabold shadow-lg shadow-primary/25"
+            className="flex items-center gap-1 px-5 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg transition-all font-sans uppercase tracking-wider font-extrabold shadow-lg shadow-primary/25"
           >
             📋 Generate Pre-Invoice
           </button>
@@ -4364,14 +4364,14 @@ function CloseJobCardPanel({
             onClick={() => {
               setShowSuccessCard(true);
             }}
-            className="flex items-center gap-1 px-6 py-2.5 bg-[#10B981] hover:bg-[#10B981]/90 text-white rounded-lg transition-all font-['Rajdhani'] uppercase tracking-widest font-black shadow-lg shadow-[#10B981]/15"
+            className="flex items-center gap-1 px-6 py-2.5 bg-[#10B981] hover:bg-[#10B981]/90 text-white rounded-lg transition-all font-sans uppercase tracking-widest font-black shadow-lg shadow-[#10B981]/15"
           >
             ✅ CLOSE JOBCARD & DMS GENERATE
           </button>
         ) : (
           <button 
             onClick={handleNextStep}
-            className="flex items-center gap-1 px-5 py-2.5 bg-primary hover:bg-primary/95 text-white rounded-lg transition-all font-['Rajdhani'] uppercase tracking-wider font-bold"
+            className="flex items-center gap-1 px-5 py-2.5 bg-primary hover:bg-primary/95 text-white rounded-lg transition-all font-sans uppercase tracking-wider font-bold"
           >
             Next step ({stepsLabels[step + 1] || "Finish"}) →
           </button>
@@ -4421,57 +4421,57 @@ function AllJobCardsPanel({ onAction }: { onAction?: (a: PanelType, d?: Record<s
           <div className="relative flex-1">
             <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search JC No, Reg, Model…"
-              className="w-full pl-8 pr-3 py-2 text-[12px] bg-[#1C2A3E] border border-border rounded-lg text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 font-['JetBrains_Mono']" />
+              className="w-full pl-8 pr-3 py-2 text-[12px] bg-card border border-border rounded-lg text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 font-mono" />
           </div>
         </div>
         <div className="flex gap-1.5 flex-wrap">
           {filters.map(f => (
             <button key={f} onClick={() => setFilter(f)}
-              className={`px-3 py-1 text-[11px] font-semibold rounded-full transition-all font-['Rajdhani'] ${filter === f ? "bg-primary text-white" : "bg-[#1C2A3E] text-muted-foreground hover:text-foreground"}`}>{f}</button>
+              className={`px-3 py-1 text-[11px] font-semibold rounded-full transition-all font-sans ${filter === f ? "bg-primary text-white" : "bg-card text-muted-foreground hover:text-foreground"}`}>{f}</button>
           ))}
         </div>
         <div className="overflow-x-auto rounded-xl border border-border">
           <table className="w-full text-[11.5px]">
             <thead>
-              <tr className="border-b border-border bg-[#1C2A3E]/60">
+              <tr className="border-b border-border bg-card/60">
                 {["JC Number", "Model", "Reg No", "Service Type", "Status", "Date", "Amount"].map(h => (
-                  <th key={h} className="px-3 py-2.5 text-left font-semibold text-muted-foreground font-['Rajdhani'] text-[10px] tracking-wide uppercase whitespace-nowrap">{h}</th>
+                  <th key={h} className="px-3 py-2.5 text-left font-semibold text-muted-foreground font-sans text-[10px] tracking-wide uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filtered.map(jc => (
-                <tr key={jc.jcNo} className="border-b border-border/50 hover:bg-[#1C2A3E]/30 cursor-pointer transition-colors group" onClick={() => setTab1JcNo(jc.jcNo)}>
+                <tr key={jc.jcNo} className="border-b border-border hover:bg-card/30 cursor-pointer transition-colors group" onClick={() => setTab1JcNo(jc.jcNo)}>
                   <td className="px-3 py-2.5">
                     <button onClick={(e) => { e.stopPropagation(); setTab1JcNo(jc.jcNo); }}
-                      className="text-primary font-['JetBrains_Mono'] font-medium hover:text-accent hover:underline underline-offset-2 transition-colors">
+                      className="text-primary font-mono font-medium hover:text-accent hover:underline underline-offset-2 transition-colors">
                       {jc.jcNo}
                     </button>
                   </td>
                   <td className="px-3 py-2.5 text-foreground max-w-[140px] truncate">{jc.model}</td>
-                  <td className="px-3 py-2.5 text-foreground font-['JetBrains_Mono']">{jc.regNo}</td>
+                  <td className="px-3 py-2.5 text-foreground font-mono">{jc.regNo}</td>
                   <td className="px-3 py-2.5 text-foreground whitespace-nowrap">{jc.serviceType}</td>
                   <td className="px-3 py-2.5 relative" onClick={e => e.stopPropagation()}>
                     <select
                       value={jc.status}
                       onChange={e => handleStatusChange(jc.jcNo, e.target.value)}
-                      className="appearance-none px-2 py-0.5 pr-6 rounded-full text-[10px] font-semibold whitespace-nowrap font-['Rajdhani'] outline-none cursor-pointer"
+                      className="appearance-none px-2 py-0.5 pr-6 rounded-full text-[10px] font-semibold whitespace-nowrap font-sans outline-none cursor-pointer"
                       style={{ background: "#1C2A3E", color: "#FFF" }}
                     >
                       {filters.filter(f => f !== "All").map(f => (
-                        <option key={f} value={f} className="bg-[#1C2A3E] text-foreground">{f}</option>
+                        <option key={f} value={f} className="bg-card text-foreground">{f}</option>
                       ))}
                     </select>
                     <ChevronRight size={10} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-50 rotate-90" />
                   </td>
-                  <td className="px-3 py-2.5 text-muted-foreground font-['JetBrains_Mono']">{jc.date}</td>
-                  <td className="px-3 py-2.5 text-foreground font-['JetBrains_Mono']">{jc.amount > 0 ? `₹${jc.amount.toLocaleString()}` : "—"}</td>
+                  <td className="px-3 py-2.5 text-muted-foreground font-mono">{jc.date}</td>
+                  <td className="px-3 py-2.5 text-foreground font-mono">{jc.amount > 0 ? `₹${jc.amount.toLocaleString()}` : "—"}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <p className="text-[11px] text-muted-foreground font-['JetBrains_Mono']">{filtered.length} job card{filtered.length !== 1 ? "s" : ""} shown · click a row or JC number to view TAB1 actions</p>
+        <p className="text-[11px] text-muted-foreground font-mono">{filtered.length} job card{filtered.length !== 1 ? "s" : ""} shown · click a row or JC number to view TAB1 actions</p>
       </div>
 
       <AnimatePresence>
@@ -4527,34 +4527,34 @@ function TasksPanel() {
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#1C2A3E] flex items-center justify-center">
-            <span className="text-[13px] font-bold text-primary font-['Rajdhani']">{done}/{tasks.length}</span>
+          <div className="w-10 h-10 rounded-full bg-card flex items-center justify-center">
+            <span className="text-[13px] font-bold text-primary font-sans">{done}/{tasks.length}</span>
           </div>
           <div>
-            <p className="text-[13px] font-semibold text-foreground font-['Rajdhani']">Tasks For Today</p>
+            <p className="text-[13px] font-semibold text-foreground font-sans">Tasks For Today</p>
             <p className="text-[11px] text-muted-foreground">21-May-2026 · {tasks.length - done} pending</p>
           </div>
         </div>
-        <button className="flex items-center gap-1.5 text-primary text-[11px] font-semibold font-['Rajdhani'] hover:text-accent">
+        <button className="flex items-center gap-1.5 text-primary text-[11px] font-semibold font-sans hover:text-accent">
           <Plus size={12} /> Add Task
         </button>
       </div>
-      <div className="h-1.5 rounded-full bg-[#1C2A3E] overflow-hidden">
+      <div className="h-1.5 rounded-full bg-card overflow-hidden">
         <motion.div animate={{ width: `${(done / tasks.length) * 100}%` }} className="h-full rounded-full bg-gradient-to-r from-primary to-accent" />
       </div>
       <div className="flex flex-col gap-2">
         {tasks.map(task => (
           <div key={task.id} onClick={() => setTasks(ts => ts.map(t => t.id === task.id ? { ...t, done: !t.done } : t))}
-            className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${task.done ? "border-border/40 bg-[#0E1626]/50 opacity-60" : "border-border bg-[#0E1626] hover:border-primary/30"}`}>
+            className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${task.done ? "border-border bg-card/50 opacity-60" : "border-border bg-card hover:border-primary/30"}`}>
             <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${task.done ? "border-[#4ADE80] bg-[#4ADE80]" : "border-muted-foreground"}`}>
               {task.done && <Check size={11} className="text-[#070C16]" />}
             </div>
             <div className="flex-1 min-w-0">
-              <p className={`text-[12px] font-['Rajdhani'] font-semibold ${task.done ? "line-through text-muted-foreground" : "text-foreground"}`}>{task.text}</p>
+              <p className={`text-[12px] font-sans font-semibold ${task.done ? "line-through text-muted-foreground" : "text-foreground"}`}>{task.text}</p>
               <div className="flex items-center gap-2 mt-1">
                 <Clock size={10} className="text-muted-foreground" />
-                <span className="text-[10px] text-muted-foreground font-['JetBrains_Mono']">{task.time}</span>
-                <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold font-['Rajdhani'] uppercase ${priorityColor(task.priority)}`}>{task.priority}</span>
+                <span className="text-[10px] text-muted-foreground font-mono">{task.time}</span>
+                <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold font-sans uppercase ${priorityColor(task.priority)}`}>{task.priority}</span>
               </div>
             </div>
           </div>
@@ -4577,13 +4577,13 @@ function NotificationsPanel() {
         <div className="flex gap-1.5">
           {(["All", "Unread"] as const).map(f => (
             <button key={f} onClick={() => setFilter(f)}
-              className={`flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-full transition-all font-['Rajdhani'] ${filter === f ? "bg-primary text-white" : "bg-[#1C2A3E] text-muted-foreground hover:text-foreground"}`}>
+              className={`flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-full transition-all font-sans ${filter === f ? "bg-primary text-white" : "bg-card text-muted-foreground hover:text-foreground"}`}>
               {f}{f === "Unread" && unread > 0 && <span className="px-1 py-0.5 rounded bg-[#F87171]/20 text-[#F87171] text-[9px]">{unread}</span>}
             </button>
           ))}
         </div>
         <button onClick={() => setNotifs(ns => ns.map(n => ({ ...n, read: true })))}
-          className="text-[11px] text-muted-foreground hover:text-foreground font-['Rajdhani'] transition-colors">Mark all read</button>
+          className="text-[11px] text-muted-foreground hover:text-foreground font-sans transition-colors">Mark all read</button>
       </div>
       <div className="flex flex-col gap-2">
         {visible.map(n => {
@@ -4591,11 +4591,11 @@ function NotificationsPanel() {
           const Icon = icons[n.type]
           return (
             <div key={n.id} onClick={() => setNotifs(ns => ns.map(x => x.id === n.id ? { ...x, read: true } : x))}
-              className={`flex gap-3 p-3 rounded-xl border border-l-4 cursor-pointer transition-all ${s.border} ${s.bg} ${n.read ? "border-border/30 opacity-70" : "border-border"}`}>
+              className={`flex gap-3 p-3 rounded-xl border border-l-4 cursor-pointer transition-all ${s.border} ${s.bg} ${n.read ? "border-border opacity-70" : "border-border"}`}>
               <Icon size={15} className={`mt-0.5 shrink-0 ${s.icon}`} />
               <div className="flex-1 min-w-0">
-                <p className={`text-[12px] font-['Rajdhani'] font-semibold ${n.read ? "text-muted-foreground" : "text-foreground"}`}>{n.text}</p>
-                <p className="text-[10px] text-muted-foreground mt-1 font-['JetBrains_Mono']">{n.time}</p>
+                <p className={`text-[12px] font-sans font-semibold ${n.read ? "text-muted-foreground" : "text-foreground"}`}>{n.text}</p>
+                <p className="text-[10px] text-muted-foreground mt-1 font-mono">{n.time}</p>
               </div>
               {!n.read && <div className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1.5" />}
             </div>
@@ -4617,18 +4617,18 @@ function ServiceNewsPanel() {
     <div className="flex flex-col gap-3">
       {SERVICE_NEWS.map((news, i) => (
         <motion.div key={news.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-          className="p-4 rounded-xl bg-[#0E1626] border border-border hover:border-primary/25 transition-all cursor-pointer group">
+          className="p-4 rounded-xl bg-card border border-border hover:border-primary/25 transition-all cursor-pointer group">
           <div className="flex items-start justify-between gap-3 mb-2">
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold font-['Rajdhani'] ${catColors[news.category] || "bg-muted text-muted-foreground"}`}>{news.category}</span>
-            <span className="text-[10px] text-muted-foreground font-['JetBrains_Mono']">{news.date}</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold font-sans ${catColors[news.category] || "bg-muted text-muted-foreground"}`}>{news.category}</span>
+            <span className="text-[10px] text-muted-foreground font-mono">{news.date}</span>
           </div>
-          <p className="text-[13px] font-semibold text-foreground font-['Rajdhani'] mb-1 group-hover:text-primary transition-colors">{news.title}</p>
+          <p className="text-[13px] font-semibold text-foreground font-sans mb-1 group-hover:text-primary transition-colors">{news.title}</p>
           <p className="text-[12px] text-muted-foreground leading-relaxed">{news.summary}</p>
           <div className="flex gap-2 mt-3">
-            <button className="flex items-center gap-1.5 text-primary text-[11px] font-semibold font-['Rajdhani'] hover:text-accent transition-colors">
+            <button className="flex items-center gap-1.5 text-primary text-[11px] font-semibold font-sans hover:text-accent transition-colors">
               <Eye size={11} /> Read More
             </button>
-            <button className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-semibold font-['Rajdhani'] hover:text-foreground transition-colors">
+            <button className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-semibold font-sans hover:text-foreground transition-colors">
               <Download size={11} /> Download
             </button>
           </div>
@@ -4725,7 +4725,7 @@ function CallsPanel() {
   };
 
   return (
-    <div className="flex flex-col gap-4 font-['Rajdhani']">
+    <div className="flex flex-col gap-4 font-sans">
       <div className="flex items-center justify-between">
         <div className="flex gap-1.5">
           {(["all", "missed", "scheduled"] as const).map((f) => (
@@ -4735,7 +4735,7 @@ function CallsPanel() {
               className={`px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-lg border transition-all cursor-pointer ${
                 filter === f
                   ? "bg-primary text-white border-primary"
-                  : "bg-[#1C2A3E]/60 border border-border text-muted-foreground hover:text-foreground hover:bg-[#1C2A3E]/90"
+                  : "bg-card/60 border border-border text-muted-foreground hover:text-foreground hover:bg-card/90"
               }`}
             >
               {f} ({calls.filter((c) => f === "all" || c.status === f).length})
@@ -4753,7 +4753,7 @@ function CallsPanel() {
                 ? "border-[#F87171]/20 hover:border-[#F87171]/40"
                 : c.status === "scheduled"
                 ? "border-[#FACC15]/20 hover:border-[#FACC15]/40"
-                : "border-[rgba(255,255,255,0.03)] hover:border-border"
+                : "border-border hover:border-border"
             }`}
           >
             <div className="flex items-start justify-between gap-4">
@@ -4772,12 +4772,12 @@ function CallsPanel() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-[14px] font-bold text-foreground leading-none">{c.name}</p>
-                    <span className="text-[10px] text-muted-foreground font-['JetBrains_Mono']">{c.number}</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">{c.number}</span>
                   </div>
                   <p className="text-[11.5px] text-muted-foreground/85 font-medium mt-1">
-                    Req: <span className="text-primary font-bold font-['JetBrains_Mono']">{c.vehicle}</span> · {c.reason}
+                    Req: <span className="text-primary font-bold font-mono">{c.vehicle}</span> · {c.reason}
                   </p>
-                  <p className="text-[10.5px] text-muted-foreground font-['JetBrains_Mono'] mt-1.5 flex items-center gap-1">
+                  <p className="text-[10.5px] text-muted-foreground font-mono mt-1.5 flex items-center gap-1">
                     <Clock size={10} /> {c.time}
                   </p>
                 </div>
@@ -4814,7 +4814,7 @@ function CallsPanel() {
               initial={{ scale: 0.9, opacity: 0, y: 30 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 30 }}
-              className="w-full max-w-sm bg-[#0E1626] border border-primary/30 rounded-2xl p-6 text-center shadow-2xl relative overflow-hidden"
+              className="w-full max-w-sm bg-card border border-primary/30 rounded-2xl p-6 text-center shadow-2xl relative overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
               
@@ -4825,14 +4825,14 @@ function CallsPanel() {
               </div>
 
               <h3 className="text-lg font-bold text-foreground">{activeCall.name}</h3>
-              <p className="text-[11.5px] text-muted-foreground font-['JetBrains_Mono'] mt-1">{activeCall.number}</p>
+              <p className="text-[11.5px] text-muted-foreground font-mono mt-1">{activeCall.number}</p>
               
               <div className="my-6 py-2.5 px-4 bg-[#142035]/60 rounded-xl inline-block">
                 <p className="text-[11px] uppercase tracking-wider text-muted-foreground/80 font-bold leading-none">
                   {callStatus === "dialing" ? "DIALING..." : callStatus === "connected" ? "CONNECTED" : "CALL ENDED"}
                 </p>
                 {callStatus === "connected" && (
-                  <p className="text-[18px] font-bold font-['JetBrains_Mono'] text-primary mt-1">
+                  <p className="text-[18px] font-bold font-mono text-primary mt-1">
                     {formatDuration(callDuration)}
                   </p>
                 )}
@@ -4906,25 +4906,25 @@ function SuzukiConnectFormPanel({ onAction }: { onAction: (a: PanelType, d?: Rec
     <div className="flex flex-col gap-5 p-1">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-[17px] font-bold font-['Rajdhani'] uppercase tracking-wider text-foreground">Suzuki Connect Diagnostic Hub</h2>
+          <h2 className="text-[17px] font-bold font-sans uppercase tracking-wider text-foreground">Suzuki Connect Diagnostic Hub</h2>
           <p className="text-[11.5px] text-muted-foreground font-sans mt-0.5">Query live vehicle telemetry and run off-board electronic diagnostic protocols.</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => onAction("suzuki-connect-advice")} className="px-3.5 py-1.5 bg-[#1C2A3E] hover:bg-[#253347] font-semibold text-[11.5px] text-foreground rounded-lg border border-border/80 transition-colors cursor-pointer font-['Rajdhani'] flex items-center gap-1.5"><Lightbulb size={13} className="text-primary" /> Advice Board</button>
+          <button onClick={() => onAction("suzuki-connect-advice")} className="px-3.5 py-1.5 bg-card hover:bg-muted font-semibold text-[11.5px] text-foreground rounded-lg border border-border transition-colors cursor-pointer font-sans flex items-center gap-1.5"><Lightbulb size={13} className="text-primary" /> Advice Board</button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div className="md:col-span-1 p-5 rounded-2xl bg-card border border-border flex flex-col justify-between">
           <div>
-            <p className="text-[11px] uppercase font-['Rajdhani'] font-black tracking-widest text-[#FB923C] mb-4">Diagnostics Console</p>
+            <p className="text-[11px] uppercase font-sans font-black tracking-widest text-[#FB923C] mb-4">Diagnostics Console</p>
             
-            <label className="text-[11px] uppercase font-['Rajdhani'] font-bold text-muted-foreground block mb-1.5">Select Workshop Vehicle</label>
+            <label className="text-[11px] uppercase font-sans font-bold text-muted-foreground block mb-1.5">Select Workshop Vehicle</label>
             <div className="relative mb-4">
               <select 
                 value={selectedReg} 
                 onChange={e => { setSelectedReg(e.target.value); setScanStatus("idle"); }}
-                className="w-full text-[13px] px-3.5 py-2 bg-[#0E1626] border border-border/80 focus:border-primary/50 text-foreground rounded-xl outline-none font-['JetBrains_Mono'] appearance-none cursor-pointer"
+                className="w-full text-[13px] px-3.5 py-2 bg-card border border-border focus:border-primary/50 text-foreground rounded-xl outline-none font-mono appearance-none cursor-pointer"
               >
                 {vehiclesList.map(v => (
                   <option key={v.reg} value={v.reg}>{v.reg} — {v.model}</option>
@@ -4934,17 +4934,17 @@ function SuzukiConnectFormPanel({ onAction }: { onAction: (a: PanelType, d?: Rec
             </div>
 
             <div className="space-y-2 text-[12px] font-sans text-muted-foreground mb-6">
-              <div className="flex justify-between py-1 border-b border-border/40">
+              <div className="flex justify-between py-1 border-b border-border">
                 <span>Hardware Module</span>
-                <span className="text-foreground font-['JetBrains_Mono']">Suzuki-Connect v2.9</span>
+                <span className="text-foreground font-mono">Suzuki-Connect v2.9</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-border/40">
+              <div className="flex justify-between py-1 border-b border-border">
                 <span>IP Address</span>
-                <span className="text-foreground font-['JetBrains_Mono']">10.158.45.192</span>
+                <span className="text-foreground font-mono">10.158.45.192</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-border/40">
+              <div className="flex justify-between py-1 border-b border-border">
                 <span>CAN-Bus Integrity</span>
-                <span className="text-[#4ADE80] font-semibold font-['Rajdhani']">SECURE SEC-3</span>
+                <span className="text-[#4ADE80] font-semibold font-sans">SECURE SEC-3</span>
               </div>
             </div>
           </div>
@@ -4952,7 +4952,7 @@ function SuzukiConnectFormPanel({ onAction }: { onAction: (a: PanelType, d?: Rec
           <button 
             onClick={() => { setScanStatus("scanning"); }}
             disabled={scanStatus === "scanning"}
-            className="w-full py-3 bg-gradient-to-r from-primary to-accent hover:from-primary/95 hover:to-accent/95 text-white font-bold text-[13px] rounded-xl font-['Rajdhani'] tracking-wider cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            className="w-full py-3 bg-gradient-to-r from-primary to-accent hover:from-primary/95 hover:to-accent/95 text-white font-bold text-[13px] rounded-xl font-sans tracking-wider cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
             {scanStatus === "scanning" ? "DIAGNOSTIC SCAN ACTIVE..." : "RUN FULL OBD SCAN"}
           </button>
@@ -4964,7 +4964,7 @@ function SuzukiConnectFormPanel({ onAction }: { onAction: (a: PanelType, d?: Rec
               <div className="w-[56px] h-[56px] rounded-full bg-[#FB923C]/10 border border-[#FB923C]/20 flex items-center justify-center text-[#FB923C] mb-4">
                 <Wifi size={24} />
               </div>
-              <h3 className="text-[14px] font-bold font-['Rajdhani'] uppercase tracking-wider text-foreground mb-1.5">No Active Diagnosis Protocol</h3>
+              <h3 className="text-[14px] font-bold font-sans uppercase tracking-wider text-foreground mb-1.5">No Active Diagnosis Protocol</h3>
               <p className="text-[12px] text-muted-foreground font-sans max-w-sm">Select a vehicle from the console and run OBD diagnostics scan to retrieve dynamic telematics status.</p>
             </div>
           )}
@@ -4978,11 +4978,11 @@ function SuzukiConnectFormPanel({ onAction }: { onAction: (a: PanelType, d?: Rec
                   animate={{ rotate: 360 }}
                   transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
                 />
-                <div className="absolute inset-0 flex items-center justify-center text-[#FB923C] text-[15px] font-black font-['Rajdhani']">
+                <div className="absolute inset-0 flex items-center justify-center text-[#FB923C] text-[15px] font-black font-sans">
                   {progress}%
                 </div>
               </div>
-              <h3 className="text-[14px] font-bold font-['Rajdhani'] uppercase tracking-wider text-foreground mb-2">OBD Diagnostics Check In Progress</h3>
+              <h3 className="text-[14px] font-bold font-sans uppercase tracking-wider text-foreground mb-2">OBD Diagnostics Check In Progress</h3>
               <p className="text-[11px] text-muted-foreground font-sans max-w-sm h-12 leading-relaxed italic">
                 "{activeLog}"
               </p>
@@ -4994,40 +4994,40 @@ function SuzukiConnectFormPanel({ onAction }: { onAction: (a: PanelType, d?: Rec
               <div className="flex items-center justify-between pb-3 border-b border-border">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#4ADE80] animate-pulse" />
-                  <span className="text-[12px] font-bold font-['Rajdhani'] uppercase tracking-widest text-[#4ADE80]">{selectedReg} TELEMETRY FEED LIVE</span>
+                  <span className="text-[12px] font-bold font-sans uppercase tracking-widest text-[#4ADE80]">{selectedReg} TELEMETRY FEED LIVE</span>
                 </div>
-                <button onClick={() => setScanStatus("idle")} className="text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:underline transition-all cursor-pointer font-['Rajdhani']">CLEAN START</button>
+                <button onClick={() => setScanStatus("idle")} className="text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:underline transition-all cursor-pointer font-sans">CLEAN START</button>
               </div>
 
               {/* Bento diagnostics details */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 py-1">
-                <div className="p-3 bg-[#0E1626]/60 rounded-xl border border-border/50 text-left">
-                  <p className="text-[10px] text-muted-foreground uppercase font-['Rajdhani'] tracking-wide">Fuel Remaining</p>
-                  <p className="text-[18px] font-bold font-['JetBrains_Mono'] text-white mt-1">68%</p>
+                <div className="p-3 bg-card/60 rounded-xl border border-border text-left">
+                  <p className="text-[10px] text-muted-foreground uppercase font-sans tracking-wide">Fuel Remaining</p>
+                  <p className="text-[18px] font-bold font-mono text-white mt-1">68%</p>
                   <div className="w-full h-1 bg-[#142035] rounded-full overflow-hidden mt-2.5">
                     <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: "68%" }} />
                   </div>
                 </div>
-                <div className="p-3 bg-[#0E1626]/60 rounded-xl border border-border/50 text-left">
-                  <p className="text-[10px] text-muted-foreground uppercase font-['Rajdhani'] tracking-wide">Battery Status</p>
-                  <p className="text-[18px] font-bold font-['JetBrains_Mono'] text-[#4ADE80] mt-1">12.6V</p>
-                  <p className="text-[10px] font-semibold font-['Rajdhani'] text-[#4ADE80] mt-1 uppercase">Excellent (89%)</p>
+                <div className="p-3 bg-card/60 rounded-xl border border-border text-left">
+                  <p className="text-[10px] text-muted-foreground uppercase font-sans tracking-wide">Battery Status</p>
+                  <p className="text-[18px] font-bold font-mono text-[#4ADE80] mt-1">12.6V</p>
+                  <p className="text-[10px] font-semibold font-sans text-[#4ADE80] mt-1 uppercase">Excellent (89%)</p>
                 </div>
-                <div className="p-3 bg-[#0E1626]/60 rounded-xl border border-border/50 text-left">
-                  <p className="text-[10px] text-muted-foreground uppercase font-['Rajdhani'] tracking-wide">Tire Pressures</p>
-                  <p className="text-[18px] font-bold font-['JetBrains_Mono'] text-white mt-1">32 PSI</p>
+                <div className="p-3 bg-card/60 rounded-xl border border-border text-left">
+                  <p className="text-[10px] text-muted-foreground uppercase font-sans tracking-wide">Tire Pressures</p>
+                  <p className="text-[18px] font-bold font-mono text-white mt-1">32 PSI</p>
                   <p className="text-[10px] font-medium font-sans text-muted-foreground mt-1">FL 32 · FR 32 · RL 31</p>
                 </div>
-                <div className="p-3 bg-[#0E1626]/60 rounded-xl border border-border/50 text-left">
-                  <p className="text-[10px] text-muted-foreground uppercase font-['Rajdhani'] tracking-wide">OBD Diagnostics</p>
-                  <p className="text-[18px] font-bold font-['JetBrains_Mono'] text-white mt-1">0 Codes</p>
-                  <span className="inline-block mt-1 px-1.5 py-0.2 px-1 text-[9px] font-bold font-['Rajdhani'] rounded bg-[#4ADE80]/15 text-[#4ADE80] uppercase">HEALTHY</span>
+                <div className="p-3 bg-card/60 rounded-xl border border-border text-left">
+                  <p className="text-[10px] text-muted-foreground uppercase font-sans tracking-wide">OBD Diagnostics</p>
+                  <p className="text-[18px] font-bold font-mono text-white mt-1">0 Codes</p>
+                  <span className="inline-block mt-1 px-1.5 py-0.2 px-1 text-[9px] font-bold font-sans rounded bg-[#4ADE80]/15 text-[#4ADE80] uppercase">HEALTHY</span>
                 </div>
               </div>
 
               {/* Systems checklist */}
-              <div className="rounded-xl border border-border/40 bg-[#0E1626]/30 overflow-hidden">
-                <div className="bg-[#1C2A3E]/40 px-4 py-2 text-[10px] uppercase font-['Rajdhani'] font-bold tracking-wider text-muted-foreground">ECU Module Integrity Checks</div>
+              <div className="rounded-xl border border-border bg-card/30 overflow-hidden">
+                <div className="bg-card/40 px-4 py-2 text-[10px] uppercase font-sans font-bold tracking-wider text-muted-foreground">ECU Module Integrity Checks</div>
                 <div className="grid grid-cols-2 gap-3 p-4 text-[11.5px] font-sans">
                   <div className="flex items-center gap-2">
                     <CheckCircle className="text-[#4ADE80]" size={14} />
@@ -5050,7 +5050,7 @@ function SuzukiConnectFormPanel({ onAction }: { onAction: (a: PanelType, d?: Rec
 
               <div className="flex items-center justify-between pt-1 text-[11px] text-muted-foreground font-sans">
                 <span>Diagnostic code: SUZ-CAN-PASS_OK17 - Gurugram Workshop</span>
-                <span className="text-primary font-bold cursor-pointer hover:underline font-['Rajdhani'] uppercase flex items-center gap-1.5"><Download size={11} strokeWidth={2.5} /> Save Report Logs</span>
+                <span className="text-primary font-bold cursor-pointer hover:underline font-sans uppercase flex items-center gap-1.5"><Download size={11} strokeWidth={2.5} /> Save Report Logs</span>
               </div>
             </motion.div>
           )}
@@ -5080,35 +5080,35 @@ function SuzukiConnectAdvicePanel({ onAction }: { onAction: (a: PanelType, d?: R
     <div className="flex flex-col gap-5 p-1">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-[17px] font-bold font-['Rajdhani'] uppercase tracking-wider text-foreground">Suzuki Connect Drivable Advice</h2>
+          <h2 className="text-[17px] font-bold font-sans uppercase tracking-wider text-foreground">Suzuki Connect Drivable Advice</h2>
           <p className="text-[11.5px] text-muted-foreground font-sans mt-0.5">Live telemetry notifications and pre-emptive maintenance warnings.</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => onAction("suzuki-connect-form")} className="px-3.5 py-1.5 bg-[#1C2A3E] hover:bg-[#253347] font-semibold text-[11.5px] text-foreground rounded-lg border border-border/80 transition-colors cursor-pointer font-['Rajdhani'] flex items-center gap-1.5"><Wifi size={13} className="text-[#FB923C]" /> Manual Diagnostics</button>
+          <button onClick={() => onAction("suzuki-connect-form")} className="px-3.5 py-1.5 bg-card hover:bg-muted font-semibold text-[11.5px] text-foreground rounded-lg border border-border transition-colors cursor-pointer font-sans flex items-center gap-1.5"><Wifi size={13} className="text-[#FB923C]" /> Manual Diagnostics</button>
         </div>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border bg-card">
         <table className="w-full text-[11.5px] border-collapse">
           <thead>
-            <tr className="border-b border-border bg-[#1C2A3E]/60 text-muted-foreground">
-              <th className="px-4 py-3 text-left font-semibold text-[10px] tracking-wider uppercase font-['Rajdhani']">Vehicle</th>
-              <th className="px-4 py-3 text-left font-semibold text-[10px] tracking-wider uppercase font-['Rajdhani']">Priority</th>
-              <th className="px-4 py-3 text-left font-semibold text-[10px] tracking-wider uppercase font-['Rajdhani']">Telemetry Advisory</th>
-              <th className="px-4 py-3 text-left font-semibold text-[10px] tracking-wider uppercase font-['Rajdhani']">Recommended SA Action</th>
-              <th className="px-4 py-3 text-left font-semibold text-[10px] tracking-wider uppercase font-['Rajdhani']">Status</th>
-              <th className="px-4 py-3 text-center font-semibold text-[10px] tracking-wider uppercase font-['Rajdhani']">Control Screen</th>
+            <tr className="border-b border-border bg-card/60 text-muted-foreground">
+              <th className="px-4 py-3 text-left font-semibold text-[10px] tracking-wider uppercase font-sans">Vehicle</th>
+              <th className="px-4 py-3 text-left font-semibold text-[10px] tracking-wider uppercase font-sans">Priority</th>
+              <th className="px-4 py-3 text-left font-semibold text-[10px] tracking-wider uppercase font-sans">Telemetry Advisory</th>
+              <th className="px-4 py-3 text-left font-semibold text-[10px] tracking-wider uppercase font-sans">Recommended SA Action</th>
+              <th className="px-4 py-3 text-left font-semibold text-[10px] tracking-wider uppercase font-sans">Status</th>
+              <th className="px-4 py-3 text-center font-semibold text-[10px] tracking-wider uppercase font-sans">Control Screen</th>
             </tr>
           </thead>
           <tbody>
             {advices.map((a, i) => (
-              <tr key={i} className="border-b border-border/50 hover:bg-[#142035]/25 transition-colors duration-150">
+              <tr key={i} className="border-b border-border hover:bg-[#142035]/25 transition-colors duration-150">
                 <td className="px-4 py-3.5 whitespace-nowrap text-left">
-                  <p className="text-[12.5px] font-bold font-['JetBrains_Mono'] text-primary">{a.reg}</p>
+                  <p className="text-[12.5px] font-bold font-mono text-primary">{a.reg}</p>
                   <p className="text-[10px] text-muted-foreground font-sans mt-0.5">{a.model}</p>
                 </td>
                 <td className="px-4 py-3.5 whitespace-nowrap text-left">
-                  <span className={`px-2 py-0.5 rounded text-[9.5px] font-extrabold font-['Rajdhani'] ${
+                  <span className={`px-2 py-0.5 rounded text-[9.5px] font-extrabold font-sans ${
                     a.priority === "HIGH" ? "bg-red-400/15 text-[#F87171] border border-red-400/20" :
                     a.priority === "MEDIUM" ? "bg-[#FB923C]/15 text-[#FB923C] border border-[#FB923C]/20" :
                     a.priority === "LOW" ? "bg-primary/20 text-primary border border-primary/20" :
@@ -5119,11 +5119,11 @@ function SuzukiConnectAdvicePanel({ onAction }: { onAction: (a: PanelType, d?: R
                 </td>
                 <td className="px-4 py-3.5 text-left max-w-[180px]">
                   <p className="text-[11.5px] font-bold font-sans text-foreground">{a.problem}</p>
-                  <p className="text-[9.5px] font-['JetBrains_Mono'] text-muted-foreground/80 mt-0.5 uppercase">ID: {a.code}</p>
+                  <p className="text-[9.5px] font-mono text-muted-foreground/80 mt-0.5 uppercase">ID: {a.code}</p>
                 </td>
                 <td className="px-4 py-3.5 text-left max-w-[200px] text-muted-foreground leading-relaxed font-sans">{a.action}</td>
                 <td className="px-4 py-3.5 whitespace-nowrap text-left">
-                  <span className={`text-[11px] font-bold font-['Rajdhani'] ${
+                  <span className={`text-[11px] font-bold font-sans ${
                     a.status === "Pending Decision" ? "text-[#FB923C]" :
                     a.status === "In Progress" ? "text-primary" : "text-[#4ADE80]"
                   }`}>
@@ -5142,7 +5142,7 @@ function SuzukiConnectAdvicePanel({ onAction }: { onAction: (a: PanelType, d?: R
                         notifyUser(a.reg)
                       }}
                       disabled={a.status === "Completed" || a.status === "In Progress"}
-                      className="px-2.5 py-1 text-[10px] font-bold font-['Rajdhani'] bg-[#1C2A3E] border border-border/70 hover:bg-[#253347] disabled:opacity-30 disabled:cursor-not-allowed text-foreground rounded transition-colors"
+                      className="px-2.5 py-1 text-[10px] font-bold font-sans bg-card border border-border hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed text-foreground rounded transition-colors"
                     >
                       PUSH TO TERMINAL
                     </button>
@@ -5155,7 +5155,7 @@ function SuzukiConnectAdvicePanel({ onAction }: { onAction: (a: PanelType, d?: R
                             return n
                           })
                         }}
-                        className="px-2.5 py-1 text-[10px] font-bold font-['Rajdhani'] bg-primary text-white hover:bg-primary/95 rounded transition-colors"
+                        className="px-2.5 py-1 text-[10px] font-bold font-sans bg-primary text-white hover:bg-primary/95 rounded transition-colors"
                       >
                         DISPATCH ESTIMATE
                       </button>
@@ -5234,79 +5234,79 @@ function JCChatStepRenderer({
     switch (stepCode) {
       case "VIN_SCAN":
         return (
-          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+          <div className="mt-2 text-xs text-muted-foreground bg-muted/25 px-3 py-1.5 rounded-lg border border-border inline-block font-sans">
             ✓ Logged Vehicle Registration: <strong className="text-secondary font-mono">{jcSession.regNo}</strong>
           </div>
         );
       case "CONFIRM_VEHICLE":
         return (
-          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+          <div className="mt-2 text-xs text-muted-foreground bg-muted/25 px-3 py-1.5 rounded-lg border border-border inline-block font-sans">
             ✓ Confirmed: 2022 Maruti Grand Swift VXi
           </div>
         );
       case "CUSTOMER_DETAILS":
         return (
-          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+          <div className="mt-2 text-xs text-muted-foreground bg-muted/25 px-3 py-1.5 rounded-lg border border-border inline-block font-sans">
             ✓ Customer: <strong>{jcSession.customerName}</strong> ({jcSession.customerMobile})
           </div>
         );
       case "ODOMETER":
         return (
-          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+          <div className="mt-2 text-xs text-muted-foreground bg-muted/25 px-3 py-1.5 rounded-lg border border-border inline-block font-sans">
             ✓ Odometer reading: <strong className="font-mono">{jcSession.odometer} KM</strong>
           </div>
         );
       case "SERVICE_TYPE":
         return (
-          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+          <div className="mt-2 text-xs text-muted-foreground bg-muted/25 px-3 py-1.5 rounded-lg border border-border inline-block font-sans">
             ✓ Service Category: <strong className="uppercase">{jcSession.serviceType}</strong> {jcSession.isCng ? "(CNG Enabled)" : ""}
           </div>
         );
       case "DENT_VIDEO":
         return (
-          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+          <div className="mt-2 text-xs text-muted-foreground bg-muted/25 px-3 py-1.5 rounded-lg border border-border inline-block font-sans">
             ✓ Condition Checklist: {jcSession.dents?.length || 3} Dents identified | Fuel Status: {jcSession.fuelLevel} | 3 Snaps logged
           </div>
         );
       case "INVENTORY":
         return (
-          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+          <div className="mt-2 text-xs text-muted-foreground bg-muted/25 px-3 py-1.5 rounded-lg border border-border inline-block font-sans">
             ✓ Cabin Inventory Checklist Approved
           </div>
         );
       case "FITMENTS":
         return (
-          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+          <div className="mt-2 text-xs text-muted-foreground bg-muted/25 px-3 py-1.5 rounded-lg border border-border inline-block font-sans">
             ✓ Non-OEM Fitments verified: {jcSession.fitments?.length ? jcSession.fitments.join(", ") : "None Detected"}
           </div>
         );
       case "TYRE_BATTERY":
         return (
-          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+          <div className="mt-2 text-xs text-muted-foreground bg-muted/25 px-3 py-1.5 rounded-lg border border-border inline-block font-sans">
             ✓ FL Tyre rated 2/5 (Recommending Change) | Battery health: {jcSession.batteryHealth}
           </div>
         );
       case "SERVICE_MENU":
         return (
-          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+          <div className="mt-2 text-xs text-muted-foreground bg-muted/25 px-3 py-1.5 rounded-lg border border-border inline-block font-sans">
             ✓ Standard {jcSession.serviceType} Checklist items pre-populated
           </div>
         );
       case "DEMANDS_LIST":
         return (
-          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+          <div className="mt-2 text-xs text-muted-foreground bg-muted/25 px-3 py-1.5 rounded-lg border border-border inline-block font-sans">
             ✓ Target Promised Delivery: {jcSession.promisedDateTime} | Payment Mode: {jcSession.paymentMode}
           </div>
         );
       case "LABOUR_PARTS":
         return (
-          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+          <div className="mt-2 text-xs text-muted-foreground bg-muted/25 px-3 py-1.5 rounded-lg border border-border inline-block font-sans">
             ✓ Final job estimate items added
           </div>
         );
       case "SUMMARY":
         return (
-          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+          <div className="mt-2 text-xs text-muted-foreground bg-muted/25 px-3 py-1.5 rounded-lg border border-border inline-block font-sans">
             ✓ Digital Customer Signature stored in system
           </div>
         );
@@ -5319,21 +5319,21 @@ function JCChatStepRenderer({
   switch (stepCode) {
     case "VIN_SCAN": {
       return (
-        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3">
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-border shadow-xl flex flex-col gap-3">
           <div className="flex gap-2">
             <input 
               type="text"
               value={tempReg}
               onChange={(e) => setTempReg(e.target.value.toUpperCase())}
               placeholder="MH12AB1234, DL6CR1517..."
-              className="flex-1 px-3 py-2 bg-[#1C2A3E] border border-border rounded-lg text-foreground outline-none focus:border-primary/50 font-mono text-[13px] uppercase"
+              className="flex-1 px-3 py-2 bg-card border border-border rounded-lg text-foreground outline-none focus:border-primary/50 font-mono text-[13px] uppercase"
             />
             <button
               onClick={() => {
                 setTempReg("DL6CR1517");
                 advanceJcChat("Captured plate DL6CR1517 📷", { regNo: "DL6CR1517" }, "CONFIRM_VEHICLE");
               }}
-              className="px-3.5 py-2 bg-[#1C2A3E] hover:bg-[#23344C] border border-border text-[12px] font-bold rounded-lg text-foreground font-sans flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-3.5 py-2 bg-card hover:bg-muted border border-border text-[12px] font-bold rounded-lg text-foreground font-sans flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Camera size={13} className="text-secondary" /> Scan
             </button>
@@ -5351,13 +5351,13 @@ function JCChatStepRenderer({
 
     case "CONFIRM_VEHICLE": {
       return (
-        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3">
-          <div className="p-3 bg-[#1C2A3E]/40 rounded-lg border border-border/80 text-[12px] font-sans flex flex-col gap-1.5">
-            <div className="flex justify-between border-b border-border/20 pb-1.5">
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-border shadow-xl flex flex-col gap-3">
+          <div className="p-3 bg-card/40 rounded-lg border border-border text-[12px] font-sans flex flex-col gap-1.5">
+            <div className="flex justify-between border-b border-border pb-1.5">
               <span className="text-muted-foreground">Class</span>
               <span className="font-semibold text-foreground">Premium Hatchback (Swift)</span>
             </div>
-            <div className="flex justify-between border-b border-border/20 pb-1.5">
+            <div className="flex justify-between border-b border-border pb-1.5">
               <span className="text-muted-foreground">Chassis (VIN)</span>
               <span className="font-mono text-foreground font-semibold">MA3EWDE1S00XXXXX</span>
             </div>
@@ -5375,7 +5375,7 @@ function JCChatStepRenderer({
             </button>
             <button
               onClick={() => advanceJcChat("Go back to search", {}, "VIN_SCAN")}
-              className="px-4 py-2 bg-[#1C2A3E] hover:bg-[#23344C] border border-border text-[12px] font-semibold rounded-lg text-foreground font-sans cursor-pointer transition-colors"
+              className="px-4 py-2 bg-card hover:bg-muted border border-border text-[12px] font-semibold rounded-lg text-foreground font-sans cursor-pointer transition-colors"
             >
               Edit reg
             </button>
@@ -5386,7 +5386,7 @@ function JCChatStepRenderer({
 
     case "CUSTOMER_DETAILS": {
       return (
-        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3">
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-border shadow-xl flex flex-col gap-3">
           <div className="flex flex-col gap-2 font-sans">
             <div>
               <label className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block mb-1">Customer Full Name *</label>
@@ -5394,7 +5394,7 @@ function JCChatStepRenderer({
                 type="text" 
                 value={name} 
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-1.5 bg-[#1C2A3E] border border-border rounded-lg text-foreground text-[12px] focus:border-primary/50 outline-none"
+                className="w-full px-3 py-1.5 bg-card border border-border rounded-lg text-foreground text-[12px] focus:border-primary/50 outline-none"
               />
             </div>
             <div>
@@ -5403,7 +5403,7 @@ function JCChatStepRenderer({
                 type="text" 
                 value={mobile} 
                 onChange={(e) => setMobile(e.target.value)}
-                className="w-full px-3 py-1.5 bg-[#1C2A3E] border border-border rounded-lg text-foreground text-[12px] focus:border-primary/50 outline-none font-mono"
+                className="w-full px-3 py-1.5 bg-card border border-border rounded-lg text-foreground text-[12px] focus:border-primary/50 outline-none font-mono"
               />
             </div>
             <div>
@@ -5412,7 +5412,7 @@ function JCChatStepRenderer({
                 type="email" 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-1.5 bg-[#1C2A3E] border border-border rounded-lg text-foreground text-[12px] focus:border-primary/50 outline-none"
+                className="w-full px-3 py-1.5 bg-card border border-border rounded-lg text-foreground text-[12px] focus:border-primary/50 outline-none"
               />
             </div>
           </div>
@@ -5428,16 +5428,16 @@ function JCChatStepRenderer({
 
     case "ODOMETER": {
       return (
-        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3">
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-border shadow-xl flex flex-col gap-3">
           <div className="flex gap-2">
             <input 
               type="number"
               value={odo}
               onChange={(e) => setOdo(e.target.value)}
               placeholder="Odometer reading..."
-              className="flex-1 px-3 py-2 bg-[#1C2A3E] border border-border rounded-lg text-foreground outline-none focus:border-primary/50 font-mono text-[13px]"
+              className="flex-1 px-3 py-2 bg-card border border-border rounded-lg text-foreground outline-none focus:border-primary/50 font-mono text-[13px]"
             />
-            <span className="bg-[#1C2A3E] border border-border px-3.5 py-2 rounded-lg text-[12px] font-bold text-muted-foreground flex items-center">KM</span>
+            <span className="bg-card border border-border px-3.5 py-2 rounded-lg text-[12px] font-bold text-muted-foreground flex items-center">KM</span>
           </div>
           {/* Quick reply chips */}
           <div className="flex gap-1.5 py-1 select-none overflow-x-auto">
@@ -5446,7 +5446,7 @@ function JCChatStepRenderer({
                 key={preset}
                 type="button"
                 onClick={() => setOdo(preset)}
-                className="px-2.5 py-1 bg-[#1C2A3E] hover:bg-[#23344C] text-[11px] rounded-full border border-border/60 text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+                className="px-2.5 py-1 bg-card hover:bg-muted text-[11px] rounded-full border border-border text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
               >
                 {parseInt(preset).toLocaleString()} km
               </button>
@@ -5465,7 +5465,7 @@ function JCChatStepRenderer({
 
     case "SERVICE_TYPE": {
       return (
-        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3">
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-border shadow-xl flex flex-col gap-3">
           <div>
             <label className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block mb-1">Select Service Schedule</label>
             <div className="grid grid-cols-2 gap-2 font-sans">
@@ -5474,14 +5474,14 @@ function JCChatStepRenderer({
                   key={t}
                   type="button"
                   onClick={() => setSrvType(t)}
-                  className={`py-2 text-[12px] font-bold rounded-lg border transition-all cursor-pointer ${srvType === t ? "bg-primary border-primary text-white shadow-lg" : "bg-[#1C2A3E] hover:bg-[#23344C] border-border text-foreground"}`}
+                  className={`py-2 text-[12px] font-bold rounded-lg border transition-all cursor-pointer ${srvType === t ? "bg-primary border-primary text-white shadow-lg" : "bg-card hover:bg-muted border-border text-foreground"}`}
                 >
                   {t}
                 </button>
               ))}
             </div>
           </div>
-          <div className="border-t border-border/10 pt-2.5 flex items-center justify-between font-sans">
+          <div className="border-t border-border pt-2.5 flex items-center justify-between font-sans">
             <div>
               <p className="text-[12.5px] font-bold text-foreground">Is this a CNG vehicle?</p>
               <p className="text-[10px] text-muted-foreground">Auto-checked against DMS registration specs</p>
@@ -5490,14 +5490,14 @@ function JCChatStepRenderer({
               <button
                 type="button"
                 onClick={() => setIsCng(true)}
-                className={`px-3.5 py-1 text-[11px] font-bold rounded-full border cursor-pointer transition-all ${isCng ? "bg-secondary border-secondary text-primary-foreground font-extrabold" : "bg-[#1C2A3E] border-border text-muted-foreground"}`}
+                className={`px-3.5 py-1 text-[11px] font-bold rounded-full border cursor-pointer transition-all ${isCng ? "bg-secondary border-secondary text-primary-foreground font-extrabold" : "bg-card border-border text-muted-foreground"}`}
               >
                 Yes
               </button>
               <button
                 type="button"
                 onClick={() => setIsCng(false)}
-                className={`px-3.5 py-1 text-[11px] font-bold rounded-full border cursor-pointer transition-all ${!isCng ? "bg-secondary border-secondary text-primary-foreground font-extrabold" : "bg-[#1C2A3E] border-border text-muted-foreground"}`}
+                className={`px-3.5 py-1 text-[11px] font-bold rounded-full border cursor-pointer transition-all ${!isCng ? "bg-secondary border-secondary text-primary-foreground font-extrabold" : "bg-card border-border text-muted-foreground"}`}
               >
                 No
               </button>
@@ -5535,14 +5535,14 @@ function JCChatStepRenderer({
       ];
 
       return (
-        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3 font-sans">
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-border shadow-xl flex flex-col gap-3 font-sans">
           {/* Main Select Row */}
           {!videoAnalyzing && videoPlayProgress === 0 ? (
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={startVideoSimulation}
-                className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border bg-[#1C2A3E] hover:bg-[#23344C] transition-colors cursor-pointer text-center"
+                className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border bg-card hover:bg-muted transition-colors cursor-pointer text-center"
               >
                 <Zap size={20} className="text-secondary animate-pulse" />
                 <span className="text-[11px] font-bold text-foreground">🎥 SIMULATE WALKROUND VIDEO</span>
@@ -5554,7 +5554,7 @@ function JCChatStepRenderer({
                   setVideoPlayProgress(100);
                   setJcSession({ ...jcSession, dents: aiDetectedDents });
                 }}
-                className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border bg-[#1C2A3E] hover:bg-[#23344C] transition-colors cursor-pointer text-center"
+                className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border bg-card hover:bg-muted transition-colors cursor-pointer text-center"
               >
                 <ClipboardList size={20} className="text-muted-foreground" />
                 <span className="text-[11px] font-bold text-foreground">✏️ MARK MANUALLY</span>
@@ -5562,10 +5562,10 @@ function JCChatStepRenderer({
               </button>
             </div>
           ) : videoAnalyzing && videoPlayProgress < 100 ? (
-            <div className="p-4 rounded-xl bg-[#090F1C] border border-border/80 text-center flex flex-col items-center gap-2">
+            <div className="p-4 rounded-xl bg-background border border-border text-center flex flex-col items-center gap-2">
               <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
               <p className="text-[12px] font-bold text-foreground">Analyzing walkround recording video...</p>
-              <div className="w-full bg-[#1C2A3E] h-1.5 rounded-full overflow-hidden mt-1">
+              <div className="w-full bg-card h-1.5 rounded-full overflow-hidden mt-1">
                 <div className="bg-primary h-full transition-all duration-150" style={{ width: `${videoPlayProgress}%` }} />
               </div>
               <p className="text-[9.5px] font-mono text-muted-foreground mt-0.5">{videoPlayProgress}% Keyframes analyzed</p>
@@ -5581,7 +5581,7 @@ function JCChatStepRenderer({
               </div>
 
               {/* Vehicle Outline zones */}
-              <div className="p-3.5 bg-[#090F1C] rounded-lg border border-border flex flex-col gap-2">
+              <div className="p-3.5 bg-background rounded-lg border border-border flex flex-col gap-2">
                 <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#4ADE80] font-mono">Dents Visual Layout Mapper</span>
                 
                 {/* 2D Grid map mock representation */}
@@ -5598,7 +5598,7 @@ function JCChatStepRenderer({
                     <span>Right Fender</span>
                     <span className="text-[9.5px] font-bold text-[#4ADE80] uppercase">✓ Chip (91%)</span>
                   </div>
-                  <div className="p-1 px-2.5 rounded bg-[#1C2A3E]/40 border border-border/40 text-muted-foreground flex items-center justify-between">
+                  <div className="p-1 px-2.5 rounded bg-card/40 border border-border text-muted-foreground flex items-center justify-between">
                     <span>Bonnet / Hood</span>
                     <span className="text-[9.5px] font-semibold text-muted-foreground">Clear</span>
                   </div>
@@ -5614,7 +5614,7 @@ function JCChatStepRenderer({
                       key={lvl}
                       type="button"
                       onClick={() => setJcSession({ ...jcSession, fuelLevel: lvl })}
-                      className={`py-1 rounded text-[11px] font-bold border transition-colors cursor-pointer ${jcSession.fuelLevel === lvl ? "bg-primary border-primary text-white" : "bg-[#1C2A3E] border-border text-muted-foreground"}`}
+                      className={`py-1 rounded text-[11px] font-bold border transition-colors cursor-pointer ${jcSession.fuelLevel === lvl ? "bg-primary border-primary text-white" : "bg-card border-border text-muted-foreground"}`}
                     >
                       {lvl}
                     </button>
@@ -5623,12 +5623,12 @@ function JCChatStepRenderer({
               </div>
 
               {/* Interior Snaps mock */}
-              <div className="border-t border-border/10 pt-2 flex justify-between items-center text-[11.5px]">
+              <div className="border-t border-border pt-2 flex justify-between items-center text-[11.5px]">
                 <div className="flex items-center gap-1.5">
                   <Camera size={14} className="text-secondary" />
                   <span>Cabin Interior Snaps (Dashboard / Seat / Boot)</span>
                 </div>
-                <span className="text-[10px] bg-[#111A2E] border border-border/80 text-secondary font-bold px-2 py-0.5 rounded font-mono">3 / 3 LOGGED</span>
+                <span className="text-[10px] bg-[#111A2E] border border-border text-secondary font-bold px-2 py-0.5 rounded font-mono">3 / 3 LOGGED</span>
               </div>
 
               <button
@@ -5664,7 +5664,7 @@ function JCChatStepRenderer({
       const inv = jcSession.inventory || { spareTyre: 1, jackWrench: 1, floorMats: 4, umbrella: 1 };
 
       return (
-        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3 font-sans">
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-border shadow-xl flex flex-col gap-3 font-sans">
           <div className="flex flex-col gap-2">
             {[
               { label: "Spare Tyre in Boot", stateKey: "spareTyre", val: inv.spareTyre },
@@ -5672,13 +5672,13 @@ function JCChatStepRenderer({
               { label: "Custom floor Mats", stateKey: "floorMats", val: inv.floorMats },
               { label: "Nexa Branded Umbrella", stateKey: "umbrella", val: inv.umbrella }
             ].map((itm) => (
-              <div key={itm.stateKey} className="flex justify-between items-center bg-[#1C2A3E]/40 border border-border/60 p-2 rounded-lg text-[12px]">
+              <div key={itm.stateKey} className="flex justify-between items-center bg-card/40 border border-border p-2 rounded-lg text-[12px]">
                 <span className="font-semibold text-foreground">{itm.label}</span>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setInvQty(itm.stateKey, -1)}
-                    className="w-5 h-5 rounded bg-[#1C2A3E] hover:bg-[#253954] text-muted-foreground hover:text-foreground flex items-center justify-center border border-border transition-colors cursor-pointer"
+                    className="w-5 h-5 rounded bg-card hover:bg-[#253954] text-muted-foreground hover:text-foreground flex items-center justify-center border border-border transition-colors cursor-pointer"
                   >
                     <Minus size={11} />
                   </button>
@@ -5686,7 +5686,7 @@ function JCChatStepRenderer({
                   <button
                     type="button"
                     onClick={() => setInvQty(itm.stateKey, 1)}
-                    className="w-5 h-5 rounded bg-[#1C2A3E] hover:bg-[#253954] text-muted-foreground hover:text-foreground flex items-center justify-center border border-border transition-colors cursor-pointer"
+                    className="w-5 h-5 rounded bg-card hover:bg-[#253954] text-muted-foreground hover:text-foreground flex items-center justify-center border border-border transition-colors cursor-pointer"
                   >
                     <Plus size={11} />
                   </button>
@@ -5717,7 +5717,7 @@ function JCChatStepRenderer({
       };
 
       return (
-        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3 font-sans">
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-border shadow-xl flex flex-col gap-3 font-sans">
           <div className="flex flex-col gap-2">
             {options.map((opt) => {
               const checked = current.includes(opt);
@@ -5726,7 +5726,7 @@ function JCChatStepRenderer({
                   key={opt}
                   type="button"
                   onClick={() => selectFitment(opt)}
-                  className={`p-2.5 text-left text-[12px] font-bold rounded-lg border transition-all flex items-center justify-between cursor-pointer ${checked ? "bg-primary/20 border-primary text-foreground" : "bg-[#1C2A3E]/40 border-border text-muted-foreground"}`}
+                  className={`p-2.5 text-left text-[12px] font-bold rounded-lg border transition-all flex items-center justify-between cursor-pointer ${checked ? "bg-primary/20 border-primary text-foreground" : "bg-card/40 border-border text-muted-foreground"}`}
                 >
                   <span>{opt}</span>
                   <div className={`w-4 h-4 rounded border flex items-center justify-center ${checked ? "bg-primary border-primary text-white" : "border-border"}`}>
@@ -5745,7 +5745,7 @@ function JCChatStepRenderer({
             </button>
             <button
               onClick={() => advanceJcChat("None, skip", { fitments: [] }, "TYRE_BATTERY")}
-              className="px-4 py-2 bg-[#1C2A3E]/70 hover:bg-[#1C2A3E] border border-border text-[12px] font-semibold rounded-lg text-muted-foreground hover:text-foreground font-sans cursor-pointer transition-colors"
+              className="px-4 py-2 bg-card/70 hover:bg-card border border-border text-[12px] font-semibold rounded-lg text-muted-foreground hover:text-foreground font-sans cursor-pointer transition-colors"
             >
               None
             </button>
@@ -5772,13 +5772,13 @@ function JCChatStepRenderer({
       const hasCriticalWheel = Object.values(currentWheelRatings).some((v: any) => v <= 2);
 
       return (
-        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3 font-sans">
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-border shadow-xl flex flex-col gap-3 font-sans">
           <span className="text-[11px] font-semibold text-foreground">Rate Wheel Tread Depth (1 = Balding, 5 = Brand New)</span>
           <div className="flex flex-col gap-2">
             {wheels.map((wh) => {
               const score = currentWheelRatings[wh] || 4;
               return (
-                <div key={wh} className="bg-[#1C2A3E]/40 border border-border/60 p-2 rounded-lg text-[12px] flex justify-between items-center">
+                <div key={wh} className="bg-card/40 border border-border p-2 rounded-lg text-[12px] flex justify-between items-center">
                   <span className="font-semibold text-foreground">{labels[wh]}</span>
                   <div className="flex gap-1">
                     {[1, 2, 3, 4, 5].map((idx) => (
@@ -5786,7 +5786,7 @@ function JCChatStepRenderer({
                         key={idx}
                         type="button"
                         onClick={() => setWheelRate(wh, idx)}
-                        className={`w-5.5 h-5.5 rounded flex items-center justify-center text-[10.5px] font-bold border cursor-pointer transition-all ${score === idx ? (idx <= 2 ? "bg-red-500 border-red-500 text-white" : "bg-primary border-primary text-white") : "bg-[#1C2A3E] border-border text-muted-foreground hover:text-foreground"}`}
+                        className={`w-5.5 h-5.5 rounded flex items-center justify-center text-[10.5px] font-bold border cursor-pointer transition-all ${score === idx ? (idx <= 2 ? "bg-red-500 border-red-500 text-white" : "bg-primary border-primary text-white") : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
                       >
                         {idx}
                       </button>
@@ -5805,7 +5805,7 @@ function JCChatStepRenderer({
           )}
 
           {/* Battery section */}
-          <div className="border-t border-border/15 pt-2 flex flex-col gap-1.5">
+          <div className="border-t border-border pt-2 flex flex-col gap-1.5">
             <span className="text-[11px] font-semibold text-foreground">Battery Diagnostic State</span>
             <div className="grid grid-cols-4 gap-1">
               {["Good", "Fair", "Poor", "Skip"].map((b) => (
@@ -5813,7 +5813,7 @@ function JCChatStepRenderer({
                   key={b}
                   type="button"
                   onClick={() => setJcSession({ ...jcSession, batteryHealth: b })}
-                  className={`py-1 text-[11px] font-semibold rounded border transition-colors cursor-pointer ${jcSession.batteryHealth === b ? (b === "Poor" ? "bg-red-500 border-red-500 text-white" : "bg-primary border-primary text-white") : "bg-[#1C2A3E] border-border text-muted-foreground hover:text-foreground"}`}
+                  className={`py-1 text-[11px] font-semibold rounded border transition-colors cursor-pointer ${jcSession.batteryHealth === b ? (b === "Poor" ? "bg-red-500 border-red-500 text-white" : "bg-primary border-primary text-white") : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
                 >
                   {b}
                 </button>
@@ -5855,9 +5855,9 @@ function JCChatStepRenderer({
       ];
 
       return (
-        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3 font-sans">
-          <div className="p-3 bg-[#090F1C] border border-border rounded-xl flex flex-col gap-2.5">
-            <div className="flex justify-between items-center text-[10px] font-extrabold uppercase text-secondary tracking-widest border-b border-border/15 pb-1.5">
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-border shadow-xl flex flex-col gap-3 font-sans">
+          <div className="p-3 bg-background border border-border rounded-xl flex flex-col gap-2.5">
+            <div className="flex justify-between items-center text-[10px] font-extrabold uppercase text-secondary tracking-widest border-b border-border pb-1.5">
               <span>PMS standard items list (DMS pre-loaded)</span>
               <span>ESTIMATED VALUE</span>
             </div>
@@ -5886,11 +5886,11 @@ function JCChatStepRenderer({
 
     case "DEMANDS_LIST": {
       return (
-        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3 font-sans">
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-border shadow-xl flex flex-col gap-3 font-sans">
           {/* Active Demands Scroll list */}
           <div className="flex flex-col gap-2 max-h-[140px] overflow-y-auto pr-1">
             {jcSession.demands?.map((d: any) => (
-              <div key={d.id} className="p-2 border border-border/70 rounded-lg bg-[#1C2A3E]/40 flex justify-between items-center text-[11.5px]">
+              <div key={d.id} className="p-2 border border-border rounded-lg bg-card/40 flex justify-between items-center text-[11.5px]">
                 <div>
                   <p className="font-bold text-foreground">{d.desc}</p>
                   <p className="text-[9.5px] text-muted-foreground font-mono">Code: {d.code} | Class: {d.type === "L" ? "Labour" : "Part"}</p>
@@ -5907,7 +5907,7 @@ function JCChatStepRenderer({
               <select
                 value={jcSession.promisedDateTime}
                 onChange={(e) => setJcSession({ ...jcSession, promisedDateTime: e.target.value })}
-                className="w-full bg-[#1C2A3E] border border-border p-2 rounded-lg text-foreground outline-none text-[12px]"
+                className="w-full bg-card border border-border p-2 rounded-lg text-foreground outline-none text-[12px]"
               >
                 <option value="Today 6 PM">Today (6:00 PM)</option>
                 <option value="Tomorrow 5 PM">Tomorrow (5:00 PM)</option>
@@ -5919,7 +5919,7 @@ function JCChatStepRenderer({
               <select
                 value={jcSession.paymentMode}
                 onChange={(e) => setJcSession({ ...jcSession, paymentMode: e.target.value })}
-                className="w-full bg-[#1C2A3E] border border-border p-2 rounded-lg text-foreground outline-none text-[12px]"
+                className="w-full bg-card border border-border p-2 rounded-lg text-foreground outline-none text-[12px]"
               >
                 <option value="Cash">Cash settlement</option>
                 <option value="Card">Card settlement</option>
@@ -5954,13 +5954,13 @@ function JCChatStepRenderer({
       };
 
       return (
-        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3 font-sans">
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-border shadow-xl flex flex-col gap-3 font-sans">
           <span className="text-[11px] font-semibold text-foreground">Quick Frequently Requested Items list:</span>
           <div className="flex flex-col gap-2">
             {extraItems.map((itm) => {
               const added = jcSession.demands?.some((d: any) => d.code === itm.code);
               return (
-                <div key={itm.code} className="bg-[#1C2A3E]/40 border border-border/65 p-2 rounded-lg text-[12px] flex justify-between items-center">
+                <div key={itm.code} className="bg-card/40 border border-border p-2 rounded-lg text-[12px] flex justify-between items-center">
                   <div>
                     <span className="font-bold text-foreground">{itm.desc}</span>
                     <span className="text-[10px] text-muted-foreground block font-mono">Code: {itm.code} | Cost: ₹{itm.price}</span>
@@ -5969,7 +5969,7 @@ function JCChatStepRenderer({
                     type="button"
                     disabled={added}
                     onClick={() => addExtraDem(itm)}
-                    className={`px-3 py-1 rounded text-[10.5px] font-bold border transition-all cursor-pointer ${added ? "bg-[#4ADE80]/20 border-[#4ADE80]/30 text-[#4ADE80]" : "bg-[#1C2A3E] hover:bg-[#253A54] border-border text-muted-foreground hover:text-foreground"}`}
+                    className={`px-3 py-1 rounded text-[10.5px] font-bold border transition-all cursor-pointer ${added ? "bg-[#4ADE80]/20 border-[#4ADE80]/30 text-[#4ADE80]" : "bg-card hover:bg-muted border-border text-muted-foreground hover:text-foreground"}`}
                   >
                     {added ? "✓ Added" : "+ Add"}
                   </button>
@@ -5995,16 +5995,16 @@ function JCChatStepRenderer({
       const overall = labourEst + partsEst;
 
       return (
-        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3 font-sans">
-          <div className="bg-[#090F1C] border border-border rounded-xl p-3.5 flex flex-col gap-2 font-mono text-[11.5px]">
-            <span className="text-secondary font-bold text-[10px] uppercase tracking-widest border-b border-border/15 pb-1 block">SUMMARY PREVIEW CARD</span>
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-border shadow-xl flex flex-col gap-3 font-sans">
+          <div className="bg-background border border-border rounded-xl p-3.5 flex flex-col gap-2 font-mono text-[11.5px]">
+            <span className="text-secondary font-bold text-[10px] uppercase tracking-widest border-b border-border pb-1 block">SUMMARY PREVIEW CARD</span>
             <div className="flex justify-between mt-1"><span className="text-muted-foreground">Vehicle:</span><span className="text-foreground">Swift VXi ({jcSession.regNo})</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Customer:</span><span className="text-foreground">Ramesh Sharma</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Category:</span><span className="text-foreground block uppercase">{jcSession.serviceType}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Odometer:</span><span className="text-foreground">{parseInt(jcSession.odometer || "42500").toLocaleString()} km</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Est. Labour:</span><span className="text-foreground">₹{labourEst}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Est. Parts:</span><span className="text-foreground">₹{partsEst}</span></div>
-            <div className="flex justify-between border-t border-border/20 pt-1.5 font-bold text-[12.5px]"><span className="text-foreground font-sans">Total Estimate:</span><span className="text-secondary">₹{overall}</span></div>
+            <div className="flex justify-between border-t border-border pt-1.5 font-bold text-[12.5px]"><span className="text-foreground font-sans">Total Estimate:</span><span className="text-secondary">₹{overall}</span></div>
           </div>
 
           {/* Signature Grid */}
@@ -6104,7 +6104,7 @@ function JCChatStepRenderer({
       };
 
       return (
-        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3 font-sans">
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-border shadow-xl flex flex-col gap-3 font-sans">
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => handlePdfTrig('print')}
@@ -6114,7 +6114,7 @@ function JCChatStepRenderer({
             </button>
             <button
               onClick={() => handlePdfTrig('download')}
-              className="py-2.5 bg-[#1C2A3E] border border-border text-foreground text-[12px] font-bold rounded-lg cursor-pointer hover:bg-[#253A54] flex items-center justify-center gap-1.5 transition-colors"
+              className="py-2.5 bg-card border border-border text-foreground text-[12px] font-bold rounded-lg cursor-pointer hover:bg-muted flex items-center justify-center gap-1.5 transition-colors"
             >
               <Download size={13} /> Download File
             </button>
@@ -6123,13 +6123,13 @@ function JCChatStepRenderer({
           <div className="grid grid-cols-2 gap-2 mt-1">
             <button
               onClick={() => alert("Customer cost estimates sent via Nexa SMS and Email ✅")}
-              className="py-2 text-[11px] font-bold bg-[#1C2A3E]/70 border border-border text-muted-foreground hover:text-foreground rounded-lg cursor-pointer text-center"
+              className="py-2 text-[11px] font-bold bg-card/70 border border-border text-muted-foreground hover:text-foreground rounded-lg cursor-pointer text-center"
             >
               📧 Email customer JC
             </button>
             <button
               onClick={() => alert("DMS transaction submitted to OCAS Approvals database queue ✅")}
-              className="py-2 text-[11px] font-bold bg-[#1C2A3E]/70 border border-border text-muted-foreground hover:text-foreground rounded-lg cursor-pointer text-center"
+              className="py-2 text-[11px] font-bold bg-card/70 border border-border text-muted-foreground hover:text-foreground rounded-lg cursor-pointer text-center"
             >
               🔐 Submit to OCAS
             </button>
@@ -6137,7 +6137,7 @@ function JCChatStepRenderer({
 
           <button
             onClick={() => alert("Syncing details with Maruti Suzuki Warranty Service Portal ✅")}
-            className="w-full py-2 bg-[#1C2A3E]/50 hover:bg-[#1C2A3E] text-muted-foreground text-[11px] font-semibold rounded-lg border border-border/80 cursor-pointer text-center"
+            className="w-full py-2 bg-card/50 hover:bg-card text-muted-foreground text-[11px] font-semibold rounded-lg border border-border cursor-pointer text-center"
           >
             🛡️ Open Warranty Portal (Validate images)
           </button>
@@ -6154,8 +6154,8 @@ function UserBubble({ text, timestamp }: { text: string; timestamp: Date }) {
   return (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex justify-end">
       <div className="max-w-[70%]">
-        <div className="px-4 py-2.5 rounded-2xl rounded-tr-sm bg-primary text-white text-[13px] font-['Rajdhani'] font-medium">{text}</div>
-        <p className="text-right text-[10px] text-muted-foreground mt-1 font-['JetBrains_Mono']">{timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
+        <div className="px-4 py-2.5 rounded-2xl rounded-tr-sm bg-primary text-white text-[13px] font-sans font-medium">{text}</div>
+        <p className="text-right text-[10px] text-muted-foreground mt-1 font-mono">{timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
       </div>
     </motion.div>
   )
@@ -6239,7 +6239,7 @@ function BotBubble({
           <p className="text-[11px] text-muted-foreground font-sans font-semibold tracking-wider uppercase">NEXA AI ASSISTANT</p>
           <button 
             onClick={triggerSpeak} 
-            className="text-muted-foreground hover:text-primary transition-all p-1 hover:bg-[#1C2A3E]/65 rounded flex items-center gap-1 text-[9px] font-sans uppercase tracking-widest cursor-pointer"
+            className="text-muted-foreground hover:text-primary transition-all p-1 hover:bg-card/65 rounded flex items-center gap-1 text-[9px] font-sans uppercase tracking-widest cursor-pointer"
             title="Read out loud"
           >
             <Volume2 size={11} /> Speak
@@ -6249,9 +6249,9 @@ function BotBubble({
           <p className="text-[13px] text-foreground mb-3 font-sans leading-relaxed">{text}</p>
           
           {isJcStep && jcStepCode && (
-            <div className="mb-4 bg-[#111A2E]/70 p-3 rounded-xl border border-border/80 font-sans">
+            <div className="mb-4 bg-[#111A2E]/70 p-3 rounded-xl border border-border font-sans">
               <div className="flex justify-between items-center text-[11px] mb-2 font-sans font-bold uppercase tracking-wider text-muted-foreground">
-                <span className="text-[#3D8EF0] flex items-center gap-1.5">
+                <span className="text-primary flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#3D8EF0] animate-pulse" />
                   Guided Setup Details
                 </span>
@@ -6273,7 +6273,7 @@ function BotBubble({
                           ? "bg-primary" 
                           : isCurrent 
                             ? "bg-[#3D8EF0] ring-1 ring-[#3D8EF0]/50" 
-                            : "bg-[#1C2A3E]"
+                            : "bg-card"
                       }`}
                       title={FRIENDLY_STEP_LABELS[step]}
                     />
@@ -6320,7 +6320,7 @@ function BotBubble({
                         }
                       }
                     }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold text-[#8F9CAE] hover:text-white bg-[#1C2A3E]/35 hover:bg-[#1C2A3E]/70 border border-border/50 hover:border-border rounded-lg transition-all cursor-pointer shadow-md select-none"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold text-[#8F9CAE] hover:text-white bg-card/35 hover:bg-card/70 border border-border hover:border-border rounded-lg transition-all cursor-pointer shadow-md select-none"
                   >
                     <ChevronLeft size={13} className="text-[#8F9CAE]" />
                     Back to previous step ({FRIENDLY_STEP_LABELS[ALL_JC_STEPS[ALL_JC_STEPS.indexOf(jcStepCode) - 1]] || ""})
@@ -6330,7 +6330,7 @@ function BotBubble({
             </div>
           )}
         </div>
-        <p className="text-[10px] text-muted-foreground mt-1 font-['JetBrains_Mono']">{timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
+        <p className="text-[10px] text-muted-foreground mt-1 font-mono">{timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
       </div>
     </motion.div>
   )
@@ -6379,7 +6379,7 @@ function DashboardView({ onTileClick }: { onTileClick: (panel: PanelType) => voi
         {DASH_STATS.map((s, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
             whileHover={{ y: -3, scale: 1.02 }}
-            className="relative flex flex-col justify-between p-4.5 rounded-xl bg-gradient-to-br from-[#0D1527] to-[#080E1C] border border-[rgba(255,255,255,0.03)] hover:border-[rgba(255,255,255,0.08)] shadow-[0_4px_24px_rgba(0,0,0,0.4)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.6)] transition-all duration-300 group cursor-default overflow-hidden"
+            className="relative flex flex-col justify-between p-4.5 rounded-xl bg-gradient-to-br from-[#0D1527] to-[#080E1C] border border-border hover:border-border shadow-[0_4px_24px_rgba(0,0,0,0.4)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.6)] transition-all duration-300 group cursor-default overflow-hidden"
             style={{ 
               borderLeft: `3px solid ${s.color}`,
               boxShadow: `inset 0 1px 1px rgba(255,255,255,0.02), 0 4px 20px rgba(0,0,0,0.5)`
@@ -6390,7 +6390,7 @@ function DashboardView({ onTileClick }: { onTileClick: (panel: PanelType) => voi
 
             {/* Top Row: Icon container + Label */}
             <div className="flex items-center justify-between w-full mb-3 shrink-0">
-              <p className="text-[10px] font-bold text-muted-foreground/85 uppercase tracking-widest font-['Rajdhani'] leading-none">{s.label}</p>
+              <p className="text-[10px] font-bold text-muted-foreground/85 uppercase tracking-widest font-sans leading-none">{s.label}</p>
               <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:rotate-12"
                 style={{ background: `${s.color}12`, border: `1px solid ${s.color}25` }}>
                 <s.icon size={14} style={{ color: s.color }} />
@@ -6400,8 +6400,8 @@ function DashboardView({ onTileClick }: { onTileClick: (panel: PanelType) => voi
             {/* Bottom Row: Large Value + Sub info */}
             <div className="min-w-0 mt-1">
               <div className="flex items-baseline justify-between gap-2">
-                <p className="text-[28px] font-black font-['Rajdhani'] leading-none tracking-tight" style={{ color: s.color }}>{s.value}</p>
-                <p className="text-[9.5px] text-muted-foreground font-['JetBrains_Mono'] truncate max-w-[50%]">{s.sub}</p>
+                <p className="text-[28px] font-black font-sans leading-none tracking-tight" style={{ color: s.color }}>{s.value}</p>
+                <p className="text-[9.5px] text-muted-foreground font-mono truncate max-w-[50%]">{s.sub}</p>
               </div>
               
               {/* Sleek customized progress/meter bar underneath */}
@@ -6449,7 +6449,7 @@ function DashboardView({ onTileClick }: { onTileClick: (panel: PanelType) => voi
 
             {/* Badge */}
             {t.badge && (
-              <div className="absolute top-3 right-3 min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center text-white text-[10px] font-bold font-['Rajdhani']"
+              <div className="absolute top-3 right-3 min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center text-white text-[10px] font-bold font-sans"
                 style={{ background: t.color }}>
                 {t.badge}
               </div>
@@ -6466,8 +6466,8 @@ function DashboardView({ onTileClick }: { onTileClick: (panel: PanelType) => voi
 
             {/* Labels */}
             <div>
-              <p className="text-[13px] font-bold text-foreground font-['Rajdhani'] leading-tight whitespace-pre-line group-hover:text-white transition-colors">{t.label}</p>
-              <p className="text-[11px] font-semibold font-['JetBrains_Mono'] mt-1 transition-colors" style={{ color: t.color }}>{t.count}</p>
+              <p className="text-[13px] font-bold text-foreground font-sans leading-tight whitespace-pre-line group-hover:text-white transition-colors">{t.label}</p>
+              <p className="text-[11px] font-semibold font-mono mt-1 transition-colors" style={{ color: t.color }}>{t.count}</p>
               <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{t.sublabel}</p>
             </div>
 
@@ -6485,12 +6485,12 @@ function DashboardView({ onTileClick }: { onTileClick: (panel: PanelType) => voi
       <div className="px-6 pb-6">
         <div className="rounded-2xl bg-card border border-border overflow-hidden">
           {/* Section header */}
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-[#0A1020]/50">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-background/50">
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-4 rounded-full bg-primary" />
-              <p className="text-[12px] uppercase font-['Rajdhani'] font-black tracking-widest text-foreground">Service News</p>
+              <p className="text-[12px] uppercase font-sans font-black tracking-widest text-foreground">Service News</p>
             </div>
-            <button className="flex items-center gap-1 text-primary text-[11px] font-semibold font-['Rajdhani'] hover:text-accent transition-colors">
+            <button className="flex items-center gap-1 text-primary text-[11px] font-semibold font-sans hover:text-accent transition-colors">
               VIEW ALL <ChevronRight size={12} />
             </button>
           </div>
@@ -6498,20 +6498,20 @@ function DashboardView({ onTileClick }: { onTileClick: (panel: PanelType) => voi
             {SERVICE_NEWS.map((news, i) => (
               <motion.div key={news.id}
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 + i * 0.07 }}
-                className="p-4 hover:bg-[#1C2A3E]/30 transition-colors cursor-pointer group">
+                className="p-4 hover:bg-card/30 transition-colors cursor-pointer group">
                 <div className="flex items-center justify-between mb-2">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold font-['Rajdhani'] ${
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold font-sans ${
                     news.category === "Campaign" ? "bg-[#F87171]/15 text-[#F87171] border border-[#F87171]/20" :
                     news.category === "Training" ? "bg-primary/15 text-primary border border-primary/20" :
                     "bg-[#FACC15]/15 text-[#FACC15] border border-[#FACC15]/20"
                   }`}>{news.category}</span>
-                  <span className="text-[10px] text-muted-foreground font-['JetBrains_Mono']">{news.date}</span>
+                  <span className="text-[10px] text-muted-foreground font-mono">{news.date}</span>
                 </div>
-                <p className="text-[12.5px] font-bold text-foreground font-['Rajdhani'] mb-1.5 group-hover:text-primary transition-colors leading-snug">{news.title}</p>
+                <p className="text-[12.5px] font-bold text-foreground font-sans mb-1.5 group-hover:text-primary transition-colors leading-snug">{news.title}</p>
                 <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">{news.summary}</p>
                 <div className="flex items-center gap-3 mt-3">
-                  <button className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors font-['Rajdhani']"><Eye size={11} /> Read</button>
-                  <button className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors font-['Rajdhani']"><Download size={11} /> Save</button>
+                  <button className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors font-sans"><Eye size={11} /> Read</button>
+                  <button className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors font-sans"><Download size={11} /> Save</button>
                 </div>
               </motion.div>
             ))}
@@ -6569,17 +6569,17 @@ function Sidebar({ onNav, onNewChat, setSidebarOpen }: {
   }
 
   return (
-    <div className="w-64 shrink-0 h-full flex flex-col bg-[#080E1C] border-r border-[rgba(61,142,240,0.1)]">
+    <div className="w-64 shrink-0 h-full flex flex-col bg-[#080E1C] border-r border-border">
       {/* Logo + collapse */}
-      <div className="flex items-center justify-between px-4 h-12 border-b border-[rgba(61,142,240,0.08)] shrink-0">
+      <div className="flex items-center justify-between px-4 h-12 border-b border-border shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="w-6 h-6 rounded-lg bg-primary flex items-center justify-center shadow-md shadow-primary/40">
-            <span className="text-white text-[11px] font-black font-['Rajdhani']">N</span>
+            <span className="text-white text-[11px] font-black font-sans">N</span>
           </div>
-          <span className="text-[15px] font-black text-foreground tracking-[0.18em] font-['Rajdhani']">NEXA</span>
+          <span className="text-[15px] font-black text-foreground tracking-[0.18em] font-sans">NEXA</span>
         </div>
         <button onClick={() => setSidebarOpen(false)}
-          className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-[#1C2A3E]/60 transition-colors">
+          className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-card/60 transition-colors">
           <ChevronLeft size={14} />
         </button>
       </div>
@@ -6587,7 +6587,7 @@ function Sidebar({ onNav, onNewChat, setSidebarOpen }: {
       {/* New Conversation */}
       <div className="px-3 pt-3 pb-2 shrink-0">
         <button onClick={onNewChat}
-          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-[rgba(61,142,240,0.18)] bg-[#1C2A3E]/50 hover:bg-[#1C2A3E] text-[12.5px] font-semibold font-['Rajdhani'] text-foreground transition-all group">
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-border bg-card/50 hover:bg-card text-[12.5px] font-semibold font-sans text-foreground transition-all group">
           <div className="w-4 h-4 rounded-md bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors shrink-0">
             <Plus size={11} className="text-primary" />
           </div>
@@ -6600,21 +6600,21 @@ function Sidebar({ onNav, onNewChat, setSidebarOpen }: {
         <div className="relative">
           <Search size={11} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search…"
-            className="w-full pl-7 pr-3 py-1.5 text-[12px] bg-[#1C2A3E]/40 border border-[rgba(61,142,240,0.12)] rounded-lg text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/30 font-['Rajdhani'] transition-colors" />
+            className="w-full pl-7 pr-3 py-1.5 text-[12px] bg-card/40 border border-border rounded-lg text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/30 font-sans transition-colors" />
         </div>
       </div>
 
       {/* Quick nav */}
       <div className="px-3 pb-3 shrink-0">
-        <p className="px-2 pb-1.5 text-[9.5px] uppercase tracking-widest text-muted-foreground/60 font-['Rajdhani'] font-bold">Quick Access</p>
+        <p className="px-2 pb-1.5 text-[9.5px] uppercase tracking-widest text-muted-foreground/60 font-sans font-bold">Quick Access</p>
         <div className="flex flex-col gap-0.5">
           {NAV_ITEMS.map(item => (
             <button key={item.id} onClick={() => onNav(item.id)}
-              className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12.5px] text-muted-foreground hover:text-foreground hover:bg-[#1C2A3E]/60 transition-all font-['Rajdhani'] font-semibold group">
+              className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[12.5px] text-muted-foreground hover:text-foreground hover:bg-card/60 transition-all font-sans font-semibold group">
               <item.icon size={13} className="shrink-0 text-muted-foreground/70 group-hover:text-primary transition-colors" />
               <span className="flex-1 text-left">{item.label}</span>
               {item.badge && (
-                <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-[#F87171]/15 text-[#F87171] font-['Rajdhani']">{item.badge}</span>
+                <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-[#F87171]/15 text-[#F87171] font-sans">{item.badge}</span>
               )}
             </button>
           ))}
@@ -6628,10 +6628,10 @@ function Sidebar({ onNav, onNewChat, setSidebarOpen }: {
           if (!items.length) return null
           return (
             <div key={section} className="mb-3">
-              <p className="px-2 pb-1.5 pt-1 text-[9.5px] uppercase tracking-widest text-muted-foreground/50 font-['Rajdhani'] font-bold">{section}</p>
+              <p className="px-2 pb-1.5 pt-1 text-[9.5px] uppercase tracking-widest text-muted-foreground/50 font-sans font-bold">{section}</p>
               <div className="flex flex-col gap-0.5">
                 {items.map(h => (
-                  <div key={h.id} className="group relative flex items-center rounded-lg hover:bg-[#1C2A3E]/50 transition-all">
+                  <div key={h.id} className="group relative flex items-center rounded-lg hover:bg-card/50 transition-all">
                     {editingId === h.id ? (
                       <input
                         autoFocus
@@ -6642,12 +6642,12 @@ function Sidebar({ onNav, onNewChat, setSidebarOpen }: {
                           if (e.key === "Enter") commitEdit(h.id)
                           if (e.key === "Escape") setEditingId(null)
                         }}
-                        className="flex-1 px-2.5 py-1.5 text-[12px] bg-[#1C2A3E] border border-primary/40 rounded-lg text-foreground outline-none font-['Rajdhani'] min-w-0"
+                        className="flex-1 px-2.5 py-1.5 text-[12px] bg-card border border-primary/40 rounded-lg text-foreground outline-none font-sans min-w-0"
                       />
                     ) : (
                       <>
                         <button
-                          className="flex-1 text-left px-2.5 py-1.5 text-[12px] text-muted-foreground group-hover:text-foreground transition-colors font-['Rajdhani'] truncate min-w-0">
+                          className="flex-1 text-left px-2.5 py-1.5 text-[12px] text-muted-foreground group-hover:text-foreground transition-colors font-sans truncate min-w-0">
                           {h.label}
                         </button>
                         <button
@@ -6669,13 +6669,13 @@ function Sidebar({ onNav, onNewChat, setSidebarOpen }: {
       </div>
 
       {/* User profile */}
-      <div className="px-3 py-3 border-t border-[rgba(61,142,240,0.08)] shrink-0">
+      <div className="px-3 py-3 border-t border-border shrink-0">
         <div className="flex items-center gap-2.5 px-1.5">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
-            <span className="text-white text-[10px] font-black font-['Rajdhani']">VY</span>
+            <span className="text-white text-[10px] font-black font-sans">VY</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[12.5px] font-semibold text-foreground font-['Rajdhani'] truncate">Vishal Yadav</p>
+            <p className="text-[12.5px] font-semibold text-foreground font-sans truncate">Vishal Yadav</p>
             <p className="text-[10px] text-muted-foreground truncate">Service Advisor · NEXA Gurgaon</p>
           </div>
           <button className="p-1.5 rounded-lg text-muted-foreground hover:text-[#F87171] hover:bg-[#F87171]/10 transition-colors shrink-0">
@@ -6688,79 +6688,25 @@ function Sidebar({ onNav, onNewChat, setSidebarOpen }: {
 }
 
 // ── Welcome Screen ─────────────────────────────────────────────────────────────
-function WelcomeScreen({ 
-  onAction, 
-  onScanTrigger 
-}: { 
-  onAction: (id: PanelType, data?: Record<string, unknown>) => void,
-  onScanTrigger: () => void 
-}) {
-  const cards = [
-    {
-      id: "scan-plate",
-      icon: Camera,
-      label: "Camera for scan",
-      desc: "Align and capture vehicle license plate OCR content instantly"
-    },
-    {
-      id: "jc-opening",
-      icon: FileText,
-      label: "Add new job card",
-      desc: "Initiate digital inventory walkaround checklists and estimates"
-    },
-    {
-      id: "appointments",
-      icon: Calendar,
-      label: "Upcoming appointment",
-      desc: "Check arrived vehicles and allocate active shop service bays"
-    },
-    {
-      id: "service-news",
-      icon: Newspaper,
-      label: "New news update",
-      desc: "Check campaigns, active service advisories, and spare parts updates"
-    }
-  ]
-
+function WelcomeScreen() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-8 pb-4">
       {/* Orb */}
       <div className="relative w-[76px] h-[76px] mb-7">
         <div className="absolute inset-0 rounded-full bg-primary/25 blur-2xl scale-[1.8] animate-pulse" />
         <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/70 to-accent/50 blur-[8px]" />
-        <div className="relative w-full h-full rounded-full bg-gradient-to-br from-[#5AAEFF] via-[#3D8EF0] to-[#0DCAF0]"
+        <div className="relative w-full h-full rounded-full bg-gradient-to-br from-primary via-primary to-accent"
           style={{ boxShadow: "0 0 36px rgba(61,142,240,0.65), 0 0 72px rgba(13,202,240,0.25), inset 0 1px 1px rgba(255,255,255,0.35)" }} />
       </div>
 
       {/* Greeting */}
-      <p className="text-[16px] font-bold font-['Rajdhani'] text-primary tracking-wider mb-1">Hello, Vishal</p>
-      <p className="text-[27px] font-black text-foreground font-['Rajdhani'] mb-3 text-center leading-tight">
+      <p className="text-[16px] font-bold font-sans text-primary tracking-wider mb-1">Hello, Vishal</p>
+      <p className="text-[27px] font-black text-foreground font-sans mb-3 text-center leading-tight">
         How can I assist you today?
       </p>
       <p className="text-[13px] text-muted-foreground mb-10 text-center max-w-md leading-relaxed">
         Manage appointments, open job cards, check vehicle history, or ask anything about today's service work.
       </p>
-
-      {/* Feature cards */}
-      <div className="grid grid-cols-4 gap-3 w-full max-w-[760px]">
-        {cards.map((card, idx) => (
-          <motion.button key={idx} onClick={() => {
-            if (card.id === "scan-plate") {
-              onScanTrigger();
-            } else {
-              onAction(card.id as PanelType);
-            }
-          }}
-            whileHover={{ y: -3, boxShadow: "0 8px 24px rgba(61,142,240,0.12)" }} whileTap={{ scale: 0.97 }}
-            className="flex flex-col gap-3 p-4 rounded-2xl bg-card border border-border hover:border-primary/25 transition-all text-left cursor-pointer group">
-            <card.icon size={17} className="text-muted-foreground group-hover:text-primary transition-colors" />
-            <div>
-              <p className="text-[13px] font-bold text-foreground font-['Rajdhani'] mb-1">{card.label}</p>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">{card.desc}</p>
-            </div>
-          </motion.button>
-        ))}
-      </div>
     </div>
   )
 }
@@ -7355,22 +7301,22 @@ export default function App() {
       <div className="flex-1 flex flex-col min-h-0 min-w-0">
 
         {/* Top bar */}
-        <div className="shrink-0 h-12 flex items-center justify-between px-4 border-b border-[rgba(61,142,240,0.1)] bg-[#070C16]">
+        <div className="shrink-0 h-12 flex items-center justify-between px-4 border-b border-border bg-background">
           <div className="flex items-center gap-3">
             {view === "chat" && !sidebarOpen && (
               <button onClick={() => setSidebarOpen(true)}
-                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-[#1C2A3E] transition-colors">
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-card transition-colors">
                 <ChevronRight size={14} />
               </button>
             )}
             {/* View toggle */}
-            <div className="flex items-center bg-[#1C2A3E]/50 rounded-lg p-0.5 border border-[rgba(61,142,240,0.12)]">
+            <div className="flex items-center bg-card/50 rounded-lg p-0.5 border border-border">
               <button onClick={() => setView("chat")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11.5px] font-semibold font-['Rajdhani'] transition-all ${view === "chat" ? "bg-primary text-white shadow-sm shadow-primary/30" : "text-muted-foreground hover:text-foreground"}`}>
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11.5px] font-semibold font-sans transition-all ${view === "chat" ? "bg-primary text-white shadow-sm shadow-primary/30" : "text-muted-foreground hover:text-foreground"}`}>
                 <MessageSquare size={11} /> AI Chat
               </button>
               <button onClick={() => setView("dashboard")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11.5px] font-semibold font-['Rajdhani'] transition-all ${view === "dashboard" ? "bg-primary text-white shadow-sm shadow-primary/30" : "text-muted-foreground hover:text-foreground"}`}>
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11.5px] font-semibold font-sans transition-all ${view === "dashboard" ? "bg-primary text-white shadow-sm shadow-primary/30" : "text-muted-foreground hover:text-foreground"}`}>
                 <LayoutDashboard size={11} /> Dashboard
               </button>
             </div>
@@ -7379,13 +7325,13 @@ export default function App() {
           <div className="flex items-center gap-1">
             <div className="flex items-center gap-1.5 px-3">
               <div className="w-1.5 h-1.5 rounded-full bg-[#4ADE80] animate-pulse" />
-              <span className="text-[10.5px] text-muted-foreground font-['JetBrains_Mono']">21 May 2026 · 10:32 AM</span>
+              <span className="text-[10.5px] text-muted-foreground font-mono">21 May 2026 · 10:32 AM</span>
             </div>
 
             {/* Theme Toggle Button */}
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="p-2 mr-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-[#1C2A3E]/80 transition-colors cursor-pointer flex items-center justify-center"
+              className="p-2 mr-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-card/80 transition-colors cursor-pointer flex items-center justify-center"
               title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Mode`}
             >
               {theme === "dark" ? <Sun size={14} className="text-[#FACC15]" /> : <Moon size={14} className="text-secondary-foreground" />}
@@ -7394,7 +7340,7 @@ export default function App() {
             <div className="relative">
               <button 
                 onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
-                className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-[#1C2A3E]/80 transition-colors cursor-pointer"
+                className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-card/80 transition-colors cursor-pointer"
               >
                 <Bell size={14} />
                 {unreadCount > 0 && (
@@ -7416,9 +7362,9 @@ export default function App() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 12, scale: 0.95 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-2 w-80 bg-[#0E1726] border border-[rgba(61,142,240,0.18)] rounded-xl shadow-2xl z-50 overflow-hidden font-['Rajdhani']"
+                    className="absolute right-0 mt-2 w-80 bg-card border border-border rounded-xl shadow-2xl z-50 overflow-hidden font-sans"
                   >
-                    <div className="p-3.5 border-b border-[rgba(61,142,240,0.08)] flex items-center justify-between bg-[#111C2E]">
+                    <div className="p-3.5 border-b border-border flex items-center justify-between bg-card">
                       <span className="text-[13px] font-bold tracking-wide text-foreground uppercase">Notifications ({unreadCount} new)</span>
                       <button 
                         onClick={() => setSharedNotifs(ns => ns.map(n => ({ ...n, read: true })))}
@@ -7443,14 +7389,14 @@ export default function App() {
                                 onClick={() => {
                                   setSharedNotifs(ns => ns.map(x => x.id === n.id ? { ...x, read: true } : x));
                                 }}
-                                className={`flex gap-2.5 p-3.5 hover:bg-[#14223A] transition-colors cursor-pointer text-left ${!n.read ? 'bg-[#121E33]/30' : 'opacity-65'}`}
+                                className={`flex gap-2.5 p-3.5 hover:bg-card transition-colors cursor-pointer text-left ${!n.read ? 'bg-[#121E33]/30' : 'opacity-65'}`}
                               >
                                 <Icon size={14} className={`mt-0.5 shrink-0 ${s.icon}`} />
                                 <div className="flex-1 min-w-0">
                                   <p className={`text-[12px] font-semibold leading-snug break-words ${!n.read ? 'text-foreground' : 'text-muted-foreground'}`}>
                                     {n.text}
                                   </p>
-                                  <p className="text-[9.5px] text-muted-foreground font-['JetBrains_Mono'] mt-1">
+                                  <p className="text-[9.5px] text-muted-foreground font-mono mt-1">
                                     {n.type.toUpperCase()} · {n.time}
                                   </p>
                                 </div>
@@ -7464,14 +7410,14 @@ export default function App() {
                 )}
               </AnimatePresence>
             </div>
-            <button className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-[#1C2A3E] transition-colors">
+            <button className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-card transition-colors">
               <Settings size={14} />
             </button>
-            <div className="flex items-center gap-2 pl-3 ml-1 border-l border-[rgba(61,142,240,0.12)]">
+            <div className="flex items-center gap-2 pl-3 ml-1 border-l border-border">
               <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-sm shadow-primary/30">
-                <span className="text-white text-[9px] font-black font-['Rajdhani']">VY</span>
+                <span className="text-white text-[9px] font-black font-sans">VY</span>
               </div>
-              <span className="text-[12px] font-semibold text-foreground font-['Rajdhani']">Vishal Yadav</span>
+              <span className="text-[12px] font-semibold text-foreground font-sans">Vishal Yadav</span>
             </div>
           </div>
         </div>
@@ -7480,20 +7426,20 @@ export default function App() {
         <AnimatePresence mode="wait">
           {view === "dashboard" ? (
             <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }} className="flex-1 flex flex-col min-h-0 overflow-y-auto scrollbar-none bg-[#070C16]">
+              transition={{ duration: 0.15 }} className="flex-1 flex flex-col min-h-0 overflow-y-auto scrollbar-none bg-background">
               {activeDashPanel ? (
-                <div className="flex-1 flex flex-col min-h-0 bg-[#070C16] p-6">
+                <div className="flex-1 flex flex-col min-h-0 bg-background p-6">
                   {/* Standalone Dashboard Flow Header */}
-                  <div className="flex items-center justify-between mb-5 pb-3.5 border-b border-[rgba(61,142,240,0.1)] shrink-0">
+                  <div className="flex items-center justify-between mb-5 pb-3.5 border-b border-border shrink-0">
                     <div className="flex items-center gap-2">
                       <button 
                         onClick={() => setActiveDashPanel(null)}
-                        className="text-muted-foreground hover:text-foreground text-[12px] font-semibold font-['Rajdhani'] flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#111A2E] hover:bg-[#1C2A3E] border border-[rgba(61,142,240,0.1)] transition-all cursor-pointer"
+                        className="text-muted-foreground hover:text-foreground text-[12px] font-semibold font-sans flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#111A2E] hover:bg-card border border-border transition-all cursor-pointer"
                       >
                         <ChevronLeft size={13} /> Return to Dashboard
                       </button>
-                      <span className="text-muted-foreground/30 font-['Rajdhani']">/</span>
-                      <span className="text-foreground text-[14px] font-bold uppercase tracking-wider font-['Rajdhani'] flex items-center gap-1.5">
+                      <span className="text-muted-foreground/30 font-sans">/</span>
+                      <span className="text-foreground text-[14px] font-bold uppercase tracking-wider font-sans flex items-center gap-1.5">
                         {activeDashPanel.replace("-", " ")} Workspace
                       </span>
                     </div>
@@ -7529,10 +7475,7 @@ export default function App() {
                 {showWelcome ? (
                   <motion.div key="welcome" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.25 }} className="flex-1 flex flex-col min-h-0">
-                    <WelcomeScreen 
-                      onAction={handleQuickAction} 
-                      onScanTrigger={() => setIsScanningInChat(true)} 
-                    />
+                    <WelcomeScreen />
                   </motion.div>
                 ) : (
                   <motion.div key="messages" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
@@ -7574,10 +7517,30 @@ export default function App() {
               </AnimatePresence>
 
               {/* Input bar — always visible in chat view */}
-              <div className="shrink-0 px-6 pb-5 pt-3 border-t border-[rgba(61,142,240,0.08)] bg-[#070C16]">
-                <div className="max-w-3xl mx-auto">
+              <div className="shrink-0 px-6 pb-5 pt-3 border-t border-border bg-background">
+                <div className="max-w-3xl mx-auto flex flex-col">
+                  {/* Quick Access Actions inside the chat view area */}
+                  <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-3 pt-1">
+                    <button onClick={() => setIsScanningInChat(true)}
+                      className="shrink-0 px-3 py-1.5 flex items-center gap-1.5 text-[11.5px] font-semibold bg-card/40 border border-border rounded-full hover:bg-primary/20 hover:text-primary transition-colors text-muted-foreground whitespace-nowrap font-sans uppercase tracking-wider">
+                      <Camera size={13} /> Scan License Plate
+                    </button>
+                    <button onClick={() => handleQuickAction("jc-opening")}
+                      className="shrink-0 px-3 py-1.5 flex items-center gap-1.5 text-[11.5px] font-semibold bg-card/40 border border-border rounded-full hover:bg-primary/20 hover:text-primary transition-colors text-muted-foreground whitespace-nowrap font-sans uppercase tracking-wider">
+                      <FileText size={13} /> Open Job Card
+                    </button>
+                    <button onClick={() => handleQuickAction("appointments")}
+                      className="shrink-0 px-3 py-1.5 flex items-center gap-1.5 text-[11.5px] font-semibold bg-card/40 border border-border rounded-full hover:bg-primary/20 hover:text-primary transition-colors text-muted-foreground whitespace-nowrap font-sans uppercase tracking-wider">
+                      <Calendar size={13} /> Appointments
+                    </button>
+                    <button onClick={() => handleQuickAction("service-news")}
+                      className="shrink-0 px-3 py-1.5 flex items-center gap-1.5 text-[11.5px] font-semibold bg-card/40 border border-border rounded-full hover:bg-primary/20 hover:text-primary transition-colors text-muted-foreground whitespace-nowrap font-sans uppercase tracking-wider">
+                      <Newspaper size={13} /> Service News
+                    </button>
+                  </div>
+
                   {isScanningInChat && (
-                    <div className="mb-3.5 bg-[#090F1C] rounded-2xl border border-dashed border-primary/30 p-1 overflow-hidden shadow-2xl">
+                    <div className="mb-3.5 bg-background rounded-2xl border border-dashed border-primary/30 p-1 overflow-hidden shadow-2xl">
                       <PlateScanner 
                         onScan={(res) => {
                           setInput(`Check vehicle history for ${res}`);
@@ -7591,7 +7554,7 @@ export default function App() {
                     <motion.div 
                       initial={{ opacity: 0, y: 10 }} 
                       animate={{ opacity: 1, y: 0 }} 
-                      className="mb-3.5 p-4 rounded-2xl border border-[rgba(239,68,68,0.25)] bg-[#0B0609] shadow-2xl relative overflow-hidden"
+                      className="mb-3.5 p-4 rounded-2xl border border-border bg-[#0B0609] shadow-2xl relative overflow-hidden"
                     >
                       {/* Tech grid style */}
                       <div className="absolute inset-0 bg-[linear-gradient(rgba(239,68,68,0.03)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none" />
@@ -7600,7 +7563,7 @@ export default function App() {
                         <div className="flex items-center justify-between border-b border-red-500/10 pb-2">
                           <div className="flex items-center gap-2">
                             <span className={`flex items-center justify-center w-2 h-2 rounded-full ${isListening ? 'bg-red-500 animate-ping' : 'bg-amber-400'}`} />
-                            <span className={`text-[11.5px] uppercase tracking-wider font-extrabold font-['Rajdhani'] flex items-center gap-1 ${isListening ? 'text-red-500' : 'text-amber-400'}`}>
+                            <span className={`text-[11.5px] uppercase tracking-wider font-extrabold font-sans flex items-center gap-1 ${isListening ? 'text-red-500' : 'text-amber-400'}`}>
                               <Mic size={12} className={isListening ? "text-red-500 animate-bounce" : "text-amber-400"} /> 
                               {isListening ? "NEXA Voice Assistant - Live Listening" : "NEXA Voice Assistant - Standby"}
                             </span>
@@ -7633,7 +7596,7 @@ export default function App() {
                         {/* Fallback & Helper HUD options */}
                         <div className="flex flex-col gap-2 mt-1 border-t border-red-500/5 pt-3">
                           <div className="flex items-center gap-1.5 justify-between">
-                            <span className="text-[10px] text-red-400 font-['Rajdhani'] font-bold uppercase tracking-wider flex items-center gap-1">
+                            <span className="text-[10px] text-red-400 font-sans font-bold uppercase tracking-wider flex items-center gap-1">
                               ℹ️ Voice HUD Control Center
                             </span>
                             <button 
@@ -7654,7 +7617,7 @@ export default function App() {
                             </p>
                           )}
 
-                          <p className="text-[9.5px] text-muted-foreground uppercase font-bold font-['Rajdhani'] tracking-widest mt-1">
+                          <p className="text-[9.5px] text-muted-foreground uppercase font-bold font-sans tracking-widest mt-1">
                             Click to simulate vocal command instantly (Hands-Free Demonstration):
                           </p>
                           
@@ -7686,12 +7649,12 @@ export default function App() {
                   )}
                   {attachedFile && (
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-xl mb-3 inline-flex max-w-[280px]">
-                      <span className="text-[11px] font-bold text-primary font-['Rajdhani'] uppercase shrink-0">{attachedFile.type}:</span>
+                      <span className="text-[11px] font-bold text-primary font-sans uppercase shrink-0">{attachedFile.type}:</span>
                       <span className="text-[11.5px] text-foreground truncate font-sans">{attachedFile.name}</span>
                       <button onClick={() => setAttachedFile(null)} className="text-muted-foreground hover:text-white p-0.5 rounded cursor-pointer shrink-0"><X size={12} /></button>
                     </div>
                   )}
-                  <div className="flex items-center gap-2 bg-[#0E1626] rounded-2xl border border-[rgba(61,142,240,0.18)] focus-within:border-primary/35 transition-all px-4 py-3 shadow-lg shadow-black/20">
+                  <div className="flex items-center gap-2 bg-card rounded-2xl border border-border focus-within:border-primary/35 transition-all px-4 py-3 shadow-lg shadow-black/20">
                     <input
                       value={input}
                       onChange={e => setInput(e.target.value)}
@@ -7707,7 +7670,7 @@ export default function App() {
                             ? "text-red-400 bg-red-500/10 animate-pulse border border-red-500/20" 
                             : isVoiceHUDOpen 
                             ? "text-amber-400 bg-amber-500/10 border border-amber-500/20" 
-                            : "text-muted-foreground hover:text-primary hover:bg-[#1C2A3E]"
+                            : "text-muted-foreground hover:text-primary hover:bg-card"
                         }`}
                         title={isListening ? "Listening... click to stop" : isVoiceHUDOpen ? "Voice Hub Active (Simulation mode)" : "Speak to Voice Assistant"}
                       >
@@ -7715,7 +7678,7 @@ export default function App() {
                       </button>
                       <button 
                         onClick={() => setIsScanningInChat(!isScanningInChat)}
-                        className={`p-1.5 rounded-lg transition-all flex items-center justify-center cursor-pointer ${isScanningInChat ? "text-primary bg-primary/10 animate-pulse border border-primary/20" : "text-muted-foreground hover:text-primary hover:bg-[#1C2A3E]"}`}
+                        className={`p-1.5 rounded-lg transition-all flex items-center justify-center cursor-pointer ${isScanningInChat ? "text-primary bg-primary/10 animate-pulse border border-primary/20" : "text-muted-foreground hover:text-primary hover:bg-card"}`}
                         title="Scan license plate using camera / OCR"
                       >
                         <Camera size={14} className={isScanningInChat ? "text-primary scale-110" : "text-muted-foreground"} />
@@ -7738,10 +7701,10 @@ export default function App() {
                         const randomPrompt = promptOptions[Math.floor(Math.random() * promptOptions.length)];
                         setInput(randomPrompt);
                       }}
-                        className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors font-['Rajdhani'] font-semibold cursor-pointer">
+                        className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors font-sans font-semibold cursor-pointer">
                         <Zap size={11} className="text-primary" /> Saved prompts
                       </button>
-                      <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors font-['Rajdhani'] font-semibold cursor-pointer font-medium">
+                      <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors font-sans font-semibold cursor-pointer font-medium">
                         <Download size={11} /> Attach file
                       </button>
                       <button 
@@ -7752,7 +7715,7 @@ export default function App() {
                             window.speechSynthesis.cancel();
                           }
                         }} 
-                        className={`flex items-center gap-1.5 text-[11px] select-none cursor-pointer font-['Rajdhani'] font-semibold transition-colors ${speakResponses ? "text-[#4ADE80]" : "text-muted-foreground hover:text-foreground"}`}
+                        className={`flex items-center gap-1.5 text-[11px] select-none cursor-pointer font-sans font-semibold transition-colors ${speakResponses ? "text-[#4ADE80]" : "text-muted-foreground hover:text-foreground"}`}
                         title="Toggles reading out loud NEXA response bubbles"
                       >
                         {speakResponses ? <Volume2 size={11} className="text-[#4ADE80]" /> : <VolumeX size={11} />}
@@ -7773,7 +7736,7 @@ export default function App() {
                         style={{ display: "none" }} 
                       />
                     </div>
-                    <p className="text-[10px] text-muted-foreground/35 font-['JetBrains_Mono']">NEXA Voice Assistant · Offline Link Active</p>
+                    <p className="text-[10px] text-muted-foreground/35 font-mono">NEXA Voice Assistant · Offline Link Active</p>
                   </div>
                 </div>
               </div>
