@@ -3188,10 +3188,10 @@ function CloseJobCardPanel({
               </button>
             </div>
             <button 
-              onClick={onBack} 
-              className="mt-2 w-full py-2.5 bg-primary hover:bg-primary-hover text-white text-[12px] font-black rounded-lg transition-all font-sans uppercase tracking-wider shadow-lg"
+              onClick={() => { onBack(); setView("chat"); }} 
+              className="mt-2 w-full py-2.5 bg-primary hover:bg-primary/90 text-white text-[12px] font-black rounded-lg transition-all font-sans uppercase tracking-wider shadow-lg"
             >
-              Return to Homepage
+              Back to Chat
             </button>
           </div>
         </div>
@@ -7277,7 +7277,7 @@ export default function App() {
   const showWelcome = messages.length === 0 && view === "chat"
 
   return (
-    <div className="h-screen flex bg-background overflow-hidden" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className={`h-screen flex bg-background text-foreground overflow-hidden ${theme} transition-colors duration-300`} style={{ fontFamily: "'Roboto', sans-serif" }}>
 
       {/* ── Sidebar ─────────────────────────────────────────────────────────── */}
       <AnimatePresence initial={false}>
@@ -7433,10 +7433,10 @@ export default function App() {
                   <div className="flex items-center justify-between mb-5 pb-3.5 border-b border-border shrink-0">
                     <div className="flex items-center gap-2">
                       <button 
-                        onClick={() => setActiveDashPanel(null)}
-                        className="text-muted-foreground hover:text-foreground text-[12px] font-semibold font-sans flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#111A2E] hover:bg-card border border-border transition-all cursor-pointer"
+                        onClick={() => { setActiveDashPanel(null); setView("chat"); }}
+                        className="text-primary hover:text-white text-[12px] font-black font-sans flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 hover:bg-primary border border-primary/20 transition-all cursor-pointer shadow-sm hover:shadow-primary/30 uppercase tracking-wider"
                       >
-                        <ChevronLeft size={13} /> Return to Dashboard
+                        <ChevronLeft size={14} /> Back to Chat
                       </button>
                       <span className="text-muted-foreground/30 font-sans">/</span>
                       <span className="text-foreground text-[14px] font-bold uppercase tracking-wider font-sans flex items-center gap-1.5">
@@ -7454,6 +7454,7 @@ export default function App() {
                         if (actionId === "welcome") {
                           setActiveDashPanel(null);
                           setActiveDashPanelData(undefined);
+                          setView("chat");
                         } else {
                           setActiveDashPanel(actionId);
                           setActiveDashPanelData(data);
