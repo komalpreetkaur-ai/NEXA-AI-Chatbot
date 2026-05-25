@@ -1,3 +1,4 @@
+import * as React from "react"
 import { useState, useRef, useEffect, forwardRef } from "react"
 import { jsPDF } from "jspdf"
 import {
@@ -10,10 +11,10 @@ import {
   Wifi, Lightbulb, X, Camera, CameraOff, Mic, Volume2, VolumeX,
   Sun, Moon
 } from "lucide-react"
-import { motion, AnimatePresence } from "motion/react"
+import { motion, AnimatePresence } from "framer-motion"
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type PanelType = "welcome" | "appointments" | "vehicle-history" | "jc-opening" | "all-jobcards" | "tasks" | "notifications" | "service-news" | "my-calls" | "suzuki-connect-form" | "suzuki-connect-advice"
+type PanelType = "welcome" | "appointments" | "vehicle-history" | "jc-opening" | "all-jobcards" | "tasks" | "notifications" | "service-news" | "my-calls" | "suzuki-connect-form" | "suzuki-connect-advice" | "close-jobcard"
 
 interface Appointment {
   regNo: string; timeSlot: string; serviceType: string; omr: number
@@ -39,6 +40,7 @@ interface JCDetail {
     variant: string; saleDate: string; tvSaleDate: string; fcOkDate: string; address: string
     email: string; state: string; city: string; pinCode: string; customerCategory: string
   }
+  amount?: number;
   demands: { sno: number; type: string; code: string; desc: string; voice: string }[]
   labour: { sno: number; code: string; desc: string; qty: number; prnHrs: number; billableType: string; amount: number }[]
   parts: { sno: number; code: string; desc: string; qty: number; price: number; amount: number }[]
@@ -46,7 +48,7 @@ interface JCDetail {
 }
 interface Task { id: string; text: string; time: string; done: boolean; priority: "high" | "medium" | "low" }
 interface Notification { id: string; text: string; type: "urgent" | "warning" | "success" | "info"; time: string; read: boolean }
-interface Message { id: string; role: "user" | "bot"; text: string; panel?: PanelType; initialData?: Record<string, unknown>; timestamp: Date }
+interface Message { id: string; role: "user" | "bot"; text: string; panel?: PanelType; initialData?: Record<string, unknown>; timestamp: Date; isJcStep?: boolean; jcStepCode?: string; }
 
 // ── Mock Data ─────────────────────────────────────────────────────────────────
 const APPOINTMENTS: Appointment[] = [
@@ -2813,11 +2815,1578 @@ function JCDetailModal({ jcNo, onClose }: { jcNo: string; onClose: () => void })
   )
 }
 
+
+// ── TAB1 Action Modal ──────────────────────────────────────────────────────────
+function Tab1ActionModal({ 
+  jcNo, 
+  onClose, 
+  onSelectAction 
+}: { 
+  jcNo: string; 
+  onClose: () => void; 
+  onSelectAction: (act: "find_id" | "update" | "close") => void 
+}) {
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      <motion.div 
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: 1 }} 
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm" 
+        onClick={onClose} 
+      />
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }} 
+        animate={{ opacity: 1, scale: 1 }} 
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="relative w-full max-w-sm bg-[#0E1626] border border-[rgba(61,142,240,0.25)] rounded-2xl shadow-2xl p-6 overflow-hidden z-10 flex flex-col gap-4 font-sans text-white"
+      >
+        <div className="flex justify-between items-center pb-2 border-b border-border/20">
+          <p className="text-[14px] font-bold font-['Rajdhani'] uppercase tracking-wider text-primary">TAB1 Action Panel</p>
+          <button onClick={onClose} className="text-muted-foreground hover:text-white font-bold text-lg leading-none cursor-pointer">×</button>
+        </div>
+        <div className="text-center py-2">
+          <p className="text-[12px] text-muted-foreground">Select Required Action for</p>
+          <p className="text-[15px] font-bold text-secondary font-['JetBrains_Mono'] mt-1">{jcNo}</p>
+        </div>
+        <div className="flex flex-col gap-2.5">
+          <button 
+            onClick={() => onSelectAction("find_id")}
+            className="w-full py-2.5 text-[12px] font-bold text-primary border border-primary/30 hover:border-primary hover:bg-primary/5 rounded-xl transition-all cursor-pointer font-['Rajdhani'] uppercase tracking-wider bg-[#1C2A3E]/30"
+          >
+            Find ID (View Details)
+          </button>
+          <button 
+            onClick={() => onSelectAction("update")}
+            className="w-full py-2.5 text-[12px] font-bold text-[#FACC15] border border-[#FACC15]/30 hover:border-[#FACC15] hover:bg-[#FACC15]/5 rounded-xl transition-all cursor-pointer font-['Rajdhani'] uppercase tracking-wider bg-[#1C2A3E]/30"
+          >
+            Update Jobcard
+          </button>
+          <button 
+            onClick={() => onSelectAction("close")}
+            className="w-full py-2.5 text-[12.5px] font-bold text-white bg-primary hover:bg-primary/95 rounded-xl transition-all cursor-pointer font-['Rajdhani'] uppercase tracking-wider shadow-lg shadow-primary/20"
+          >
+            ✅ Close Jobcard
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+// ── Close Job Card Panel ──────────────────────────────────────────────────────
+function CloseJobCardPanel({ 
+  initialReg, 
+  initialJcNo, 
+  onBack 
+}: { 
+  initialReg?: string; 
+  initialJcNo?: string; 
+  onBack: () => void 
+}) {
+  const selectedJcNo = initialJcNo || "JH10CK2349";
+  const jc = JC_DETAILS[selectedJcNo] || JC_DETAILS["JH10CK2349"];
+
+  const [step, setStep] = useState(0);
+
+  // Error/validation messages
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  // States
+  const [odometer, setOdometer] = useState(jc.odometer ? String(jc.odometer) : "42376");
+  const [mobile1, setMobile1] = useState(jc.customer.mobile1 || "9876543210");
+  const [mobile2, setMobile2] = useState(jc.customer.mobile2 || "");
+  const [email, setEmail] = useState(jc.customer.email || jc.customer.email || "amit.sharma@email.com");
+  const [revisedDate, setRevisedDate] = useState("03-SEP-2025 12:44");
+
+  const [bay, setBay] = useState(jc.bay || "BODY REPAIRS");
+  const [group, setGroup] = useState(jc.group || "Other Group 2");
+  const [technician, setTechnician] = useState(jc.techName || "Technician 3");
+  const [techExpert, setTechExpert] = useState("Expert 2");
+  const [followUpDate, setFollowUpDate] = useState("25-MAY-2026");
+  const [csPercent, setCsPercent] = useState("85");
+  const [followUpDoneBy, setFollowUpDoneBy] = useState("CEO");
+  const [ceoApprovalStatus, setCeoApprovalStatus] = useState("NOT REQUIRED");
+  const [roadTestStartKms, setRoadTestStartKms] = useState("42300");
+  const [roadTestEndKms, setRoadTestEndKms] = useState("42350");
+  const [roadTestStartTime, setRoadTestStartTime] = useState("10:00");
+  const [roadTestEndTime, setRoadTestEndTime] = useState("10:15");
+
+  const [fuelLevel, setFuelLevel] = useState("1/2");
+  const [interiorImagesCount, setInteriorImagesCount] = useState(3);
+  const [underbodyCheck, setUnderbodyCheck] = useState(true);
+  const [scratches, setScratches] = useState(1);
+  const [dents, setDents] = useState(2);
+  const [fuelCapacity, setFuelCapacity] = useState("50%");
+
+  const [paymentMode, setPaymentMode] = useState("UPI");
+
+  const [demands, setDemands] = useState<any[]>(() => {
+    return jc.demands ? jc.demands.map((d, i) => ({
+      sno: i + 1,
+      code: d.code || "VZ00305",
+      desc: d.desc || "VEHICLE WASHING AND CLEANING",
+      reported_by: "Customer",
+      attended: true,
+      carry_forward: false,
+      ew_wty: false,
+      problemCode: "P001",
+      faultCode: "FA09",
+      actionCode: "AC45"
+    })) : [
+      { sno: 1, code: "VZ00305", desc: "VEHICLE WASHING AND CLEANING", reported_by: "Customer", attended: true, carry_forward: false, ew_wty: false, problemCode: "P001", faultCode: "FA09", actionCode: "AC45" }
+    ];
+  });
+  const [recordVoiceActive, setRecordVoiceActive] = useState(false);
+  const [voiceSec, setVoiceSec] = useState(0);
+
+  const [problemCode, setProblemCode] = useState("P001");
+  const [faultCode, setFaultCode] = useState("FA09");
+  const [actionCode, setActionCode] = useState("AC45");
+  const [commentText, setCommentText] = useState("");
+
+  const [labourItems, setLabourItems] = useState<any[]>(() => {
+    return jc.labour ? jc.labour.map((l, i) => ({
+      sno: i + 1,
+      code: l.code,
+      desc: l.desc,
+      price: l.amount,
+      billableType: l.billableType || "Customer"
+    })) : [
+      { sno: 1, code: "ZA1HLO", desc: "Alignment Out", price: 575, billableType: "Customer" },
+      { sno: 2, code: "ZA15LO", desc: "Brake Cleaning", price: 450, billableType: "Customer" }
+    ];
+  });
+
+  const [partsItems, setPartsItems] = useState<any[]>(() => {
+    return jc.parts ? jc.parts.map((p, i) => ({
+      sno: i + 1,
+      code: p.code,
+      name: p.desc,
+      price: p.price || p.amount,
+      qty: p.qty,
+      amount: p.amount
+    })) : [
+      { sno: 1, code: "68510-68L10", name: "Engine Oil (4L)", price: 1200, qty: 1, amount: 1200 }
+    ];
+  });
+
+  const [showAddLabour, setShowAddLabour] = useState(false);
+  const [showAddParts, setShowAddParts] = useState(false);
+  const [labourDiscPercent, setLabourDiscPercent] = useState("0");
+  const [authBy, setAuthBy] = useState("ASHWANI CHAUHAN");
+
+  // Loyalty Points (CCP)
+  const [ccpCard, setCcpCard] = useState("77000291241");
+  const [ccpMobile, setCcpMobile] = useState(jc.customer.mobile1 || "9847058853");
+  const [ccpPoints, setCcpPoints] = useState("542");
+  const [ccpRedeemVal, setCcpRedeemVal] = useState("");
+  const [ccpOtpVal, setCcpOtpVal] = useState("");
+
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpConfirmed, setOtpConfirmed] = useState(false);
+  const [isPreinvoicePdfSimulated, setIsPreinvoicePdfSimulated] = useState(false);
+  const [isPreinvoiceEmailed, setIsPreinvoiceEmailed] = useState(false);
+
+  // Pick up & Drop
+  const [pickupType, setPickupType] = useState("2. Drop Only");
+  const [pickupLoc, setPickupLoc] = useState("Location 2");
+  const [pickupAddr, setPickupAddr] = useState("N/A");
+  const [pickupRemarks, setPickupRemarks] = useState("N/A");
+  const [pickupTimeDate, setPickupTimeDate] = useState("02-SEP-2025 00:00");
+  const [pndAssociate, setPndAssociate] = useState("Associate 2");
+  const [sameAsPickup, setSameAsPickup] = useState(false);
+  const [dropTimeDate, setDropTimeDate] = useState("03-SEP-2025 18:00");
+  const [dropLoc, setDropLoc] = useState("Location 2");
+  const [dropAddr, setDropAddr] = useState("Address Gurgaon Sec 15");
+  const [dropAssociate, setDropAssociate] = useState("Associate 2");
+
+  // TCS details
+  const [tcsCust, setTcsCust] = useState("NO");
+  const [tcsIns, setTcsIns] = useState("NO");
+  const [tcsEwrVal, setTcsEwrVal] = useState("NO");
+
+  // Flow modallings
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showSuccessCard, setShowSuccessCard] = useState(false);
+
+  // Trigger Toast
+  function triggerToast(text: string) {
+    setToastMsg(text);
+    setTimeout(() => {
+      setToastMsg((prev) => (prev === text ? null : prev));
+    }, 4000);
+  }
+
+  // Cost calculations
+  const labourSubtotal = labourItems.reduce((acc, x) => acc + x.price, 0);
+  const discAmt = Math.round((labourSubtotal * Number(labourDiscPercent)) / 100);
+  const labourTotal = labourSubtotal - discAmt;
+  const partsTotal = partsItems.reduce((acc, x) => acc + x.price * x.qty, 0);
+  const netTotal = labourTotal + partsTotal;
+  const grandTotal = netTotal - (otpConfirmed && ccpRedeemVal ? Math.min(Number(ccpRedeemVal) || 0, Number(ccpPoints)) : 0);
+
+  // Handle NEXT / Submit
+  function handleNextStep() {
+    if (step === 0) {
+      if (!odometer.trim()) {
+        triggerToast("Odometer reading is mandatory before proceeding!");
+        return;
+      }
+      setStep(1);
+    } else if (step === 1) {
+      if (!bay || !technician) {
+        triggerToast("BAY, GROUP and TECHNICIAN are mandatory!");
+        return;
+      }
+      setStep(2);
+    } else if (step === 2) {
+      if (interiorImagesCount < 3) {
+        triggerToast("Please capture interior images — minimum 3 mandatory!");
+        return;
+      }
+      setStep(3);
+    } else if (step === 3) {
+      if (!paymentMode) {
+        triggerToast("Payment mode is required to proceed!");
+        return;
+      }
+      setStep(4);
+    } else if (step === 4) {
+      if (demands.length === 0) {
+        triggerToast("At least one demand repair entry is required!");
+        return;
+      }
+      setStep(5);
+    } else if (step === 5) {
+      setStep(6);
+    } else if (step === 6) {
+      if (otpSent && !otpConfirmed) {
+        triggerToast("Please confirm OTP or tap Skip to continue without redemption");
+        return;
+      }
+      setStep(7);
+    } else if (step === 7) {
+      // Prompt 10: Confirmation Dialog
+      setShowConfirmation(true);
+    } else if (step === 8) {
+      setStep(9);
+    }
+  }
+
+  function handlePrevStep() {
+    if (step > 0) {
+      setStep(step - 1);
+    } else {
+      onBack();
+    }
+  }
+
+  const stepsLabels = [
+    "Cust & Veh",
+    "JC Details",
+    "Veh Status",
+    "Service Menu",
+    "Demands",
+    "Labour/Parts",
+    "Loyalty (CCP)",
+    "Pick & Drop",
+    "TCS details",
+    "Pre-Invoice"
+  ];
+
+  // Hotspots toggles
+  const [scratchDot, setScratchDot] = useState<number[]>([1, 4, 8]);
+  const [dentDot, setDentDot] = useState<number[]>([2, 5]);
+
+  return (
+    <div className="relative flex flex-col h-full bg-[#070C16] text-white overflow-hidden font-sans">
+      
+      {/* Absolute Toast */}
+      <AnimatePresence>
+        {toastMsg && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            exit={{ opacity: 0, y: -20 }}
+            className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-[#EF4444] text-white text-[12px] font-bold px-4 py-2.5 rounded-lg shadow-xl flex items-center gap-2 border border-red-500/30"
+          >
+            <AlertTriangle size={14} />
+            {toastMsg}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Confirmation Step 10 Modal */}
+      {showConfirmation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
+          <div className="bg-[#0E1626] border border-[#155DFC]/20 p-6 rounded-2xl max-w-sm w-full text-center flex flex-col gap-4">
+            <AlertTriangle className="text-amber-500 mx-auto" size={40} />
+            <h4 className="text-[15px] font-bold font-['Rajdhani'] uppercase tracking-wider text-white">Verification Check</h4>
+            <p className="text-[12.5px] text-muted-foreground">Please make sure all the information filled by you is correct. Do you wish to continue?</p>
+            <div className="grid grid-cols-2 gap-3 mt-2">
+              <button 
+                onClick={() => setShowConfirmation(false)} 
+                className="py-2 rounded-lg border border-border text-[12px] text-muted-foreground hover:text-white hover:bg-white/5 transition-all"
+              >
+                NO
+              </button>
+              <button 
+                onClick={() => {
+                  setShowConfirmation(false);
+                  setStep(8); // Go to TCS Tax Details
+                }} 
+                className="py-2 rounded-lg bg-primary text-white text-[12px] font-bold hover:bg-primary-hover transition-all"
+              >
+                YES (CONTINUE)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessCard && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+          <div className="bg-[#0E1626] border border-[#4ADE80]/30 p-8 rounded-2xl max-w-md w-full text-center flex flex-col gap-4 shadow-2xl justify-center items-center">
+            <div className="w-16 h-16 rounded-full bg-[#10B981]/15 flex items-center justify-center border-2 border-[#10B981] animate-pulse">
+              <Check className="text-[#10B981]" size={36} />
+            </div>
+            <h3 className="text-[18px] font-black font-['Rajdhani'] uppercase text-[#10B981]">Job Card Closed Successfully!</h3>
+            <div className="bg-[#070C16] border border-border/10 p-4 rounded-xl w-full text-[12px] font-mono text-left flex flex-col gap-1.5 mt-2">
+              <p><span className="text-muted-foreground">Invoice No:</span> <strong className="text-white">INV-2026-NEXA3802</strong></p>
+              <p><span className="text-muted-foreground">Registration:</span> <strong className="text-white">{jc.customer.regNo}</strong></p>
+              <p><span className="text-muted-foreground">Total Paid:</span> <strong className="text-[#4ADE80]">₹ {grandTotal.toLocaleString()}</strong></p>
+              <p><span className="text-muted-foreground">DMS Status:</span> <strong className="text-blue-400">INVOICE GENERATED & REPORTED ✅</strong></p>
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-1">Invoice SMS and email delivered to {jc.customer.name}</p>
+            <div className="grid grid-cols-2 gap-2 w-full mt-4">
+              <button 
+                onClick={() => {
+                  const doc = new jsPDF();
+                  doc.setFont("courier", "bold");
+                  doc.text("SUZUKI NEXA JOB CARD INVOICE", 15, 15);
+                  doc.text(`Invoice No: INV-2026-NEXA3802`, 15, 25);
+                  doc.text(`CustomerName: ${jc.customer.name}`, 15, 35);
+                  doc.text(`Vehicle No: ${jc.customer.regNo}`, 15, 45);
+                  doc.text(`Final Amount Billed: Rs. ${grandTotal}`, 15, 55);
+                  doc.text("Job Card Status: Closed Successfully", 15, 65);
+                  doc.save(`Invoice_${jc.jcNo}.pdf`);
+                }} 
+                className="py-2 px-3 border border-border hover:bg-white/5 rounded-lg text-[11px] font-bold text-white transition-all flex items-center justify-center gap-1"
+              >
+                <Download size={12} /> Save PDF
+              </button>
+              <button 
+                onClick={() => {
+                  alert("Invoice sent successfully to " + email);
+                }} 
+                className="py-2 px-3 border border-border hover:bg-white/5 rounded-lg text-[11px] font-bold text-white transition-all flex items-center justify-center gap-1"
+              >
+                <Mail size={12} /> Email Invoice
+              </button>
+            </div>
+            <button 
+              onClick={onBack} 
+              className="mt-2 w-full py-2.5 bg-primary hover:bg-primary-hover text-white text-[12px] font-black rounded-lg transition-all font-['Rajdhani'] uppercase tracking-wider shadow-lg"
+            >
+              Return to Homepage
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Header bar */}
+      <div className="bg-[#0A1020] border-b border-border/25 px-4 h-12 flex items-center justify-between shrink-0 select-none">
+        <div className="flex items-center gap-3">
+          <button onClick={handlePrevStep} className="flex items-center gap-1 text-[11.5px] font-bold text-muted-foreground hover:text-white transition-colors cursor-pointer">
+            <ChevronLeft size={14} /> Back
+          </button>
+          <div className="h-4 w-[1px] bg-border/20" />
+          <p className="text-[12.5px] font-black tracking-widest font-['Rajdhani'] text-primary uppercase">CLOSE JOB CARD</p>
+          <span className="text-[10px] font-mono text-[#8F9CAE] bg-[#1C2A3E] px-2 py-0.5 rounded border border-border/30">{jc.jcNo}</span>
+        </div>
+        <div className="flex items-center gap-4 text-[10.5px] font-semibold text-muted-foreground">
+          <div className="flex gap-1.5 items-center">
+            <span className="text-[#3D8EF0] font-mono font-bold">{jc.customer.regNo}</span> · <span className="uppercase text-white">{jc.customer.model}</span>
+          </div>
+          <p className="font-['JetBrains_Mono'] text-white">v11.2 DEV</p>
+        </div>
+      </div>
+
+      {/* Progress step dots */}
+      <div className="bg-[#070C16] border-b border-border/10 py-2.5 px-4 flex items-center gap-1.5 overflow-x-auto select-none scrollbar-none shrink-0">
+        {stepsLabels.map((lab, i) => (
+          <React.Fragment key={i}>
+            {i > 0 && <div className={`h-[1.5px] w-4 shrink-0 rounded ${step >= i ? "bg-primary" : "bg-border/20"}`} />}
+            <button 
+              onClick={() => {
+                // SAs can jump to any previous step or next if allowed. Let's let them navigate easily.
+                if (i <= step) setStep(i);
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1 text-[10.5px] font-bold rounded-full border transition-all shrink-0 font-['Rajdhani'] uppercase ${
+                step === i 
+                  ? "bg-primary text-white border-primary" 
+                  : step > i 
+                    ? "bg-[#1C2A3E]/30 text-primary border-primary/30" 
+                    : "text-muted-foreground border-border/10"
+              }`}
+            >
+              <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[8px] ${step > i ? "bg-[#10B981]/20 text-[#10B981]" : "bg-black/20"}`}>
+                {step > i ? "✓" : i + 2}
+              </div>
+              {lab}
+            </button>
+          </React.Fragment>
+        ))}
+      </div>
+
+      {/* Persistent Details Strip */}
+      <div className="bg-[#0A1020]/25 px-4 py-2 border-b border-border/15 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10.5px] shrink-0 font-sans">
+        <div>
+          <p className="text-muted-foreground uppercase text-[8px] font-bold font-['Rajdhani']">Jobcard Opened</p>
+          <p className="text-white font-semibold mt-0.5">02-SEP-2025 12:45</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground uppercase text-[8px] font-bold font-['Rajdhani']">Est. Delivery Target</p>
+          <p className="text-white font-semibold mt-0.5">03-SEP-2025 12:44</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground uppercase text-[8px] font-bold font-['Rajdhani'] flex items-center gap-1">Revised Target ✏️</p>
+          <input 
+            value={revisedDate}
+            onChange={(e) => setRevisedDate(e.target.value)}
+            className="text-primary font-bold bg-transparent outline-none border-b border-transparent focus:border-primary/50 mt-0.5 cursor-pointer max-w-[124px]"
+          />
+        </div>
+        <div>
+          <p className="text-muted-foreground uppercase text-[8px] font-bold font-['Rajdhani']">Estimations (Current)</p>
+          <p className="text-[#3D8EF0] font-black mt-0.5">₹ {grandTotal.toLocaleString()} <span className="text-muted-foreground font-light text-[9.5px]">(Excl. tax)</span></p>
+        </div>
+      </div>
+
+      {/* Main step container */}
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-[#070C16]">
+        <div className="max-w-4xl mx-auto w-full flex flex-col gap-5">
+          
+          {step === 0 && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4">
+              <h3 className="text-[15px] font-bold font-['Rajdhani'] text-primary uppercase tracking-wide border-b border-border/10 pb-1">CUSTOMER & VEHICLE DETAILS</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Odometer column */}
+                <div className="bg-[#0E1626] border border-border/35 p-4 rounded-xl flex flex-col gap-2.5">
+                  <p className="text-[12px] font-bold font-['Rajdhani'] text-secondary uppercase">Current Operations</p>
+                  <div>
+                    <label className="text-[10px] text-muted-foreground block mb-1 uppercase font-bold">Odometer Value (KMS) *</label>
+                    <input 
+                      type="number" 
+                      value={odometer} 
+                      onChange={(e) => setOdometer(e.target.value)}
+                      placeholder="e.g. 42376"
+                      className="w-full bg-[#1C2A3E] border border-border rounded-lg py-2 px-3 text-[12.5px] outline-none text-white focus:border-primary/50 font-mono font-bold"
+                    />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground italic mt-1">Note: Odometer measurement is highly critical for running campaigns audit.</p>
+                </div>
+
+                {/* Patient Contacts Info */}
+                <div className="col-span-2 bg-[#0E1626] border border-border/15 p-4 rounded-xl grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="sm:col-span-2 border-b border-border/10 pb-1">
+                    <p className="text-[11px] font-bold font-['Rajdhani'] text-secondary uppercase">Contact & DMS Sync Profile</p>
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5 uppercase">Customer Name</label>
+                    <p className="text-[12px] font-bold text-white mt-0.5 uppercase">{jc.customer.name}</p>
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5 uppercase">Registration Number</label>
+                    <span className="text-[11.5px] font-mono text-primary font-bold uppercase">{jc.customer.regNo}</span>
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5 uppercase">Chassis No / VIN</label>
+                    <p className="text-[11.5px] font-mono text-white mt-0.5">{jc.customer.vin}</p>
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5 uppercase font-bold text-primary">Mobile Number 1 *</label>
+                    <input 
+                      value={mobile1}
+                      onChange={(e) => setMobile1(e.target.value)}
+                      className="w-full mt-0.5 bg-[#1C2A3E]/60 border border-border/50 focus:border-primary rounded px-2.5 py-1 text-[12px] font-mono outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5 uppercase font-light">Mobile Number 2</label>
+                    <input 
+                      value={mobile2}
+                      onChange={(e) => setMobile2(e.target.value)}
+                      placeholder="Optional"
+                      className="w-full mt-0.5 bg-[#1C2A3E]/60 border border-border/50 focus:border-primary rounded px-2.5 py-1 text-[12px] font-mono outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5 uppercase font-bold text-primary">Email Address *</label>
+                    <input 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full mt-0.5 bg-[#1C2A3E]/60 border border-border/50 focus:border-primary rounded px-2.5 py-1 text-[12px] outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Readonly technical status box */}
+              <div className="bg-[#1C2A3E]/30 p-4 rounded-xl border border-border/10 grid grid-cols-2 sm:grid-cols-5 gap-4 text-[11px]">
+                <div>
+                  <span className="text-[8.5px] block text-muted-foreground uppercase">Service Category</span>
+                  <strong className="text-white uppercase">{jc.serviceType}</strong>
+                </div>
+                <div>
+                  <span className="text-[8.5px] block text-muted-foreground uppercase">Appointment Type</span>
+                  <strong className="text-[#3D8EF0]">DMS Walk-In</strong>
+                </div>
+                <div>
+                  <span className="text-[8.5px] block text-muted-foreground uppercase">EW Type Status</span>
+                  <strong className="text-[#4ADE80]">EW Purchased</strong>
+                </div>
+                <div>
+                  <span className="text-[8.5px] block text-muted-foreground uppercase">Technical Campaign</span>
+                  <strong className="text-yellow-400">01 Active (S-CNG Bolt Check)</strong>
+                </div>
+                <div>
+                  <span className="text-[8.5px] block text-muted-foreground uppercase">Previous Service Visit</span>
+                  <strong className="text-white">Completed (18-MAY-2026)</strong>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {step === 1 && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4">
+              <h3 className="text-[15px] font-bold font-['Rajdhani'] text-primary uppercase tracking-wide border-b border-border/10 pb-1">JOBCARD DETAILS</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                {/* Card 1: Bay Details */}
+                <div className="bg-[#0E1626] border border-border/15 p-4 rounded-xl flex flex-col gap-3">
+                  <p className="text-[11.5px] font-bold font-['Rajdhani'] text-secondary uppercase border-b border-border/10 pb-1">Bay Details</p>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5">BAY CODE *</label>
+                    <select value={bay} onChange={(e) => setBay(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none font-bold">
+                      <option value="BODY REPAIRS">BODY REPAIRS</option>
+                      <option value="BAY-01">BAY-01 (PMS STANDARD)</option>
+                      <option value="BAY-02">BAY-02 (RUNNING REPAIR)</option>
+                      <option value="BAY-03">BAY-03 (ALIGMENTS/WHEELS)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5">GROUP CODE *</label>
+                    <select value={group} onChange={(e) => setGroup(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none">
+                      <option value="Other Group 2">Other Group 2</option>
+                      <option value="GRP-A">GROUP-A (PMS/BODY)</option>
+                      <option value="GRP-B">GROUP-B (CAR WASHING)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5">TECHNICIAN *</label>
+                    <select value={technician} onChange={(e) => setTechnician(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none font-bold">
+                      <option value="Technician 3">Technician 3 (Sandeep S)</option>
+                      <option value="RAJESH KUMAR">RAJESH KUMAR</option>
+                      <option value="VISHAL ADITYA">VISHAL ADITYA</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5">TECHNICAL EXPERT</label>
+                    <select value={techExpert} onChange={(e) => setTechExpert(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none">
+                      <option value="Expert 2">Technical Expert 2</option>
+                      <option value="Expert 1">Technical Advisor/Trainer</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Card 2: Last Follow-up details */}
+                <div className="bg-[#0E1626] border border-border/15 p-4 rounded-xl flex flex-col gap-3">
+                  <p className="text-[11.5px] font-bold font-['Rajdhani'] text-secondary uppercase border-b border-border/10 pb-1 font-semibold">Last Follow-Up Details</p>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5">FOLLOW UP DATE</label>
+                    <input type="text" value={followUpDate} onChange={(e) => setFollowUpDate(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none font-mono" />
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5">CS% VALUE</label>
+                    <input type="text" value={csPercent} onChange={(e) => setCsPercent(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none font-mono" />
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5">FOLLOW UP DONE BY</label>
+                    <select value={followUpDoneBy} onChange={(e) => setFollowUpDoneBy(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none">
+                      <option value="CEO">CEO (Customer Experience Officer)</option>
+                      <option value="Advisor CRM">Advisor CRM Team</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5">CEO APPROVAL STATUS</label>
+                    <input type="text" readOnly value={ceoApprovalStatus} className="w-full bg-[#070C16] text-[#8F9CAE] text-[11px] px-2.5 py-1.5 rounded border border-border/15 outline-none font-mono" />
+                  </div>
+                </div>
+
+                {/* Card 3: Road Test Details */}
+                <div className="bg-[#0E1626] border border-border/15 p-4 rounded-xl flex flex-col gap-3">
+                  <p className="text-[11.5px] font-bold font-['Rajdhani'] text-secondary uppercase border-b border-border/10 pb-1">Road Test Details</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[9px] text-muted-foreground block mb-0.5">START TIME</label>
+                      <input type="text" value={roadTestStartTime} onChange={(e) => setRoadTestStartTime(e.target.value)} className="w-full bg-[#1C2A3E] text-[11.5px] p-1.5 rounded border border-border text-center font-mono" />
+                    </div>
+                    <div>
+                      <label className="text-[9px] text-muted-foreground block mb-0.5">START KMS</label>
+                      <input type="text" value={roadTestStartKms} onChange={(e) => setRoadTestStartKms(e.target.value)} className="w-full bg-[#1C2A3E] text-[11.5px] p-1.5 rounded border border-border text-center font-mono font-bold" />
+                    </div>
+                    <div>
+                      <label className="text-[9px] text-muted-foreground block mb-0.5">END TIME</label>
+                      <input type="text" value={roadTestEndTime} onChange={(e) => setRoadTestEndTime(e.target.value)} className="w-full bg-[#1C2A3E] text-[11.5px] p-1.5 rounded border border-border text-center font-mono" />
+                    </div>
+                    <div>
+                      <label className="text-[9px] text-muted-foreground block mb-0.5">END KMS</label>
+                      <input type="text" value={roadTestEndKms} onChange={(e) => setRoadTestEndKms(e.target.value)} className="w-full bg-[#1C2A3E] text-[11.5px] p-1.5 rounded border border-border text-center font-mono font-bold" />
+                    </div>
+                  </div>
+                  <p className="text-[9.5px] text-[#8F9CAE] italic mt-1 leading-snug">Road test validates wheel alignment and brake efficiency. Ensure values are locked into DMS.</p>
+                </div>
+
+              </div>
+            </motion.div>
+          )}
+
+          {step === 2 && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4">
+              <h3 className="text-[15px] font-bold font-['Rajdhani'] text-primary uppercase tracking-wide border-b border-border/10 pb-1">VEHICLE STATUS (INSPECTION & RECORDING)</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                
+                {/* Left Panel: Car Interactive Hotspots */}
+                <div className="bg-[#0E1626] border border-border/15 p-4 rounded-xl flex flex-col gap-3">
+                  <div className="flex justify-between items-center">
+                    <p className="text-[12.5px] font-bold font-['Rajdhani'] text-secondary uppercase font-semibold">Overhead Damage Diagram</p>
+                    <div className="flex gap-1">
+                      <button onClick={() => { setScratchDot([3, 7]); setDentDot([1, 10]); }} className="text-[9.5px] bg-[#1C2A3E] border border-border/30 hover:border-white px-2 py-0.5 rounded font-bold transition-all">RESET</button>
+                    </div>
+                  </div>
+
+                  {/* SVG Top View Car Diagram with 14 spots */}
+                  <div className="relative border border-border/10 rounded-xl bg-black p-4 select-none">
+                    <div className="absolute top-2 left-2 text-[9px] text-muted-foreground">TOP VIEW CAR OVERLAY</div>
+                    
+                    <svg viewBox="0 0 400 160" className="w-full h-[120px] filter drop-shadow(0 0 10px rgba(61,142,240,0.06))">
+                      {/* Detailed vector car silhouette drawing */}
+                      <rect x="60" y="40" width="280" height="80" rx="36" fill="#142035" stroke="#3D8EF0" strokeWidth="2.5" />
+                      <path d="M120 40 C140 10, 260 10, 280 40 Z" fill="#0A1020" stroke="#3D8EF0" strokeWidth="1.5" />
+                      <line x1="120" y1="40" x2="280" y2="40" stroke="#3D8EF0" strokeWidth="2" />
+                      <line x1="120" y1="120" x2="280" y2="120" stroke="#3D8EF0" strokeWidth="2" />
+                      <rect x="90" y="55" width="220" height="50" rx="15" fill="#070C16" stroke="#253347" strokeWidth="1" />
+                      
+                      {/* 14 hotspots dots */}
+                      {Array.from({ length: 14 }).map((_, i) => {
+                        const hNo = i + 1;
+                        const rx = 80 + i * 19;
+                        const ry = 48 + (i % 3) * 32;
+
+                        const isScratch = scratchDot.includes(hNo);
+                        const isDent = dentDot.includes(hNo);
+
+                        let color = "bg-[#455A64]/60";
+                        let label = String(hNo);
+                        if (isScratch) { color = "bg-amber-500 shadow-[0_0_8px_#F59E0B]"; label = "S"; }
+                        if (isDent) { color = "bg-red-500 shadow-[0_0_8px_#EF4444]"; label = "D"; }
+
+                        return (
+                          <foreignObject key={hNo} x={rx - 7} y={ry - 7} width="16" height="16">
+                            <button 
+                              onClick={() => {
+                                if (isScratch) {
+                                  // toggle to dent
+                                  setScratchDot(scratchDot.filter(x => x !== hNo));
+                                  setDentDot([...dentDot, hNo]);
+                                } else if (isDent) {
+                                  // toggle standard clean
+                                  setDentDot(dentDot.filter(x => x !== hNo));
+                                } else {
+                                  // toggle to scratch
+                                  setScratchDot([...scratchDot, hNo]);
+                                }
+                              }}
+                              className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[8px] font-bold text-white transition-all cursor-pointer ${color}`}
+                              title={`Hotspot ${hNo}`}
+                            >
+                              {label}
+                            </button>
+                          </foreignObject>
+                        );
+                      })}
+                    </svg>
+                  </div>
+                  
+                  <div className="flex gap-4 justify-between text-[11px] bg-[#1C2A3E]/30 p-2.5 rounded-lg border border-border/10 font-bold tracking-tight select-none">
+                    <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Scratches: <strong className="text-amber-400 font-mono">{scratchDot.length}</strong></span>
+                    <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-red-400" /> Dents: <strong className="text-red-400 font-mono">{dentDot.length}</strong></span>
+                    <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded bg-blue-500" /> Total Elements: <strong className="font-mono">{scratchDot.length + dentDot.length}</strong></span>
+                  </div>
+
+                  <div className="text-[12px] font-bold mt-1 text-primary hover:underline cursor-pointer flex items-center gap-1">
+                    <span>📷 CAPTURING EXTRA EXTERIOR IMAGES (14 SENSORS TRIGGERED)</span>
+                  </div>
+                </div>
+
+                {/* Right Panel: Side view + Image checklist */}
+                <div className="bg-[#0E1626] border border-border/15 p-4 rounded-xl flex flex-col gap-3">
+                  <p className="text-[12.5px] font-bold font-['Rajdhani'] text-secondary uppercase border-b border-border/10 pb-1">Media Checklist & Fuel Gauge</p>
+                  
+                  {/* Photo logs count */}
+                  <div className="flex flex-col gap-2 bg-[#1C2A3E]/30 p-3 rounded-lg border border-border/10">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-[11px] font-bold uppercase text-white">Interior Snaps Count: {interiorImagesCount}</p>
+                        <p className="text-[9.5px] text-[#8F9CAE]">Requires minimum 3 mandatory interior photos</p>
+                      </div>
+                      <div className="flex gap-1.5">
+                        <button 
+                          onClick={() => setInteriorImagesCount(Math.max(0, interiorImagesCount - 1))}
+                          className="w-7 h-7 rounded bg-[#070C16] border border-border/20 flex items-center justify-center font-black select-none text-[14px]"
+                        >
+                          -
+                        </button>
+                        <button 
+                          onClick={() => setInteriorImagesCount(interiorImagesCount + 1)}
+                          className="w-7 h-7 rounded bg-[#070C16] border border-border/20 flex items-center justify-center font-black select-none text-[14px]"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                    {interiorImagesCount >= 3 ? (
+                      <span className="text-[10px] text-[#4ADE80] font-bold font-mono">✓ Mandatory checklist criteria fulfilled ({interiorImagesCount} snaps saved)</span>
+                    ) : (
+                      <span className="text-[10px] text-amber-400 font-bold font-mono">⚠️ Action Required: Add at least {3 - interiorImagesCount} more interior snaps</span>
+                    )}
+                  </div>
+
+                  {/* Fuel gauge dropdown & meter */}
+                  <div>
+                    <label className="text-[10px] text-muted-foreground block mb-1 uppercase font-bold text-secondary">Fuel level status</label>
+                    <div className="flex gap-3 items-center">
+                      <select 
+                        value={fuelLevel} 
+                        onChange={(e) => setFuelLevel(e.target.value)}
+                        className="bg-[#1C2A3E] text-white border border-border rounded px-2.5 py-1.5 text-[12px] font-bold outline-none cursor-pointer"
+                      >
+                        <option value="E">E (0%)</option>
+                        <option value="1/4">1/4 (25%)</option>
+                        <option value="1/2">1/2 (50%)</option>
+                        <option value="3/4">3/4 (75%)</option>
+                        <option value="F">F (100%)</option>
+                      </select>
+                      
+                      {/* Visual fuel display meter */}
+                      <div className="flex-1 h-3.5 bg-black/50 border border-border/10 rounded overflow-hidden flex divide-x divide-black">
+                        {Array.from({ length: 4 }).map((_, segmentIdx) => {
+                          const levelsArr = ["E", "1/4", "1/2", "3/4", "F"];
+                          let selectedIdx = levelsArr.indexOf(fuelLevel);
+                          if (selectedIdx === -1) selectedIdx = 2; // default
+                          const filled = segmentIdx < selectedIdx;
+                          return (
+                            <div 
+                              key={segmentIdx} 
+                              className={`h-full flex-1 transition-all duration-300 ${filled ? "bg-gradient-to-r from-primary to-accent" : "bg-[#1C2A3E]/10"}`} 
+                            />
+                          );
+                        })}
+                      </div>
+                      <span className="text-[11px] font-mono text-primary font-bold pr-1">{fuelLevel === "E" ? "0%" : fuelLevel === "1/4" ? "25%" : fuelLevel === "1/2" ? "50%" : fuelLevel === "3/4" ? "75%" : "100%"}</span>
+                    </div>
+                  </div>
+
+                  {/* Underbody and miscellaneous checkbox */}
+                  <div className="flex items-center gap-2 mt-2">
+                    <input 
+                      type="checkbox" 
+                      id="underbodyCheck" 
+                      checked={underbodyCheck} 
+                      onChange={(e) => setUnderbodyCheck(e.target.checked)}
+                      className="w-4 h-4 rounded text-primary accent-primary outline-none cursor-pointer"
+                    />
+                    <label htmlFor="underbodyCheck" className="text-[12.5px] cursor-pointer select-none font-semibold text-white">FORMAL CAR UNDERBODY INSPECTION COMPLETED?</label>
+                  </div>
+
+                </div>
+
+              </div>
+            </motion.div>
+          )}
+
+          {step === 3 && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4">
+              <h3 className="text-[15px] font-bold font-['Rajdhani'] text-primary uppercase tracking-wide border-b border-border/10 pb-1">SERVICE MENU DETAILS</h3>
+              
+              <div className="bg-[#0E1626] border border-border/20 p-5 rounded-2xl flex flex-col gap-4 font-sans">
+                <div className="border-b border-border/10 pb-2">
+                  <span className="text-[13px] font-bold font-['Rajdhani'] text-secondary uppercase">Operational Closeout Matrix</span>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">Please confirm payment configuration and technician checklist assignments.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <div>
+                    <label className="text-[10px] text-muted-foreground block mb-1 uppercase font-bold">Group Segment</label>
+                    <p className="text-[12px] text-white font-bold bg-[#1C2A3E]/30 p-2.5 rounded border border-border/10 font-mono">{group}</p>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-muted-foreground block mb-1 uppercase font-bold">Closed By Expert</label>
+                    <p className="text-[12px] text-white font-bold bg-[#1C2A3E]/30 p-2.5 rounded border border-border/10 font-mono">{techExpert}</p>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-muted-foreground block mb-1 uppercase font-bold">Primary Technician Assigned</label>
+                    <p className="text-[12px] text-white font-bold bg-[#1C2A3E]/30 p-2.5 rounded border border-border/10 font-mono">{technician}</p>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-muted-foreground block mb-1 uppercase font-bold text-primary">Payment Mode *</label>
+                    <select 
+                      value={paymentMode} 
+                      onChange={(e) => setPaymentMode(e.target.value)}
+                      className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none font-bold cursor-pointer"
+                    >
+                      <option value="UPI">UPI / Digital Gateway</option>
+                      <option value="Cash">Cash payment</option>
+                      <option value="Card">Visa/National Card Swipe</option>
+                      <option value="Insurance">Insurance Billed</option>
+                      <option value="Warranty">Warranty covered</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-muted-foreground block mb-1 uppercase font-bold">Subtotal parts cost</label>
+                    <p className="text-[12.5px] text-amber-400 font-bold bg-[#1C2A3E]/30 p-2 rounded border border-border/10 font-mono">₹ {partsTotal.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-muted-foreground block mb-1 uppercase font-bold">Subtotal labour cost</label>
+                    <p className="text-[12.5px] text-amber-400 font-bold bg-[#1C2A3E]/30 p-2 rounded border border-border/10 font-mono font-bold">₹ {labourTotal.toLocaleString()}</p>
+                  </div>
+                </div>
+
+                <div className="bg-primary/10 border border-primary/20 px-4 py-3 rounded-xl mt-2 flex justify-between items-center text-[13px]">
+                  <span className="text-secondary tracking-wide uppercase font-['Rajdhani'] font-bold">TOTAL ESTIMATE INVOICE AMOUNT (EXCLUDING SALES TAX):</span>
+                  <strong className="text-primary font-mono text-[16px] font-black">₹ {grandTotal.toLocaleString()}</strong>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {step === 4 && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4">
+              <div className="flex justify-between items-center border-b border-border/10 pb-1">
+                <h3 className="text-[15px] font-bold font-['Rajdhani'] text-primary uppercase tracking-wide">DEMAND REPAIR DETAIL LIST</h3>
+                <div className="flex gap-2 items-center text-[10px] text-muted-foreground font-semibold">
+                  <span>Vehicle History</span> · <span>Email demands</span>
+                </div>
+              </div>
+
+              {/* Table of repairs */}
+              <div className="bg-[#0E1626] border border-border/20 rounded-xl overflow-hidden font-sans">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[11px] text-left">
+                    <thead>
+                      <tr className="bg-[#0A1020] border-b border-border/20 text-[9px] uppercase font-['Rajdhani'] text-muted-foreground">
+                        <th className="p-3 w-12 text-center">S.No</th>
+                        <th className="p-3">Demand Code</th>
+                        <th className="p-3">Demand Desc</th>
+                        <th className="p-3 text-center">Attended</th>
+                        <th className="p-3 text-center">Carry Fwd</th>
+                        <th className="p-3 text-center">EW/Wty</th>
+                        <th className="p-3 text-center">Problem Code</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/15 font-sans">
+                      {demands.map((dem, idx) => (
+                        <tr key={idx} className="hover:bg-white/5 transition-colors">
+                          <td className="p-3 font-mono text-center text-muted-foreground">{dem.sno}</td>
+                          <td className="p-3 font-mono text-[#3D8EF0] font-bold">{dem.code}</td>
+                          <td className="p-3 text-foreground font-semibold uppercase">{dem.desc}</td>
+                          <td className="p-3 text-center">
+                            <input 
+                              type="checkbox" 
+                              checked={dem.attended} 
+                              onChange={(e) => {
+                                const newD = [...demands];
+                                newD[idx].attended = e.target.checked;
+                                setDemands(newD);
+                              }}
+                              className="accent-primary cursor-pointer w-3.5 h-3.5"
+                            />
+                          </td>
+                          <td className="p-3 text-center">
+                            <input 
+                              type="checkbox" 
+                              checked={dem.carry_forward} 
+                              onChange={(e) => {
+                                const newD = [...demands];
+                                newD[idx].carry_forward = e.target.checked;
+                                setDemands(newD);
+                              }}
+                              className="accent-primary cursor-pointer w-3.5 h-3.5"
+                            />
+                          </td>
+                          <td className="p-3 text-center">
+                            <input 
+                              type="checkbox" 
+                              checked={dem.ew_wty} 
+                              onChange={(e) => {
+                                const newD = [...demands];
+                                newD[idx].ew_wty = e.target.checked;
+                                setDemands(newD);
+                              }}
+                              className="accent-primary cursor-pointer w-3.5 h-3.5"
+                            />
+                          </td>
+                          <td className="p-3 font-mono text-center text-white font-bold">{dem.problemCode}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Codes block */}
+              <div className="bg-[#0E1626] border border-border/15 p-4 rounded-xl flex flex-col gap-3 font-sans">
+                <p className="text-[12px] font-bold font-['Rajdhani'] text-secondary uppercase">Problem / Fault / Action Classification *</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5 uppercase">Problem classification code *</label>
+                    <input value={problemCode} onChange={(e) => setProblemCode(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border font-mono outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5 uppercase">Fault code classification *</label>
+                    <select value={faultCode} onChange={(e) => setFaultCode(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none">
+                      <option value="FA09">FA09 (ELECTRICAL NOISE)</option>
+                      <option value="FA12">FA12 (WHEEL ALIGNMENT OUT)</option>
+                      <option value="FA15">FA15 (OIL DISCOLORATION)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5">ACTION CLASSIFICATION *</label>
+                    <select value={actionCode} onChange={(e) => setActionCode(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none">
+                      <option value="AC45">AC45 (REPLACE FILTER AND FLUID)</option>
+                      <option value="AC12">AC12 (ADJUST AND RE-ALIGN)</option>
+                      <option value="AC01">AC01 (WASH CLEANING)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  <div className="flex-1">
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5 font-bold uppercase">SA Rework / Closing Remarks</label>
+                    <textarea 
+                      placeholder="Enter closing diagnostic remarks…" 
+                      value={commentText} 
+                      onChange={(e) => setCommentText(e.target.value)}
+                      className="w-full bg-[#1C2A3E] text-white text-[11.5px] p-2 rounded border border-border outline-none h-14 resize-none"
+                    />
+                  </div>
+                  
+                  {/* Mock voice recorder button 🎙️ */}
+                  <div className="w-full sm:w-48 bg-[#070C16] border border-border/15 p-3 rounded-xl flex flex-col justify-center items-center text-center select-none">
+                    <p className="text-[9.5px] text-muted-foreground uppercase font-bold font-['Rajdhani'] mb-1">🎙️ Voice Closing Memo</p>
+                    <button 
+                      onClick={() => {
+                        if (recordVoiceActive) {
+                          setRecordVoiceActive(false);
+                        } else {
+                          setRecordVoiceActive(true);
+                          setVoiceSec(0);
+                        }
+                      }}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer ${recordVoiceActive ? "bg-red-500 animate-pulse border-2 border-white scale-110" : "bg-[#1C2A3E] hover:bg-white/5 border border-border/30"}`}
+                    >
+                      <Mic size={15} className={recordVoiceActive ? "text-white" : "text-muted-foreground"} />
+                    </button>
+                    <span className="text-[10px] font-mono text-[#4ADE80] font-bold mt-1.5">{recordVoiceActive ? `Recording... 00:${voiceSec < 10 ? '0' : ''}${voiceSec} s` : "Tap to record"}</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {step === 5 && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4 font-sans">
+              <h3 className="text-[15px] font-bold font-['Rajdhani'] text-primary uppercase tracking-wide border-b border-border/10 pb-1">PART & LABOUR DETAILS</h3>
+              
+              {/* Tabs */}
+              <div className="grid grid-cols-2 gap-2 bg-[#0A1020] p-1.5 rounded-xl border border-border/10 text-center text-[12.5px] font-bold select-none font-['Rajdhani'] uppercase tracking-wider">
+                <button 
+                  onClick={() => setShowAddLabour(false)} 
+                  className={`py-2 rounded-lg transition-all ${!showAddLabour ? "bg-[#155DFC] text-white shadow-md shadow-[#155DFC]/20" : "text-muted-foreground hover:text-white"}`}
+                >
+                  Tab A — Labour Details
+                </button>
+                <button 
+                  onClick={() => setShowAddLabour(true)} 
+                  className={`py-2 rounded-lg transition-all ${showAddLabour ? "bg-[#155DFC] text-white shadow-md shadow-[#155DFC]/20" : "text-muted-foreground hover:text-white"}`}
+                >
+                  Tab B — Part Details
+                </button>
+              </div>
+
+              {!showAddLabour ? (
+                // Labour details tab
+                <div className="flex flex-col gap-3 font-sans">
+                  <div className="bg-[#0E1626] border border-border/10 rounded-xl overflow-hidden text-[11px]">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="bg-[#0A1020] text-muted-foreground text-[9.5px] font-bold font-['Rajdhani'] uppercase tracking-wider border-b border-border/20">
+                          <th className="p-3 w-12 text-center">S.No</th>
+                          <th className="p-3">Labour Code</th>
+                          <th className="p-3">Labour Description</th>
+                          <th className="p-3 text-right">Price</th>
+                          <th className="p-3">Billable Type</th>
+                          <th className="p-3 text-center w-16">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/15 font-sans whitespace-nowrap">
+                        {labourItems.map((item, idx) => (
+                          <tr key={idx} className="hover:bg-white/5 transition-all">
+                            <td className="p-3 text-center text-muted-foreground font-mono">{idx + 1}</td>
+                            <td className="p-3 font-mono text-[#3D8EF0] font-bold">{item.code}</td>
+                            <td className="p-3 text-white font-semibold uppercase">{item.desc}</td>
+                            <td className="p-3 text-right font-mono text-[#4ADE80] font-semibold">₹ {item.price.toLocaleString()}</td>
+                            <td className="p-3 font-mono text-muted-foreground">{item.billableType}</td>
+                            <td className="p-3 text-center">
+                              <button 
+                                onClick={() => setLabourItems(labourItems.filter((_, i) => i !== idx))}
+                                className="text-red-400 hover:text-red-500 font-bold px-1 select-none text-[12.5px]"
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="flex gap-2.5 justify-between items-center select-none flex-wrap">
+                    <button 
+                      onClick={() => {
+                        // Quick add custom labour
+                        setLabourItems([...labourItems, {
+                          code: "ZA18LO",
+                          desc: "Wheel Balancing & weight adjustment",
+                          price: 490,
+                          billableType: "Customer"
+                        }]);
+                      }}
+                      className="px-4 py-2 bg-[#1C2A3E] hover:bg-white/5 border border-border/30 rounded-lg text-[11.5px] font-bold uppercase tracking-wider font-['Rajdhani'] flex items-center gap-1 cursor-pointer text-primary"
+                    >
+                      <Plus size={13} /> Add Labour Item
+                    </button>
+
+                    <div className="flex items-center gap-4 text-[11.5px] bg-[#1C2A3E]/30 p-2.5 rounded-lg border border-border/15">
+                      <div>
+                        <label className="text-[9.5px] text-muted-foreground uppercase block font-bold">Labour Discount %</label>
+                        <select 
+                          value={labourDiscPercent} 
+                          onChange={(e) => setLabourDiscPercent(e.target.value)} 
+                          className="bg-[#1D2E49] text-white border border-border/20 px-2 py-0.5 rounded outline-none font-mono font-bold font-semibold text-[11px]"
+                        >
+                          <option value="0">0% Discount</option>
+                          <option value="5">5% Discount</option>
+                          <option value="10">10% Discount</option>
+                          <option value="20">20% Discount</option>
+                        </select>
+                      </div>
+                      <div>
+                        <span className="text-[9.5px] text-muted-foreground uppercase block font-bold">Authorised By *</span>
+                        <select 
+                          value={authBy} 
+                          onChange={(e) => setAuthBy(e.target.value)} 
+                          className="bg-[#1D2E49] text-white border border-border/20 px-2 py-0.5 rounded outline-none font-bold text-[11px]"
+                        >
+                          <option value="ASHWANI CHAUHAN">ASHWANI CHAUHAN (CRM)</option>
+                          <option value="MANISH TIWARI">MANISH TIWARI (SA)</option>
+                        </select>
+                      </div>
+                      <div className="font-sans font-bold border-l border-border/20 pl-4">
+                        <span className="text-muted-foreground font-light block uppercase text-[8.5px]">LABOUR SUM:</span>
+                        <strong className="text-[#4ADE80] font-mono text-[13.5px]">₹ {labourTotal.toLocaleString()}</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                // Part details tab
+                <div className="flex flex-col gap-3 font-sans">
+                  <div className="bg-[#0E1626] border border-border/10 rounded-xl overflow-hidden text-[11px] font-sans">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="bg-[#0A1020] text-muted-foreground text-[9.5px] font-bold font-['Rajdhani'] uppercase tracking-wider border-b border-border/20">
+                          <th className="p-3 w-12 text-center">S.No</th>
+                          <th className="p-3">Part Name</th>
+                          <th className="p-3 text-right">Price</th>
+                          <th className="p-3 text-center">Qty</th>
+                          <th className="p-3 text-right">Final Price</th>
+                          <th className="p-3 text-center w-16">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/15 font-sans whitespace-nowrap">
+                        {partsItems.map((item, idx) => (
+                          <tr key={idx} className="hover:bg-white/5">
+                            <td className="p-3 text-center text-muted-foreground font-mono">{idx + 1}</td>
+                            <td className="p-3">
+                              <p className="text-white font-semibold uppercase">{item.name}</p>
+                              <p className="text-[9.5px] text-muted-foreground font-mono">{item.code}</p>
+                            </td>
+                            <td className="p-3 text-right font-mono">₹ {item.price.toLocaleString()}</td>
+                            <td className="p-3 text-center font-mono">
+                              <select 
+                                value={item.qty} 
+                                onChange={(e) => {
+                                  const newP = [...partsItems];
+                                  newP[idx].qty = Number(e.target.value);
+                                  setPartsItems(newP);
+                                }}
+                                className="bg-[#1C2A3E] text-white border border-border/30 rounded px-1 text-center text-[10.5px] font-bold outline-none"
+                              >
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                  <option key={i + 1} value={i + 1}>{i + 1}</option>
+                                ))}
+                              </select>
+                            </td>
+                            <td className="p-3 text-right font-mono text-[#4ADE80] font-semibold">₹ {(item.price * item.qty).toLocaleString()}</td>
+                            <td className="p-3 text-center font-bold">
+                              <button 
+                                onClick={() => setPartsItems(partsItems.filter((_, i) => i !== idx))}
+                                className="text-red-400 hover:text-red-500 font-bold px-1 select-none text-[12.5px]"
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="flex justify-between items-center select-none mt-1">
+                    <button 
+                      onClick={() => {
+                        // Quick add custom parts
+                        setPartsItems([...partsItems, {
+                          code: "99000M24120-11",
+                          name: "Premium Nexa Car Cabin Sanitizer Liquid",
+                          price: 285,
+                          qty: 1
+                        }]);
+                      }}
+                      className="px-4 py-2 bg-[#1C2A3E] hover:bg-white/5 border border-border/30 rounded-lg text-[11.5px] font-bold uppercase tracking-wider font-['Rajdhani'] flex items-center gap-1 cursor-pointer text-primary"
+                    >
+                      <Plus size={13} /> Add Parts Item
+                    </button>
+                    
+                    <div className="text-right pr-2">
+                      <span className="text-muted-foreground uppercase text-[9.5px] block font-bold font-light">PARTS SUM TOTAL:</span>
+                      <strong className="text-[#4ADE80] font-mono text-[14px]">₹ {partsTotal.toLocaleString()}</strong>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Estimate overview strip */}
+              <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-2 text-[12px] font-sans">
+                <div>
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Initial Estimations (Open Jc)</span>
+                  <p className="text-white font-mono mt-0.5">₹ {jc.amount ? jc.amount.toLocaleString() : "4,200"}.00</p>
+                </div>
+                <div>
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Revised Estimations (Closed Jc)</span>
+                  <p className="text-[#4ADE80] font-black font-mono mt-0.5">₹ {grandTotal.toLocaleString()}.00</p>
+                </div>
+                <div>
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Difference delta</span>
+                  <p className={`font-black font-mono mt-0.5 ${grandTotal >= (jc.amount || 4200) ? "text-amber-400" : "text-emerald-400"}`}>
+                    {grandTotal >= (jc.amount || 4200) ? "+" : "-"} ₹ {Math.abs(grandTotal - (jc.amount || 4200)).toLocaleString()}.00
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {step === 6 && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4 font-sans">
+              <h3 className="text-[15px] font-bold font-['Rajdhani'] text-primary uppercase tracking-wide border-b border-border/10 pb-1">LOYALTY POINTS & CCP ELIGIBILITY</h3>
+              
+              <div className="bg-[#0E1626] border border-border/15 p-5 rounded-xl flex flex-col gap-4 max-w-md mx-auto w-full font-sans shadow-md">
+                <div className="text-center pb-2 border-b border-border/10 select-none">
+                  <span className="text-[11.5px] bg-[#FACC15]/15 text-[#FACC15] border border-[#FACC15]/20 px-3 py-1 font-bold font-mono rounded-full text-[10.5px]">NEXA PLATINUM ELIGIBLE CUSTOMER</span>
+                  <p className="text-[11px] text-muted-foreground mt-3 font-sans">Customer is eligible to redeem existing dealer CCP loyalty cash credits instantly.</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3.5 text-[11.5px]">
+                  <div>
+                    <label className="text-[9px] text-muted-foreground uppercase font-bold">CCP Tier Style</label>
+                    <p className="text-white font-bold font-['Rajdhani'] text-[13px] uppercase">👑 Nexa Gold Tier</p>
+                  </div>
+                  <div>
+                    <label className="text-[9px] text-muted-foreground uppercase font-bold">Loyalty Card Register</label>
+                    <p className="text-white font-mono font-bold">{ccpCard}</p>
+                  </div>
+                  <div>
+                    <label className="text-[9px] text-muted-foreground uppercase font-bold">Registered Mobile</label>
+                    <p className="text-white font-mono">{ccpMobile}</p>
+                  </div>
+                  <div>
+                    <label className="text-[9px] text-muted-foreground uppercase font-bold col-span-1">Valid Loyalty Points</label>
+                    <p className="text-[#FACC15] font-mono font-bold text-[13px]">{ccpPoints} Points (Value: ₹ 542)</p>
+                  </div>
+                </div>
+
+                {!otpConfirmed ? (
+                  <div className="bg-[#070C16] p-4 rounded-xl border border-border/10 flex flex-col gap-3.5 shrink-0 select-none">
+                    <p className="text-[11.5px] font-bold text-white uppercase tracking-tight">Verify Secure CCP Redemption Code</p>
+                    <div className="flex gap-2">
+                      <input 
+                        type="number" 
+                        value={ccpRedeemVal} 
+                        onChange={(e) => setCcpRedeemVal(e.target.value)}
+                        placeholder="Points count (max 542)"
+                        className="bg-[#1C2A3E] text-white border border-border/30 rounded px-2 text-[12px] w-2/3 outline-none"
+                      />
+                      <button 
+                        onClick={() => {
+                          setOtpSent(true);
+                          triggerToast("Secure verification OTP text sent successfully to " + ccpMobile);
+                          setCcpOtpVal("8022"); // default mock otp code
+                        }}
+                        className="flex-1 py-1.5 bg-primary hover:bg-primary-hover text-white text-[11px] font-bold uppercase tracking-wider rounded transition-all font-['Rajdhani']"
+                      >
+                        {otpSent ? "SEND RE-OTP" : "SEND OTP"}
+                      </button>
+                    </div>
+
+                    {otpSent && (
+                      <div className="flex items-center gap-2 animate-fade-in border-t border-border/5 pt-2.5 mt-1 shrink-0">
+                        <input 
+                          type="text" 
+                          placeholder="Enter 4-digit code" 
+                          value={otpCode}
+                          onChange={(e) => setOtpCode(e.target.value)}
+                          className="bg-[#1C2A3E] text-white text-[12px] p-1.5 rounded border border-border/30 text-center font-mono w-1/2 outline-none font-bold"
+                        />
+                        <button 
+                          onClick={() => {
+                            if (otpCode === "8022" || otpCode.trim().length > 2) {
+                              setOtpConfirmed(true);
+                              triggerToast("Loyalty Points verified & applied to cart! ₹" + ccpRedeemVal + " discount implemented.");
+                            } else {
+                              triggerToast("Invalid OTP code! Please use mock code 8022 to proceed.");
+                            }
+                          }}
+                          className="flex-1 py-1.5 bg-[#10B981] hover:bg-[#10B981]/90 text-white text-[11px] font-bold uppercase rounded font-['Rajdhani']"
+                        >
+                          CONFIRM OTP
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-[#10B981]/10 border border-[#10B981]/35 p-4 rounded-xl text-center select-none font-sans font-bold">
+                    <p className="text-[#10B981] text-[13px] uppercase">✓ OTP verified Successfully!</p>
+                    <p className="text-[11.5px] mt-1 text-white">Applied Loyalty Discount: <span className="text-[#10B981] font-mono">₹ {ccpRedeemVal || 0}</span></p>
+                  </div>
+                )}
+
+                <div className="flex justify-center select-none">
+                  <button 
+                    onClick={() => {
+                      setOtpConfirmed(false);
+                      setOtpSent(false);
+                      setCcpRedeemVal("");
+                      setStep(7); // Skip loyalty
+                    }} 
+                    className="text-[11.5px] font-bold text-muted-foreground hover:text-white uppercase transition-colors"
+                  >
+                    Skip loyalty / Skip CCP verify ↩
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {step === 7 && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4 font-sans">
+              <h3 className="text-[15px] font-bold font-['Rajdhani'] text-primary uppercase tracking-wide border-b border-border/10 pb-1">PICK UP & DROP DETAILS</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                {/* Pick up Details Card */}
+                <div className="bg-[#0E1626] border border-border/15 p-4 rounded-xl flex flex-col gap-3 font-sans">
+                  <div className="flex justify-between items-center border-b border-border/10 pb-1">
+                    <p className="text-[12px] font-bold font-['Rajdhani'] text-secondary uppercase">Pick Up Metrics</p>
+                    <span className="text-[9.5px] text-muted-foreground uppercase cursor-pointer hover:text-white" onClick={() => setPickupRemarks("N/A")}>Reset</span>
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5">PICK UP TYPE *</label>
+                    <select value={pickupType} onChange={(e) => setPickupType(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none font-semibold">
+                      <option value="2. Drop Only">2. Drop Only (Standard)</option>
+                      <option value="1. Full PnD">1. Pick and Drop both</option>
+                      <option value="MMS">MMS (Mobility Service)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5">PICK UP LOCATION</label>
+                    <select value={pickupLoc} onChange={(e) => setPickupLoc(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none">
+                      <option value="Location 2">Gurgaon Sector 2</option>
+                      <option value="Location 1">Gurgaon Sector 14</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5">PICK UP ADDRESS</label>
+                    <input value={pickupAddr} onChange={(e) => setPickupAddr(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5">ASSOCIATED DRIVER</label>
+                    <select value={pndAssociate} onChange={(e) => setPndAssociate(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none">
+                      <option value="Associate 2">Associate Driver 2</option>
+                      <option value="Associate 1">Associate Driver 1 (Ramesh)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Drop Details Card */}
+                <div className="bg-[#0E1626] border border-border/15 p-4 rounded-xl flex flex-col gap-3">
+                  <div className="flex justify-between items-center border-b border-border/10 pb-1">
+                    <p className="text-[12px] font-bold font-['Rajdhani'] text-secondary uppercase font-semibold">Drop Out Details</p>
+                    <div className="flex items-center gap-1.5 select-none">
+                      <input 
+                        type="checkbox" 
+                        id="sameAsPickup" 
+                        checked={sameAsPickup} 
+                        onChange={(e) => {
+                          setSameAsPickup(e.target.checked);
+                          if (e.target.checked) {
+                            setDropLoc(pickupLoc);
+                            setDropAddr(pickupAddr);
+                          }
+                        }}
+                        className="accent-primary cursor-pointer w-3 h-3"
+                      />
+                      <label htmlFor="sameAsPickup" className="text-[10px] text-white cursor-pointer font-bold">Same as Pick Up?</label>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5">DROP TIME & TARGET DATE</label>
+                    <input value={dropTimeDate} onChange={(e) => setDropTimeDate(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none font-mono" />
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5">DROP LOCATION</label>
+                    <select value={dropLoc} onChange={(e) => setDropLoc(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none">
+                      <option value="Location 2">Gurgaon Sector 2</option>
+                      <option value="Location 1">Gurgaon Sector 14</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5">DROP ARRIVAL ADDRESS</label>
+                    <input value={dropAddr} onChange={(e) => setDropAddr(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-[9.5px] text-muted-foreground block mb-0.5">DROP ASSOCIATED DRIVER</label>
+                    <select value={dropAssociate} onChange={(e) => setDropAssociate(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[12px] p-2 rounded border border-border outline-none">
+                      <option value="Associate 2">Associate Driver 2</option>
+                      <option value="Associate 1">Associate Driver 1</option>
+                    </select>
+                  </div>
+                </div>
+
+              </div>
+            </motion.div>
+          )}
+
+          {step === 8 && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4 font-sans max-w-lg mx-auto w-full">
+              <h3 className="text-[15px] font-bold font-['Rajdhani'] text-primary uppercase tracking-wide border-b border-border/10 pb-1">TCS DETAILS & FISCAL POLICY</h3>
+              
+              <div className="bg-[#0E1626] border border-border/15 p-5 rounded-xl flex flex-col gap-3 font-sans shadow-md">
+                <p className="text-[9.5px] text-muted-foreground leading-relaxed font-semibold uppercase text-secondary">TCS section 206C(1H) @ 0.1% audit declaration details</p>
+                <div className="bg-black/40 text-[10px] text-[#8F9CAE] p-3 rounded border border-border/10 leading-relaxed font-mono">
+                  TCS under section 206C(1H) @0.1% is applicable on receipt of consideration for sale of any goods. The aggregate of TDS and TCS for any of the two immediately preceding FY is checked before invoicing.
+                </div>
+
+                <div className="flex flex-col gap-2.5 pt-1 text-[11.5px] select-none">
+                  <div className="flex justify-between items-center bg-[#1C2A3E]/30 p-2 rounded border border-border/10">
+                    <span>Tax TCS on Customer ?</span>
+                    <select value={tcsCust} onChange={(e) => setTcsCust(e.target.value)} className="bg-[#070C16] text-[#4ADE80] border border-border/30 rounded px-2.5 py-1 text-[11px] font-bold outline-none cursor-pointer">
+                      <option value="NO">NO TCS</option>
+                      <option value="YES">YES APPLICABLE (@0.1%)</option>
+                    </select>
+                  </div>
+                  <div className="flex justify-between items-center bg-[#1C2A3E]/30 p-2 rounded border border-border/10">
+                    <span>Tax TCS on Insurance portion ?</span>
+                    <select value={tcsIns} onChange={(e) => setTcsIns(e.target.value)} className="bg-[#070C16] text-[#4ADE80] border border-border/30 rounded px-2.5 py-1 text-[11px] font-bold outline-none cursor-pointer">
+                      <option value="NO">NO TCS</option>
+                      <option value="YES">YES APPLICABLE (@0.1%)</option>
+                    </select>
+                  </div>
+                  <div className="flex justify-between items-center bg-[#1C2A3E]/30 p-2 rounded border border-border/10">
+                    <span>Tax TCS on EWR / TWN parameters ?</span>
+                    <select value={tcsEwrVal} onChange={(e) => setTcsEwrVal(e.target.value)} className="bg-[#070C16] text-[#4ADE80] border border-border/30 rounded px-2.5 py-1 text-[11px] font-bold outline-none cursor-pointer">
+                      <option value="NO">NO TCS</option>
+                      <option value="YES">YES APPLICABLE (@0.1%)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {step === 9 && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-4 font-sans">
+              <h3 className="text-[15px] font-bold font-['Rajdhani'] text-primary uppercase tracking-wide border-b border-border/10 pb-1">Pre-Invoice Bill Summary</h3>
+              
+              <div className="bg-[#0E1626] border border-border/20 p-5 rounded-2xl flex flex-col gap-4 text-[12px] font-sans">
+                <div className="flex justify-between items-center border-b border-border/10 pb-2 select-none">
+                  <div>
+                    <h4 className="text-[13.5px] font-bold font-['Rajdhani'] text-secondary uppercase">Pre-Invoice Summary Billed Summary</h4>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Locked Date: 25-MAY-2026, 03:58 PM</p>
+                  </div>
+                  <span className="text-[11px] text-[#4ADE80] font-mono bg-[#10B981]/15 px-2.5 py-1 rounded border border-[#10B981]/30">PRE-CALCULATIONS APPROVED</span>
+                </div>
+
+                {/* Grid list details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Labour cost panel */}
+                  <div className="border border-border/10 rounded-xl bg-black/30 p-3.5">
+                    <p className="text-[10.5px] font-bold uppercase tracking-wider text-primary mb-2 font-['Rajdhani']">Billed Labour Items</p>
+                    <div className="flex flex-col gap-1.5 font-sans divide-y divide-border/5">
+                      {labourItems.map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-center pt-1.5 text-[11px]">
+                          <span className="text-muted-foreground truncate uppercase pr-2 max-w-[190px]">{item.desc}</span>
+                          <span className="font-mono text-white">₹ {item.price.toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Parts billing panel */}
+                  <div className="border border-border/10 rounded-xl bg-black/30 p-3.5 font-sans">
+                    <p className="text-[10.5px] font-bold uppercase tracking-wider text-accent mb-2 font-['Rajdhani']">Billed Parts Spares</p>
+                    <div className="flex flex-col gap-1.5 divide-y divide-border/5">
+                      {partsItems.map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-center pt-1.5 text-[11px]">
+                          <span className="text-muted-foreground truncate uppercase pr-2 max-w-[180px]">{item.name} (x{item.qty})</span>
+                          <span className="font-mono text-white">₹ {(item.price * item.qty).toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Summary block */}
+                <div className="bg-[#070C16] border border-border/15 p-4 rounded-xl flex flex-col gap-1.5 font-sans mt-1">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Total Parts Cost Spares portion:</span>
+                    <span className="font-mono text-white">₹ {partsTotal.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Total Labour Operations portion:</span>
+                    <span className="font-mono text-white">₹ {labourTotal.toLocaleString()}</span>
+                  </div>
+                  {otpConfirmed && (
+                    <div className="flex justify-between items-center text-amber-400">
+                      <span>Applied Dealer CCP Loyalty Points:</span>
+                      <span className="font-mono">- ₹ {ccpRedeemVal}</span>
+                    </div>
+                  )}
+                  <div className="border-t border-border/10 my-2 pt-2 flex justify-between items-center text-[14px] font-bold">
+                    <span className="text-primary font-['Rajdhani'] uppercase tracking-wider">Estimated Gross Total (Tax exclusive):</span>
+                    <strong className="text-primary font-mono select-all">₹ {grandTotal.toLocaleString()}.00</strong>
+                  </div>
+                </div>
+
+                {/* Extra simulated actions */}
+                <div className="flex gap-2 flex-wrap pt-1 shrink-0 select-none justify-center">
+                  <button 
+                    onClick={() => {
+                      setIsPreinvoicePdfSimulated(true);
+                      triggerToast("PDF generated and downloaded successfully inside browser sandbox!");
+                    }} 
+                    className="py-1.5 px-4 bg-[#1C2A3E]/70 hover:bg-[#1C2A3E] text-white rounded border border-border/25 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors font-['Rajdhani']"
+                  >
+                    <Eye size={12} /> {isPreinvoicePdfSimulated ? "Re-preview PDF" : "Preview Invoice"}
+                  </button>
+                  <button 
+                    onClick={() => {
+                      triggerToast("Sent PDF print job successfully to workshop floor printer #4.");
+                    }} 
+                    className="py-1.5 px-4 bg-[#1C2A3E]/70 hover:bg-[#1C2A3E] text-white rounded border border-border/25 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors font-['Rajdhani']"
+                  >
+                    <Printer size={12} /> Print Draft
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setIsPreinvoiceEmailed(true);
+                      triggerToast("Preinvoice summary successfully emailed to " + email);
+                    }} 
+                    className="py-1.5 px-4 bg-[#1C2A3E]/70 hover:bg-[#1C2A3E] text-[#10B981] hover:text-[#10B981] border border-[#10B981]/30 rounded text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors font-['Rajdhani']"
+                  >
+                    <Mail size={12} /> {isPreinvoiceEmailed ? "Re-email Invoice Draft" : "Email Draft"}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+        </div>
+      </div>
+
+      {/* Button navigation floor bar */}
+      <div className="bg-[#0A1020] border-t border-border/20 px-6 py-4 flex items-center justify-between shrink-0 select-none text-[12px] font-bold">
+        <button 
+          onClick={handlePrevStep}
+          className="flex items-center gap-1 px-4 py-2 bg-[#1B293E] hover:bg-white/5 border border-border/30 rounded-lg text-muted-foreground hover:text-white transition-all font-['Rajdhani'] uppercase tracking-wider font-bold"
+        >
+          {step === 0 ? "✖ Cancel and exit" : "↩ Previous step"}
+        </button>
+
+        {step === 7 ? (
+          <button 
+            onClick={handleNextStep}
+            className="flex items-center gap-1 px-5 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg transition-all font-['Rajdhani'] uppercase tracking-wider font-extrabold shadow-lg shadow-primary/25"
+          >
+            📋 Generate Pre-Invoice
+          </button>
+        ) : step === 9 ? (
+          <button 
+            onClick={() => {
+              setShowSuccessCard(true);
+            }}
+            className="flex items-center gap-1 px-6 py-2.5 bg-[#10B981] hover:bg-[#10B981]/90 text-white rounded-lg transition-all font-['Rajdhani'] uppercase tracking-widest font-black shadow-lg shadow-[#10B981]/15"
+          >
+            ✅ CLOSE JOBCARD & DMS GENERATE
+          </button>
+        ) : (
+          <button 
+            onClick={handleNextStep}
+            className="flex items-center gap-1 px-5 py-2.5 bg-primary hover:bg-primary/95 text-white rounded-lg transition-all font-['Rajdhani'] uppercase tracking-wider font-bold"
+          >
+            Next step ({stepsLabels[step + 1] || "Finish"}) →
+          </button>
+        )}
+      </div>
+
+    </div>
+  )
+}
+
 // ── All Job Cards Panel ────────────────────────────────────────────────────────
-function AllJobCardsPanel() {
+
+function AllJobCardsPanel({ onAction }: { onAction?: (a: PanelType, d?: Record<string, unknown>) => void }) {
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState("All")
   const [selectedJC, setSelectedJC] = useState<string | null>(null)
+  const [tab1JcNo, setTab1JcNo] = useState<string | null>(null)
   const [jobs, setJobs] = useState<JobCard[]>(() => {
     try {
       const cached = localStorage.getItem("nexa_job_cards")
@@ -2840,7 +4409,7 @@ function AllJobCardsPanel() {
   )
 
   function handleStatusChange(jcNo: string, newStatus: string) {
-    setJobs(prev => prev.map(j => j.jcNo === jcNo ? { ...j, status: newStatus } : j))
+    setJobs(prev => prev.map(j => j.jcNo === jcNo ? { ...j, status: newStatus as any } : j))
   }
 
   return (
@@ -2870,9 +4439,9 @@ function AllJobCardsPanel() {
             </thead>
             <tbody>
               {filtered.map(jc => (
-                <tr key={jc.jcNo} className="border-b border-border/50 hover:bg-[#1C2A3E]/30 cursor-pointer transition-colors group">
+                <tr key={jc.jcNo} className="border-b border-border/50 hover:bg-[#1C2A3E]/30 cursor-pointer transition-colors group" onClick={() => setTab1JcNo(jc.jcNo)}>
                   <td className="px-3 py-2.5">
-                    <button onClick={() => setSelectedJC(jc.jcNo)}
+                    <button onClick={(e) => { e.stopPropagation(); setTab1JcNo(jc.jcNo); }}
                       className="text-primary font-['JetBrains_Mono'] font-medium hover:text-accent hover:underline underline-offset-2 transition-colors">
                       {jc.jcNo}
                     </button>
@@ -2884,7 +4453,8 @@ function AllJobCardsPanel() {
                     <select
                       value={jc.status}
                       onChange={e => handleStatusChange(jc.jcNo, e.target.value)}
-                      className={`appearance-none px-2 py-0.5 pr-6 rounded-full text-[10px] font-semibold whitespace-nowrap font-['Rajdhani'] outline-none cursor-pointer ${statusBadge(jc.status)}`}
+                      className="appearance-none px-2 py-0.5 pr-6 rounded-full text-[10px] font-semibold whitespace-nowrap font-['Rajdhani'] outline-none cursor-pointer"
+                      style={{ background: "#1C2A3E", color: "#FFF" }}
                     >
                       {filters.filter(f => f !== "All").map(f => (
                         <option key={f} value={f} className="bg-[#1C2A3E] text-foreground">{f}</option>
@@ -2899,8 +4469,27 @@ function AllJobCardsPanel() {
             </tbody>
           </table>
         </div>
-        <p className="text-[11px] text-muted-foreground font-['JetBrains_Mono']">{filtered.length} job card{filtered.length !== 1 ? "s" : ""} shown · click a JC number for full details</p>
+        <p className="text-[11px] text-muted-foreground font-['JetBrains_Mono']">{filtered.length} job card{filtered.length !== 1 ? "s" : ""} shown · click a row or JC number to view TAB1 actions</p>
       </div>
+
+      <AnimatePresence>
+        {tab1JcNo && (
+          <Tab1ActionModal 
+            jcNo={tab1JcNo}
+            onClose={() => setTab1JcNo(null)}
+            onSelectAction={(action) => {
+              if (action === "find_id" || action === "update") {
+                setSelectedJC(tab1JcNo);
+              } else if (action === "close") {
+                const targetReg = jobs.find(j => j.jcNo === tab1JcNo)?.regNo || "HR26CW7677";
+                onAction?.("close-jobcard", { jcNo: tab1JcNo, regNo: targetReg });
+              }
+              setTab1JcNo(null);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {selectedJC && (
           <motion.div
@@ -3586,17 +5175,979 @@ function PanelRenderer({ panel, onAction, initialData }: { panel: PanelType; onA
   if (panel === "appointments") return <AppointmentsPanel onAction={onAction} />
   if (panel === "vehicle-history") return <VehicleHistoryPanel initialReg={initialData?.regNo as string} />
   if (panel === "jc-opening") return <JCOpeningPanel initialReg={initialData?.regNo as string} />
-  if (panel === "all-jobcards") return <AllJobCardsPanel />
+  if (panel === "all-jobcards") return <AllJobCardsPanel onAction={onAction} />
   if (panel === "tasks") return <TasksPanel />
   if (panel === "notifications") return <NotificationsPanel />
   if (panel === "service-news") return <ServiceNewsPanel />
   if (panel === "my-calls") return <CallsPanel />
   if (panel === "suzuki-connect-form") return <SuzukiConnectFormPanel onAction={onAction} />
   if (panel === "suzuki-connect-advice") return <SuzukiConnectAdvicePanel onAction={onAction} />
+  if (panel === "close-jobcard") return <CloseJobCardPanel initialReg={initialData?.regNo as string} initialJcNo={initialData?.jcNo as string} onBack={() => onAction("all-jobcards")} />
   return null
 }
 
 // ── Message Components ─────────────────────────────────────────────────────────
+function JCChatStepRenderer({
+  stepCode,
+  jcSession,
+  setJcSession,
+  advanceJcChat,
+  isActive
+}: {
+  stepCode: string;
+  jcSession: any;
+  setJcSession: (s: any) => void;
+  advanceJcChat: (label: string, fields: any, nextStep: string) => void;
+  isActive: boolean;
+}) {
+  if (!jcSession) return null;
+
+  // Local state wrappers
+  const [tempReg, setTempReg] = useState(jcSession.regNo || "");
+  const [name, setName] = useState(jcSession.customerName || "Ramesh Sharma");
+  const [mobile, setMobile] = useState(jcSession.customerMobile || "9812345678");
+  const [email, setEmail] = useState(jcSession.customerEmail || "ramesh.sharma@nexa.com");
+  const [odo, setOdo] = useState(jcSession.odometer || "42500");
+  const [srvType, setSrvType] = useState(jcSession.serviceType || "PMS");
+  const [isCng, setIsCng] = useState(jcSession.isCng || false);
+  const [videoAnalyzing, setVideoAnalyzing] = useState(false);
+  const [videoPlayProgress, setVideoPlayProgress] = useState(0);
+  const [isSignCaptured, setIsSignCaptured] = useState(false);
+
+  // Sync state if session updates
+  useEffect(() => {
+    if (jcSession) {
+      if (jcSession.regNo) setTempReg(jcSession.regNo);
+      if (jcSession.customerName) setName(jcSession.customerName);
+      if (jcSession.customerMobile) setMobile(jcSession.customerMobile);
+      if (jcSession.customerEmail) setEmail(jcSession.customerEmail);
+      if (jcSession.odometer) setOdo(jcSession.odometer);
+      if (jcSession.serviceType) setSrvType(jcSession.serviceType);
+      if (jcSession.isCng !== undefined) setIsCng(jcSession.isCng);
+    }
+  }, [jcSession]);
+
+  // Read-only compact representation for historical steps
+  if (!isActive) {
+    switch (stepCode) {
+      case "VIN_SCAN":
+        return (
+          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+            ✓ Logged Vehicle Registration: <strong className="text-secondary font-mono">{jcSession.regNo}</strong>
+          </div>
+        );
+      case "CONFIRM_VEHICLE":
+        return (
+          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+            ✓ Confirmed: 2022 Maruti Grand Swift VXi
+          </div>
+        );
+      case "CUSTOMER_DETAILS":
+        return (
+          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+            ✓ Customer: <strong>{jcSession.customerName}</strong> ({jcSession.customerMobile})
+          </div>
+        );
+      case "ODOMETER":
+        return (
+          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+            ✓ Odometer reading: <strong className="font-mono">{jcSession.odometer} KM</strong>
+          </div>
+        );
+      case "SERVICE_TYPE":
+        return (
+          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+            ✓ Service Category: <strong className="uppercase">{jcSession.serviceType}</strong> {jcSession.isCng ? "(CNG Enabled)" : ""}
+          </div>
+        );
+      case "DENT_VIDEO":
+        return (
+          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+            ✓ Condition Checklist: {jcSession.dents?.length || 3} Dents identified | Fuel Status: {jcSession.fuelLevel} | 3 Snaps logged
+          </div>
+        );
+      case "INVENTORY":
+        return (
+          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+            ✓ Cabin Inventory Checklist Approved
+          </div>
+        );
+      case "FITMENTS":
+        return (
+          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+            ✓ Non-OEM Fitments verified: {jcSession.fitments?.length ? jcSession.fitments.join(", ") : "None Detected"}
+          </div>
+        );
+      case "TYRE_BATTERY":
+        return (
+          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+            ✓ FL Tyre rated 2/5 (Recommending Change) | Battery health: {jcSession.batteryHealth}
+          </div>
+        );
+      case "SERVICE_MENU":
+        return (
+          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+            ✓ Standard {jcSession.serviceType} Checklist items pre-populated
+          </div>
+        );
+      case "DEMANDS_LIST":
+        return (
+          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+            ✓ Target Promised Delivery: {jcSession.promisedDateTime} | Payment Mode: {jcSession.paymentMode}
+          </div>
+        );
+      case "LABOUR_PARTS":
+        return (
+          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+            ✓ Final job estimate items added
+          </div>
+        );
+      case "SUMMARY":
+        return (
+          <div className="mt-2 text-xs text-muted-foreground bg-[#253347]/25 px-3 py-1.5 rounded-lg border border-border/40 inline-block font-sans">
+            ✓ Digital Customer Signature stored in system
+          </div>
+        );
+      default:
+        return null;
+    }
+  }
+
+  // Active step rendering
+  switch (stepCode) {
+    case "VIN_SCAN": {
+      return (
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3">
+          <div className="flex gap-2">
+            <input 
+              type="text"
+              value={tempReg}
+              onChange={(e) => setTempReg(e.target.value.toUpperCase())}
+              placeholder="MH12AB1234, DL6CR1517..."
+              className="flex-1 px-3 py-2 bg-[#1C2A3E] border border-border rounded-lg text-foreground outline-none focus:border-primary/50 font-mono text-[13px] uppercase"
+            />
+            <button
+              onClick={() => {
+                setTempReg("DL6CR1517");
+                advanceJcChat("Captured plate DL6CR1517 📷", { regNo: "DL6CR1517" }, "CONFIRM_VEHICLE");
+              }}
+              className="px-3.5 py-2 bg-[#1C2A3E] hover:bg-[#23344C] border border-border text-[12px] font-bold rounded-lg text-foreground font-sans flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <Camera size={13} className="text-secondary" /> Scan
+            </button>
+          </div>
+          <button
+            disabled={!tempReg}
+            onClick={() => advanceJcChat(`Vehicle registration: ${tempReg}`, { regNo: tempReg }, "CONFIRM_VEHICLE")}
+            className="w-full py-2 bg-primary text-white text-[12px] font-extrabold rounded-lg font-sans shadow-lg transition-all hover:brightness-110 disabled:opacity-45 disabled:cursor-not-allowed cursor-pointer"
+          >
+            Fetch Details from DMS
+          </button>
+        </div>
+      );
+    }
+
+    case "CONFIRM_VEHICLE": {
+      return (
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3">
+          <div className="p-3 bg-[#1C2A3E]/40 rounded-lg border border-border/80 text-[12px] font-sans flex flex-col gap-1.5">
+            <div className="flex justify-between border-b border-border/20 pb-1.5">
+              <span className="text-muted-foreground">Class</span>
+              <span className="font-semibold text-foreground">Premium Hatchback (Swift)</span>
+            </div>
+            <div className="flex justify-between border-b border-border/20 pb-1.5">
+              <span className="text-muted-foreground">Chassis (VIN)</span>
+              <span className="font-mono text-foreground font-semibold">MA3EWDE1S00XXXXX</span>
+            </div>
+            <div className="flex justify-between pb-1.5">
+              <span className="text-muted-foreground">Registration No.</span>
+              <span className="font-mono text-primary font-semibold">{jcSession.regNo}</span>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => advanceJcChat("Correct, continue", {}, "CUSTOMER_DETAILS")}
+              className="flex-1 py-2 bg-primary text-white text-[12px] font-semibold rounded-lg font-sans text-center cursor-pointer hover:brightness-105"
+            >
+              ✓ Yes, Correct
+            </button>
+            <button
+              onClick={() => advanceJcChat("Go back to search", {}, "VIN_SCAN")}
+              className="px-4 py-2 bg-[#1C2A3E] hover:bg-[#23344C] border border-border text-[12px] font-semibold rounded-lg text-foreground font-sans cursor-pointer transition-colors"
+            >
+              Edit reg
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    case "CUSTOMER_DETAILS": {
+      return (
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3">
+          <div className="flex flex-col gap-2 font-sans">
+            <div>
+              <label className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block mb-1">Customer Full Name *</label>
+              <input 
+                type="text" 
+                value={name} 
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-3 py-1.5 bg-[#1C2A3E] border border-border rounded-lg text-foreground text-[12px] focus:border-primary/50 outline-none"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block mb-1">Mobile Contact *</label>
+              <input 
+                type="text" 
+                value={mobile} 
+                onChange={(e) => setMobile(e.target.value)}
+                className="w-full px-3 py-1.5 bg-[#1C2A3E] border border-border rounded-lg text-foreground text-[12px] focus:border-primary/50 outline-none font-mono"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block mb-1">Email Address</label>
+              <input 
+                type="email" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-1.5 bg-[#1C2A3E] border border-border rounded-lg text-foreground text-[12px] focus:border-primary/50 outline-none"
+              />
+            </div>
+          </div>
+          <button
+            onClick={() => advanceJcChat(`Customer info confirmed for ${name}`, { customerName: name, customerMobile: mobile, customerEmail: email }, "ODOMETER")}
+            className="w-full py-2 bg-primary text-white text-[12px] font-extrabold rounded-lg font-sans cursor-pointer transition-all hover:brightness-115"
+          >
+            Confirm Contact Details
+          </button>
+        </div>
+      );
+    }
+
+    case "ODOMETER": {
+      return (
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3">
+          <div className="flex gap-2">
+            <input 
+              type="number"
+              value={odo}
+              onChange={(e) => setOdo(e.target.value)}
+              placeholder="Odometer reading..."
+              className="flex-1 px-3 py-2 bg-[#1C2A3E] border border-border rounded-lg text-foreground outline-none focus:border-primary/50 font-mono text-[13px]"
+            />
+            <span className="bg-[#1C2A3E] border border-border px-3.5 py-2 rounded-lg text-[12px] font-bold text-muted-foreground flex items-center">KM</span>
+          </div>
+          {/* Quick reply chips */}
+          <div className="flex gap-1.5 py-1 select-none overflow-x-auto">
+            {["42500", "39800", "10000"].map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => setOdo(preset)}
+                className="px-2.5 py-1 bg-[#1C2A3E] hover:bg-[#23344C] text-[11px] rounded-full border border-border/60 text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+              >
+                {parseInt(preset).toLocaleString()} km
+              </button>
+            ))}
+          </div>
+          <button
+            disabled={!odo}
+            onClick={() => advanceJcChat(`Odometer reading: ${parseInt(odo).toLocaleString()} KM`, { odometer: odo }, "SERVICE_TYPE")}
+            className="w-full py-2 bg-primary text-white text-[12px] font-extrabold rounded-lg font-sans cursor-pointer transition-all hover:brightness-110 disabled:opacity-40"
+          >
+            Confirm Odometer
+          </button>
+        </div>
+      );
+    }
+
+    case "SERVICE_TYPE": {
+      return (
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3">
+          <div>
+            <label className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block mb-1">Select Service Schedule</label>
+            <div className="grid grid-cols-2 gap-2 font-sans">
+              {["PMS", "IPC", "IFC", "Paid Repair"].map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setSrvType(t)}
+                  className={`py-2 text-[12px] font-bold rounded-lg border transition-all cursor-pointer ${srvType === t ? "bg-primary border-primary text-white shadow-lg" : "bg-[#1C2A3E] hover:bg-[#23344C] border-border text-foreground"}`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="border-t border-border/10 pt-2.5 flex items-center justify-between font-sans">
+            <div>
+              <p className="text-[12.5px] font-bold text-foreground">Is this a CNG vehicle?</p>
+              <p className="text-[10px] text-muted-foreground">Auto-checked against DMS registration specs</p>
+            </div>
+            <div className="flex gap-1.5">
+              <button
+                type="button"
+                onClick={() => setIsCng(true)}
+                className={`px-3.5 py-1 text-[11px] font-bold rounded-full border cursor-pointer transition-all ${isCng ? "bg-secondary border-secondary text-primary-foreground font-extrabold" : "bg-[#1C2A3E] border-border text-muted-foreground"}`}
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsCng(false)}
+                className={`px-3.5 py-1 text-[11px] font-bold rounded-full border cursor-pointer transition-all ${!isCng ? "bg-secondary border-secondary text-primary-foreground font-extrabold" : "bg-[#1C2A3E] border-border text-muted-foreground"}`}
+              >
+                No
+              </button>
+            </div>
+          </div>
+          <button
+            onClick={() => advanceJcChat(`Category: ${srvType} (CNG: ${isCng ? "Yes" : "No"})`, { serviceType: srvType, isCng }, "DENT_VIDEO")}
+            className="w-full mt-1.5 py-2 bg-primary text-white text-[12px] font-extrabold rounded-lg font-sans cursor-pointer transition-colors hover:brightness-110"
+          >
+            Configure Service Type
+          </button>
+        </div>
+      );
+    }
+
+    case "DENT_VIDEO": {
+      const startVideoSimulation = () => {
+        setVideoAnalyzing(true);
+        setVideoPlayProgress(0);
+        const timer = setInterval(() => {
+          setVideoPlayProgress((prev) => {
+            if (prev >= 100) {
+              clearInterval(timer);
+              return 100;
+            }
+            return prev + 10;
+          });
+        }, 150);
+      };
+
+      const aiDetectedDents = [
+        { id: "d1", zone: "front_bumper", type: "scratch", severity: "minor", confidence: 0.94, frame_image_url: "/frame_001.jpg" },
+        { id: "d2", zone: "left_rear_door", type: "dent", severity: "moderate", confidence: 0.89, frame_image_url: "/frame_011.jpg" },
+        { id: "d3", zone: "right_fender", type: "paint_chip", severity: "minor", confidence: 0.91, frame_image_url: "/frame_021.jpg" }
+      ];
+
+      return (
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3 font-sans">
+          {/* Main Select Row */}
+          {!videoAnalyzing && videoPlayProgress === 0 ? (
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={startVideoSimulation}
+                className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border bg-[#1C2A3E] hover:bg-[#23344C] transition-colors cursor-pointer text-center"
+              >
+                <Zap size={20} className="text-secondary animate-pulse" />
+                <span className="text-[11px] font-bold text-foreground">🎥 SIMULATE WALKROUND VIDEO</span>
+                <span className="text-[9px] text-muted-foreground">AI scans dents automatically</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setVideoPlayProgress(100);
+                  setJcSession({ ...jcSession, dents: aiDetectedDents });
+                }}
+                className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border bg-[#1C2A3E] hover:bg-[#23344C] transition-colors cursor-pointer text-center"
+              >
+                <ClipboardList size={20} className="text-muted-foreground" />
+                <span className="text-[11px] font-bold text-foreground">✏️ MARK MANUALLY</span>
+                <span className="text-[9px] text-muted-foreground">Select damage spots map</span>
+              </button>
+            </div>
+          ) : videoAnalyzing && videoPlayProgress < 100 ? (
+            <div className="p-4 rounded-xl bg-[#090F1C] border border-border/80 text-center flex flex-col items-center gap-2">
+              <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+              <p className="text-[12px] font-bold text-foreground">Analyzing walkround recording video...</p>
+              <div className="w-full bg-[#1C2A3E] h-1.5 rounded-full overflow-hidden mt-1">
+                <div className="bg-primary h-full transition-all duration-150" style={{ width: `${videoPlayProgress}%` }} />
+              </div>
+              <p className="text-[9.5px] font-mono text-muted-foreground mt-0.5">{videoPlayProgress}% Keyframes analyzed</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              <div className="bg-[#4ADE80]/15 border border-[#4ADE80]/20 p-2.5 rounded-lg flex items-center gap-2">
+                <CheckCircle size={15} className="text-[#4ADE80] shrink-0" />
+                <div className="text-[11px]">
+                  <p className="text-[#4ADE80] font-bold">NEXA AI Dent & Scratch Analysis Complete</p>
+                  <p className="text-muted-foreground">Identified 3 vehicle outer panel issues (above 85% threshold)</p>
+                </div>
+              </div>
+
+              {/* Vehicle Outline zones */}
+              <div className="p-3.5 bg-[#090F1C] rounded-lg border border-border flex flex-col gap-2">
+                <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#4ADE80] font-mono">Dents Visual Layout Mapper</span>
+                
+                {/* 2D Grid map mock representation */}
+                <div className="grid grid-cols-2 gap-1.5 text-[10.5px]">
+                  <div className="p-1 px-2.5 rounded bg-primary/20 border border-primary/30 flex items-center justify-between">
+                    <span>Front Bumper</span>
+                    <span className="text-[9.5px] font-bold text-[#4ADE80] uppercase">✓ Scratch (94%)</span>
+                  </div>
+                  <div className="p-1 px-2.5 rounded bg-primary/20 border border-primary/30 flex items-center justify-between">
+                    <span>Left Rear Door</span>
+                    <span className="text-[9.5px] font-bold text-[#4ADE80] uppercase">✓ Dent 5cm (89%)</span>
+                  </div>
+                  <div className="p-1 px-2.5 rounded bg-primary/20 border border-primary/30 flex items-center justify-between">
+                    <span>Right Fender</span>
+                    <span className="text-[9.5px] font-bold text-[#4ADE80] uppercase">✓ Chip (91%)</span>
+                  </div>
+                  <div className="p-1 px-2.5 rounded bg-[#1C2A3E]/40 border border-border/40 text-muted-foreground flex items-center justify-between">
+                    <span>Bonnet / Hood</span>
+                    <span className="text-[9.5px] font-semibold text-muted-foreground">Clear</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Fuel Level selects */}
+              <div>
+                <span className="text-[11px] font-bold text-foreground block mb-1">Fuel Status Level</span>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {["E", "1/4", "1/2", "3/4", "F"].map((lvl) => (
+                    <button
+                      key={lvl}
+                      type="button"
+                      onClick={() => setJcSession({ ...jcSession, fuelLevel: lvl })}
+                      className={`py-1 rounded text-[11px] font-bold border transition-colors cursor-pointer ${jcSession.fuelLevel === lvl ? "bg-primary border-primary text-white" : "bg-[#1C2A3E] border-border text-muted-foreground"}`}
+                    >
+                      {lvl}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Interior Snaps mock */}
+              <div className="border-t border-border/10 pt-2 flex justify-between items-center text-[11.5px]">
+                <div className="flex items-center gap-1.5">
+                  <Camera size={14} className="text-secondary" />
+                  <span>Cabin Interior Snaps (Dashboard / Seat / Boot)</span>
+                </div>
+                <span className="text-[10px] bg-[#111A2E] border border-border/80 text-secondary font-bold px-2 py-0.5 rounded font-mono">3 / 3 LOGGED</span>
+              </div>
+
+              <button
+                onClick={() => {
+                  const dentsToSend = jcSession.dents?.length ? jcSession.dents : aiDetectedDents;
+                  advanceJcChat("Vehicle Condition & Dents confirmed ✅", { dents: dentsToSend, fuelLevel: jcSession.fuelLevel || "1/2" }, "INVENTORY");
+                }}
+                className="w-full py-2 bg-primary text-white text-[12px] font-extrabold rounded-lg cursor-pointer hover:brightness-110"
+              >
+                Approve Inspection Report
+              </button>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    case "INVENTORY": {
+      const setInvQty = (key: string, v: number) => {
+        const keyMap: any = { spareTyre: "spareTyre", jackWrench: "jackWrench", floorMats: "floorMats", umbrella: "umbrella" };
+        const realKey = keyMap[key];
+        if (realKey) {
+          setJcSession({
+            ...jcSession,
+            inventory: {
+              ...jcSession.inventory,
+              [realKey]: Math.max(0, (jcSession.inventory[realKey] || 0) + v)
+            }
+          });
+        }
+      };
+
+      const inv = jcSession.inventory || { spareTyre: 1, jackWrench: 1, floorMats: 4, umbrella: 1 };
+
+      return (
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3 font-sans">
+          <div className="flex flex-col gap-2">
+            {[
+              { label: "Spare Tyre in Boot", stateKey: "spareTyre", val: inv.spareTyre },
+              { label: "Jack & Toolkit", stateKey: "jackWrench", val: inv.jackWrench },
+              { label: "Custom floor Mats", stateKey: "floorMats", val: inv.floorMats },
+              { label: "Nexa Branded Umbrella", stateKey: "umbrella", val: inv.umbrella }
+            ].map((itm) => (
+              <div key={itm.stateKey} className="flex justify-between items-center bg-[#1C2A3E]/40 border border-border/60 p-2 rounded-lg text-[12px]">
+                <span className="font-semibold text-foreground">{itm.label}</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setInvQty(itm.stateKey, -1)}
+                    className="w-5 h-5 rounded bg-[#1C2A3E] hover:bg-[#253954] text-muted-foreground hover:text-foreground flex items-center justify-center border border-border transition-colors cursor-pointer"
+                  >
+                    <Minus size={11} />
+                  </button>
+                  <span className="w-6 text-center font-bold font-mono text-primary text-[12.5px]">{itm.val}</span>
+                  <button
+                    type="button"
+                    onClick={() => setInvQty(itm.stateKey, 1)}
+                    className="w-5 h-5 rounded bg-[#1C2A3E] hover:bg-[#253954] text-muted-foreground hover:text-foreground flex items-center justify-center border border-border transition-colors cursor-pointer"
+                  >
+                    <Plus size={11} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={() => advanceJcChat("Inventory saved ✅", {}, "FITMENTS")}
+            className="w-full py-2 bg-primary text-white text-[12px] font-extrabold rounded-lg cursor-pointer hover:brightness-110"
+          >
+            Save Cabin Inventory
+          </button>
+        </div>
+      );
+    }
+
+    case "FITMENTS": {
+      const options = ["Aftermarket Alloy Wheels", "Non-OEM Rear Spoiler", "Stereo Music Upgrade", "Tinted Window Glass"];
+      const current = jcSession.fitments || [];
+
+      const selectFitment = (item: string) => {
+        const nextFit = current.includes(item)
+          ? current.filter((f: string) => f !== item)
+          : [...current, item];
+        setJcSession({ ...jcSession, fitments: nextFit });
+      };
+
+      return (
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3 font-sans">
+          <div className="flex flex-col gap-2">
+            {options.map((opt) => {
+              const checked = current.includes(opt);
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => selectFitment(opt)}
+                  className={`p-2.5 text-left text-[12px] font-bold rounded-lg border transition-all flex items-center justify-between cursor-pointer ${checked ? "bg-primary/20 border-primary text-foreground" : "bg-[#1C2A3E]/40 border-border text-muted-foreground"}`}
+                >
+                  <span>{opt}</span>
+                  <div className={`w-4 h-4 rounded border flex items-center justify-center ${checked ? "bg-primary border-primary text-white" : "border-border"}`}>
+                    {checked && <Check size={10} />}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => advanceJcChat(current.length ? `Fitments loaded: ${current.join(", ")}` : "Verified: No aftermarket additions", { fitments: current }, "TYRE_BATTERY")}
+              className="flex-1 py-2 bg-primary text-white text-[12px] font-semibold rounded-lg text-center cursor-pointer hover:brightness-110"
+            >
+              ✓ Save fitments
+            </button>
+            <button
+              onClick={() => advanceJcChat("None, skip", { fitments: [] }, "TYRE_BATTERY")}
+              className="px-4 py-2 bg-[#1C2A3E]/70 hover:bg-[#1C2A3E] border border-border text-[12px] font-semibold rounded-lg text-muted-foreground hover:text-foreground font-sans cursor-pointer transition-colors"
+            >
+              None
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    case "TYRE_BATTERY": {
+      const wheels = ["fl", "fr", "rl", "rr", "spare"];
+      const labels: any = { fl: "Front Left", fr: "Front Right", rl: "Rear Left", rr: "Rear Right", spare: "Spare tyre" };
+      const currentWheelRatings = jcSession.tyreHealth || { fl: 4, fr: 4, rl: 4, rr: 4, spare: 4 };
+
+      const setWheelRate = (wh: string, score: number) => {
+        setJcSession({
+          ...jcSession,
+          tyreHealth: {
+            ...currentWheelRatings,
+            [wh]: score
+          }
+        });
+      };
+
+      const hasCriticalWheel = Object.values(currentWheelRatings).some((v: any) => v <= 2);
+
+      return (
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3 font-sans">
+          <span className="text-[11px] font-semibold text-foreground">Rate Wheel Tread Depth (1 = Balding, 5 = Brand New)</span>
+          <div className="flex flex-col gap-2">
+            {wheels.map((wh) => {
+              const score = currentWheelRatings[wh] || 4;
+              return (
+                <div key={wh} className="bg-[#1C2A3E]/40 border border-border/60 p-2 rounded-lg text-[12px] flex justify-between items-center">
+                  <span className="font-semibold text-foreground">{labels[wh]}</span>
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setWheelRate(wh, idx)}
+                        className={`w-5.5 h-5.5 rounded flex items-center justify-center text-[10.5px] font-bold border cursor-pointer transition-all ${score === idx ? (idx <= 2 ? "bg-red-500 border-red-500 text-white" : "bg-primary border-primary text-white") : "bg-[#1C2A3E] border-border text-muted-foreground hover:text-foreground"}`}
+                      >
+                        {idx}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {hasCriticalWheel && (
+            <div className="bg-red-500/15 border border-red-500/20 p-2 rounded-lg flex gap-1.5 text-[10.5px] items-center text-red-400">
+              <AlertTriangle size={13} className="shrink-0" />
+              <span>FL tyre health rated 2/5 (Critical). Tyre replacement demand added.</span>
+            </div>
+          )}
+
+          {/* Battery section */}
+          <div className="border-t border-border/15 pt-2 flex flex-col gap-1.5">
+            <span className="text-[11px] font-semibold text-foreground">Battery Diagnostic State</span>
+            <div className="grid grid-cols-4 gap-1">
+              {["Good", "Fair", "Poor", "Skip"].map((b) => (
+                <button
+                  key={b}
+                  type="button"
+                  onClick={() => setJcSession({ ...jcSession, batteryHealth: b })}
+                  className={`py-1 text-[11px] font-semibold rounded border transition-colors cursor-pointer ${jcSession.batteryHealth === b ? (b === "Poor" ? "bg-red-500 border-red-500 text-white" : "bg-primary border-primary text-white") : "bg-[#1C2A3E] border-border text-muted-foreground hover:text-foreground"}`}
+                >
+                  {b}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              // Automatically append replacement demand codes if critical
+              const activeDemands = [...(jcSession.demands || [])];
+              if (currentWheelRatings.fl <= 2 && !activeDemands.some((d: any) => d.code === "TYRE-FL")) {
+                activeDemands.push({ id: "tyre-fl", desc: "Tyre Replacement - Front Left (Balding)", code: "TYRE-FL", type: "P", qty: 1, price: 3450, addedBy: "ai_auto" });
+              }
+              if (jcSession.batteryHealth === "Poor" && !activeDemands.some((d: any) => d.code === "HP000002")) {
+                activeDemands.push({ id: "bat-rep", desc: "Exide Gold Battery Replacement (Diagnostic Faulty)", code: "HP000002", type: "P", qty: 1, price: 4200, addedBy: "ai_auto" });
+              }
+              
+              advanceJcChat(
+                "Tyres and Battery checked ✅", 
+                { tyreHealth: currentWheelRatings, batteryHealth: jcSession.batteryHealth || "Good", demands: activeDemands }, 
+                "SERVICE_MENU"
+              );
+            }}
+            className="w-full mt-1.5 py-2 bg-primary text-white text-[12px] font-extrabold rounded-lg cursor-pointer hover:brightness-110"
+          >
+            Confirm Tyre & Battery State
+          </button>
+        </div>
+      );
+    }
+
+    case "SERVICE_MENU": {
+      const pmsMenu = [
+        { desc: "Engine Oil Change", code: "LOC001", type: "L" as const, qty: 1, price: 350 },
+        { desc: "Oil Filter replacement", code: "68510-68L10", type: "P" as const, qty: 1, price: 285 },
+        { desc: "Air Filter Element replacement", code: "68510-79J00", type: "P" as const, qty: 1, price: 540 },
+        { desc: "Brake Caliper Pins greasing", code: "LOC012", type: "L" as const, qty: 1, price: 200 }
+      ];
+
+      return (
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3 font-sans">
+          <div className="p-3 bg-[#090F1C] border border-border rounded-xl flex flex-col gap-2.5">
+            <div className="flex justify-between items-center text-[10px] font-extrabold uppercase text-secondary tracking-widest border-b border-border/15 pb-1.5">
+              <span>PMS standard items list (DMS pre-loaded)</span>
+              <span>ESTIMATED VALUE</span>
+            </div>
+            {pmsMenu.map((itm) => (
+              <div key={itm.code} className="flex justify-between items-center text-[12px]">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-primary/25 border border-primary/30 text-primary-light font-bold">
+                    {itm.type}
+                  </span>
+                  <span className="text-foreground">{itm.desc}</span>
+                </div>
+                <span className="font-mono text-[11.5px] text-muted-foreground">₹{itm.price}</span>
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={() => advanceJcChat("Preloaded menu approved ✅", {}, "DEMANDS_LIST")}
+            className="w-full py-2 bg-primary text-white text-[12px] font-extrabold rounded-lg cursor-pointer hover:brightness-110"
+          >
+            Confirm Core Service Menu
+          </button>
+        </div>
+      );
+    }
+
+    case "DEMANDS_LIST": {
+      return (
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3 font-sans">
+          {/* Active Demands Scroll list */}
+          <div className="flex flex-col gap-2 max-h-[140px] overflow-y-auto pr-1">
+            {jcSession.demands?.map((d: any) => (
+              <div key={d.id} className="p-2 border border-border/70 rounded-lg bg-[#1C2A3E]/40 flex justify-between items-center text-[11.5px]">
+                <div>
+                  <p className="font-bold text-foreground">{d.desc}</p>
+                  <p className="text-[9.5px] text-muted-foreground font-mono">Code: {d.code} | Class: {d.type === "L" ? "Labour" : "Part"}</p>
+                </div>
+                <span className="text-secondary font-bold font-mono text-[11px]">₹{d.price * d.qty}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Delivery dates */}
+          <div className="grid grid-cols-2 gap-2 text-[11.5px]">
+            <div>
+              <span className="text-muted-foreground block mb-1">Promised Date & Time</span>
+              <select
+                value={jcSession.promisedDateTime}
+                onChange={(e) => setJcSession({ ...jcSession, promisedDateTime: e.target.value })}
+                className="w-full bg-[#1C2A3E] border border-border p-2 rounded-lg text-foreground outline-none text-[12px]"
+              >
+                <option value="Today 6 PM">Today (6:00 PM)</option>
+                <option value="Tomorrow 5 PM">Tomorrow (5:00 PM)</option>
+                <option value="Day after 12 PM">Day after tomorrow (12:00 PM)</option>
+              </select>
+            </div>
+            <div>
+              <span className="text-muted-foreground block mb-1">Preferred Settlement</span>
+              <select
+                value={jcSession.paymentMode}
+                onChange={(e) => setJcSession({ ...jcSession, paymentMode: e.target.value })}
+                className="w-full bg-[#1C2A3E] border border-border p-2 rounded-lg text-foreground outline-none text-[12px]"
+              >
+                <option value="Cash">Cash settlement</option>
+                <option value="Card">Card settlement</option>
+                <option value="Insurance">Insurance coverage Claim</option>
+                <option value="UPI">UPI Digital Payment</option>
+              </select>
+            </div>
+          </div>
+
+          <button
+            onClick={() => advanceJcChat(`Promised delivery: ${jcSession.promisedDateTime} | settlement: ${jcSession.paymentMode}`, {}, "LABOUR_PARTS")}
+            className="w-full py-2 bg-primary text-white text-[12px] font-extrabold rounded-lg cursor-pointer hover:brightness-110"
+          >
+            Save Demands & Continue
+          </button>
+        </div>
+      );
+    }
+
+    case "LABOUR_PARTS": {
+      const extraItems = [
+        { desc: "Brake Pad Check Detail Layout", code: "LOC045", type: "L" as const, qty: 1, price: 150 },
+        { desc: "Wiper Fluid concentrated pouch", code: "68510-79M10", type: "P" as const, qty: 1, price: 120 }
+      ];
+
+      const addExtraDem = (itm: any) => {
+        const alr = jcSession.demands?.some((d: any) => d.code === itm.code);
+        if (!alr) {
+          const added = [...(jcSession.demands || []), { ...itm, id: itm.code, addedBy: "manual" }];
+          setJcSession({ ...jcSession, demands: added });
+        }
+      };
+
+      return (
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3 font-sans">
+          <span className="text-[11px] font-semibold text-foreground">Quick Frequently Requested Items list:</span>
+          <div className="flex flex-col gap-2">
+            {extraItems.map((itm) => {
+              const added = jcSession.demands?.some((d: any) => d.code === itm.code);
+              return (
+                <div key={itm.code} className="bg-[#1C2A3E]/40 border border-border/65 p-2 rounded-lg text-[12px] flex justify-between items-center">
+                  <div>
+                    <span className="font-bold text-foreground">{itm.desc}</span>
+                    <span className="text-[10px] text-muted-foreground block font-mono">Code: {itm.code} | Cost: ₹{itm.price}</span>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={added}
+                    onClick={() => addExtraDem(itm)}
+                    className={`px-3 py-1 rounded text-[10.5px] font-bold border transition-all cursor-pointer ${added ? "bg-[#4ADE80]/20 border-[#4ADE80]/30 text-[#4ADE80]" : "bg-[#1C2A3E] hover:bg-[#253A54] border-border text-muted-foreground hover:text-foreground"}`}
+                  >
+                    {added ? "✓ Added" : "+ Add"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={() => advanceJcChat("Estimate components checked and verified ✅", {}, "SUMMARY")}
+            className="w-full py-2 bg-primary text-white text-[12px] font-extrabold rounded-lg cursor-pointer hover:brightness-110 animate-fade-in"
+          >
+            Review Summary Card
+          </button>
+        </div>
+      );
+    }
+
+    case "SUMMARY": {
+      const activeDemands = jcSession.demands || [];
+      const labourEst = activeDemands.filter((d: any) => d.type === "L").reduce((sum: number, d: any) => sum + d.price * d.qty, 0);
+      const partsEst = activeDemands.filter((d: any) => d.type === "P").reduce((sum: number, d: any) => sum + d.price * d.qty, 0);
+      const overall = labourEst + partsEst;
+
+      return (
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3 font-sans">
+          <div className="bg-[#090F1C] border border-border rounded-xl p-3.5 flex flex-col gap-2 font-mono text-[11.5px]">
+            <span className="text-secondary font-bold text-[10px] uppercase tracking-widest border-b border-border/15 pb-1 block">SUMMARY PREVIEW CARD</span>
+            <div className="flex justify-between mt-1"><span className="text-muted-foreground">Vehicle:</span><span className="text-foreground">Swift VXi ({jcSession.regNo})</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Customer:</span><span className="text-foreground">Ramesh Sharma</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Category:</span><span className="text-foreground block uppercase">{jcSession.serviceType}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Odometer:</span><span className="text-foreground">{parseInt(jcSession.odometer || "42500").toLocaleString()} km</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Est. Labour:</span><span className="text-foreground">₹{labourEst}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Est. Parts:</span><span className="text-foreground">₹{partsEst}</span></div>
+            <div className="flex justify-between border-t border-border/20 pt-1.5 font-bold text-[12.5px]"><span className="text-foreground font-sans">Total Estimate:</span><span className="text-secondary">₹{overall}</span></div>
+          </div>
+
+          {/* Signature Grid */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[11px] font-bold text-foreground block">Customer Digital Signature</span>
+            {!isSignCaptured ? (
+              <div 
+                onClick={() => setIsSignCaptured(true)}
+                className="h-24 bg-[#080E1C] hover:bg-[#0A1224] border border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-1.5 cursor-pointer text-muted-foreground transition-all group"
+              >
+                <Wrench size={16} className="text-muted-foreground/50 group-hover:text-secondary group-hover:animate-bounce" />
+                <span className="text-[11px] text-muted-foreground/60 block font-sans">Click to simulate customer signature trace</span>
+              </div>
+            ) : (
+              <div className="h-24 bg-[#080E1C] border border-secondary/25 rounded-xl relative flex justify-center items-center overflow-hidden">
+                {/* SVG mock signature line */}
+                <svg className="w-48 h-12 stroke-secondary stroke-2 fill-none animate-pulse">
+                  <path d="M10,25 Q30,5 50,25 T90,25 T130,10 T170,25" />
+                </svg>
+                <button
+                  type="button"
+                  onClick={() => setIsSignCaptured(false)}
+                  className="absolute bottom-1 right-2 text-[9px] text-red-400 hover:text-red-500 cursor-pointer"
+                >
+                  Clear
+                </button>
+                <div className="absolute top-1 left-2 text-[8px] bg-[#111A2E] text-[#4ADE80] font-bold px-1.5 py-0.5 rounded border border-[#4ADE80]/30 font-mono">
+                  SECURE SIG LOCK
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button
+            disabled={!isSignCaptured}
+            onClick={() => advanceJcChat("Job Card finalized and signature locked ✅", { signature: "MOCK_SIG" }, "COMPLETED")}
+            className="w-full py-2.5 bg-[#4ADE80] text-primary-dark text-[13px] font-extrabold rounded-lg cursor-pointer transition-all hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed font-sans uppercase tracking-wide"
+          >
+            Create Job Card in DMS
+          </button>
+        </div>
+      );
+    }
+
+    case "COMPLETED": {
+      const activeDemands = jcSession.demands || [];
+      const mockCreatedJC = {
+        jcNo: "JC26000512",
+        dealer: "PREM MOTORS PVT. LTD., GURGAON-2S(NEXA)",
+        dealerMapCode: "PMG2S001",
+        visitDate: "21-MAY-2026",
+        gateIn: "09:42",
+        serviceType: jcSession.serviceType,
+        techName: "VISHAL ADITYA",
+        bay: "BAY-04",
+        paymentMode: jcSession.paymentMode || "Card",
+        promisedDate: "21-MAY-2026",
+        promisedTime: jcSession.promisedDateTime || "06:00 PM",
+        customer: {
+          name: jcSession.customerName || "Ramesh Sharma",
+          mobile1: jcSession.customerMobile || "+91 99110 03322",
+          email: jcSession.customerEmail || "ramesh.sharma@nexa.com",
+          address: "DLF Phase 3, Cyber City",
+          city: "Gurugram",
+          regNo: jcSession.regNo || "HR26CW7677",
+          vin: "MA3YFDS75K008432",
+          model: "MARUTI SWIFT VXi",
+        },
+        demands: activeDemands.map((d: any, idx: number) => ({ ...d, sno: idx + 1 })),
+        labour: activeDemands.filter((d: any) => d.type === 'L').map((d: any, idx: number) => ({
+          sno: idx + 1,
+          code: d.code,
+          desc: d.desc,
+          qty: d.qty,
+          prnHrs: 1.0,
+          billableType: "Billable",
+          amount: d.price * d.qty
+        })),
+        parts: activeDemands.filter((d: any) => d.type === 'P').map((d: any, idx: number) => ({
+          sno: idx + 1,
+          code: d.code,
+          desc: d.desc,
+          qty: d.qty,
+          price: d.price,
+          amount: d.price * d.qty
+        })),
+        odometer: parseInt(jcSession.odometer || "42500")
+      };
+
+      const handlePdfTrig = (act: 'download' | 'print') => {
+        // Trigger the globally defined method in App.tsx
+        if (typeof (window as any)._triggerJcPdf === "function") {
+          (window as any)._triggerJcPdf(mockCreatedJC, act);
+        } else {
+          alert(`PDF simulated action: ${act}. (Open in new tab to download real PDF file!)`);
+        }
+      };
+
+      return (
+        <div className="mt-3 p-4 bg-[#111A2E]/90 rounded-xl border border-[rgba(61,142,240,0.15)] shadow-xl flex flex-col gap-3 font-sans">
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => handlePdfTrig('print')}
+              className="py-2.5 bg-primary text-white text-[12px] font-bold rounded-lg cursor-pointer hover:bg-primary/95 flex items-center justify-center gap-1.5 transition-colors"
+            >
+              <Eye size={13} /> View / Print JC
+            </button>
+            <button
+              onClick={() => handlePdfTrig('download')}
+              className="py-2.5 bg-[#1C2A3E] border border-border text-foreground text-[12px] font-bold rounded-lg cursor-pointer hover:bg-[#253A54] flex items-center justify-center gap-1.5 transition-colors"
+            >
+              <Download size={13} /> Download File
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 mt-1">
+            <button
+              onClick={() => alert("Customer cost estimates sent via Nexa SMS and Email ✅")}
+              className="py-2 text-[11px] font-bold bg-[#1C2A3E]/70 border border-border text-muted-foreground hover:text-foreground rounded-lg cursor-pointer text-center"
+            >
+              📧 Email customer JC
+            </button>
+            <button
+              onClick={() => alert("DMS transaction submitted to OCAS Approvals database queue ✅")}
+              className="py-2 text-[11px] font-bold bg-[#1C2A3E]/70 border border-border text-muted-foreground hover:text-foreground rounded-lg cursor-pointer text-center"
+            >
+              🔐 Submit to OCAS
+            </button>
+          </div>
+
+          <button
+            onClick={() => alert("Syncing details with Maruti Suzuki Warranty Service Portal ✅")}
+            className="w-full py-2 bg-[#1C2A3E]/50 hover:bg-[#1C2A3E] text-muted-foreground text-[11px] font-semibold rounded-lg border border-border/80 cursor-pointer text-center"
+          >
+            🛡️ Open Warranty Portal (Validate images)
+          </button>
+        </div>
+      );
+    }
+
+    default:
+      return null;
+  }
+}
+
 function UserBubble({ text, timestamp }: { text: string; timestamp: Date }) {
   return (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex justify-end">
@@ -3608,7 +6159,29 @@ function UserBubble({ text, timestamp }: { text: string; timestamp: Date }) {
   )
 }
 
-function BotBubble({ text, panel, onAction, timestamp, initialData }: { text: string; panel?: PanelType; onAction: (a: PanelType, d?: Record<string, unknown>) => void; timestamp: Date; initialData?: Record<string, unknown> }) {
+function BotBubble({ 
+  text, 
+  panel, 
+  onAction, 
+  timestamp, 
+  initialData,
+  isJcStep,
+  jcStepCode,
+  jcSession,
+  setJcSession,
+  advanceJcChat
+}: { 
+  text: string; 
+  panel?: PanelType; 
+  onAction: (a: PanelType, d?: Record<string, unknown>) => void; 
+  timestamp: Date; 
+  initialData?: Record<string, unknown>;
+  isJcStep?: boolean;
+  jcStepCode?: string;
+  jcSession?: any;
+  setJcSession?: any;
+  advanceJcChat?: any;
+}) {
   const triggerSpeak = () => {
     if (window.speechSynthesis) {
       window.speechSynthesis.cancel();
@@ -3620,28 +6193,139 @@ function BotBubble({ text, panel, onAction, timestamp, initialData }: { text: st
     }
   };
 
+  const ALL_JC_STEPS = [
+    "VIN_SCAN",
+    "CONFIRM_VEHICLE",
+    "CUSTOMER_DETAILS",
+    "ODOMETER",
+    "SERVICE_TYPE",
+    "DENT_VIDEO",
+    "INVENTORY",
+    "FITMENTS",
+    "TYRE_BATTERY",
+    "SERVICE_MENU",
+    "DEMANDS_LIST",
+    "LABOUR_PARTS",
+    "SUMMARY",
+    "COMPLETED"
+  ];
+
+  const FRIENDLY_STEP_LABELS: Record<string, string> = {
+    VIN_SCAN: "Reg/VIN Scan",
+    CONFIRM_VEHICLE: "Verify Vehicle",
+    CUSTOMER_DETAILS: "Customer Profile",
+    ODOMETER: "Odometer Reading",
+    SERVICE_TYPE: "Select Services",
+    DENT_VIDEO: "AICamera Body Check",
+    INVENTORY: "Car Inventory",
+    FITMENTS: "Aftermarket Fitments",
+    TYRE_BATTERY: "Tyres & Battery",
+    SERVICE_MENU: "Menu Preloads",
+    DEMANDS_LIST: "Demands & Timeline",
+    LABOUR_PARTS: "Labour/Parts Estimates",
+    SUMMARY: "Verify & Get Signature",
+    COMPLETED: "Job Card Generated"
+  };
+
   return (
-    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex gap-3">
+    <motion.div initial={{ opacity: 0, x: -25 }} animate={{ opacity: 1, x: 0 }} className="flex gap-3">
       <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0 mt-1">
         <Bot size={15} className="text-primary" />
       </div>
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 font-sans">
         <div className="flex items-center justify-between mb-1.5">
-          <p className="text-[11px] text-muted-foreground font-['Rajdhani'] font-semibold">NEXA AI</p>
+          <p className="text-[11px] text-muted-foreground font-sans font-semibold tracking-wider uppercase">NEXA AI ASSISTANT</p>
           <button 
             onClick={triggerSpeak} 
-            className="text-muted-foreground hover:text-primary transition-all p-1 hover:bg-[#1C2A3E]/65 rounded flex items-center gap-1 text-[9px] font-['Rajdhani'] uppercase tracking-widest cursor-pointer"
+            className="text-muted-foreground hover:text-primary transition-all p-1 hover:bg-[#1C2A3E]/65 rounded flex items-center gap-1 text-[9px] font-sans uppercase tracking-widest cursor-pointer"
             title="Read out loud"
           >
             <Volume2 size={11} /> Speak
           </button>
         </div>
         <div className="p-4 rounded-2xl rounded-tl-sm bg-card border border-border">
-          <p className="text-[13px] text-foreground mb-3 font-['Rajdhani']">{text}</p>
+          <p className="text-[13px] text-foreground mb-3 font-sans leading-relaxed">{text}</p>
+          
+          {isJcStep && jcStepCode && (
+            <div className="mb-4 bg-[#111A2E]/70 p-3 rounded-xl border border-border/80 font-sans">
+              <div className="flex justify-between items-center text-[11px] mb-2 font-sans font-bold uppercase tracking-wider text-muted-foreground">
+                <span className="text-[#3D8EF0] flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#3D8EF0] animate-pulse" />
+                  Guided Setup Details
+                </span>
+                <span className="text-foreground">
+                  {ALL_JC_STEPS.indexOf(jcStepCode) + 1} of {ALL_JC_STEPS.length} Steps
+                </span>
+              </div>
+              
+              <div className="flex gap-1 h-1.5">
+                {ALL_JC_STEPS.map((step, idx) => {
+                  const currentIdx = ALL_JC_STEPS.indexOf(jcStepCode);
+                  const isDone = idx < currentIdx;
+                  const isCurrent = idx === currentIdx;
+                  return (
+                    <div 
+                      key={step} 
+                      className={`flex-1 rounded-sm transition-all duration-300 ${
+                        isDone 
+                          ? "bg-primary" 
+                          : isCurrent 
+                            ? "bg-[#3D8EF0] ring-1 ring-[#3D8EF0]/50" 
+                            : "bg-[#1C2A3E]"
+                      }`}
+                      title={FRIENDLY_STEP_LABELS[step]}
+                    />
+                  );
+                })}
+              </div>
+              
+              <div className="flex justify-between items-center mt-2.5 text-[11px] font-sans">
+                <span className="text-foreground font-semibold">
+                  Active Area: <span className="text-primary">{FRIENDLY_STEP_LABELS[jcStepCode] || jcStepCode}</span>
+                </span>
+                {jcStepCode !== "COMPLETED" && (
+                  <span className="text-muted-foreground font-mono text-[9px] uppercase">
+                    Single Interactive Output
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
           {panel && (
             <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
               <PanelRenderer panel={panel} onAction={onAction} initialData={initialData} />
             </motion.div>
+          )}
+          {isJcStep && jcStepCode && (
+            <div className="flex flex-col gap-2">
+              <JCChatStepRenderer 
+                stepCode={jcStepCode} 
+                jcSession={jcSession} 
+                setJcSession={setJcSession} 
+                advanceJcChat={advanceJcChat} 
+                isActive={jcSession?.step === jcStepCode} 
+              />
+              {jcSession?.step === jcStepCode && jcStepCode !== "VIN_SCAN" && jcStepCode !== "COMPLETED" && (
+                <div className="flex justify-start px-0.5 mt-1.5 animate-fade-in">
+                  <button
+                    onClick={() => {
+                      const currentIdx = ALL_JC_STEPS.indexOf(jcStepCode);
+                      if (currentIdx > 0) {
+                        const prevStep = ALL_JC_STEPS[currentIdx - 1];
+                        if (advanceJcChat) {
+                          advanceJcChat("↩ Return to previous step", {}, prevStep);
+                        }
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold text-[#8F9CAE] hover:text-white bg-[#1C2A3E]/35 hover:bg-[#1C2A3E]/70 border border-border/50 hover:border-border rounded-lg transition-all cursor-pointer shadow-md select-none"
+                  >
+                    <ChevronLeft size={13} className="text-[#8F9CAE]" />
+                    Back to previous step ({FRIENDLY_STEP_LABELS[ALL_JC_STEPS[ALL_JC_STEPS.indexOf(jcStepCode) - 1]] || ""})
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
         <p className="text-[10px] text-muted-foreground mt-1 font-['JetBrains_Mono']">{timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
@@ -4096,6 +6780,29 @@ export default function App() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const chatRef = useRef<HTMLDivElement>(null)
 
+  const [jcSession, setJcSession] = useState<{
+    step: "VIN_SCAN" | "CONFIRM_VEHICLE" | "CUSTOMER_DETAILS" | "ODOMETER" | "SERVICE_TYPE" | "DENT_VIDEO" | "INVENTORY" | "FITMENTS" | "TYRE_BATTERY" | "SERVICE_MENU" | "DEMANDS_LIST" | "LABOUR_PARTS" | "SUMMARY" | "COMPLETED";
+    regNo: string;
+    customerName: string;
+    customerMobile: string;
+    customerEmail: string;
+    odometer: string;
+    serviceType: string;
+    subServiceType: string;
+    isCng: boolean;
+    fuelLevel: string;
+    dents: { id: string; zone: string; type: string; severity: string; confidence: number; frame_image_url?: string }[];
+    interiorImages: string[];
+    inventory: { spareTyre: number; jackWrench: number; floorMats: number; umbrella: number };
+    fitments: string[];
+    tyreHealth: { fl: number; fr: number; rl: number; rr: number; spare: number };
+    batteryHealth: string;
+    demands: { id: string; desc: string; addedBy: string; code: string; type: "L" | "P"; qty: number; price: number }[];
+    promisedDateTime: string;
+    paymentMode: string;
+    signature?: string;
+  } | null>(null)
+
   // Theme Sync State & Hook
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     const saved = localStorage.getItem("nexa-theme")
@@ -4110,6 +6817,147 @@ export default function App() {
     }
     localStorage.setItem("nexa-theme", theme)
   }, [theme])
+
+  function startChatJCOpening(regInput = "") {
+    const regNum = regInput.toUpperCase() || "DL6CR1517";
+    const initialSession = {
+      step: (regInput ? "CONFIRM_VEHICLE" : "VIN_SCAN") as any,
+      regNo: regNum,
+      customerName: "Ramesh Sharma",
+      customerMobile: "9812345678",
+      customerEmail: "ramesh.sharma@nexa.com",
+      odometer: "42500",
+      serviceType: "PMS",
+      subServiceType: "PMS-Standard",
+      isCng: false,
+      fuelLevel: "1/2",
+      dents: [] as { id: string; zone: string; type: string; severity: string; confidence: number; frame_image_url?: string }[],
+      interiorImages: [] as string[],
+      inventory: { spareTyre: 1, jackWrench: 1, floorMats: 4, umbrella: 1 },
+      fitments: [] as string[],
+      tyreHealth: { fl: 4, fr: 4, rl: 4, rr: 4, spare: 4 },
+      batteryHealth: "Good",
+      demands: [
+        { id: "1", desc: "Engine Oil Change", code: "LOC001", type: "L" as const, qty: 1, price: 350, addedBy: "service_menu" },
+        { id: "2", desc: "Oil Filter", code: "68510-68L10", type: "P" as const, qty: 1, price: 285, addedBy: "service_menu" },
+        { id: "3", desc: "Air Filter Check", code: "68510-79J00", type: "P" as const, qty: 1, price: 540, addedBy: "service_menu" }
+      ],
+      promisedDateTime: "Tomorrow 5 PM",
+      paymentMode: "Card",
+    };
+    setJcSession(initialSession);
+    setTyping(true);
+    setTimeout(() => {
+      setTyping(false);
+      const text = regInput 
+        ? `Initiating guided Job Card setup workflow for vehicle **${regNum}**. Advancing to Step 1: Customer & Vehicle Details...`
+        : `Let's open a new Job Card. Please scan or type the vehicle's Registration Number or VIN.`;
+      
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: "bot",
+        text,
+        isJcStep: true,
+        jcStepCode: regInput ? "CONFIRM_VEHICLE" : "VIN_SCAN",
+        timestamp: new Date()
+      }]);
+    }, 500);
+  }
+
+  function advanceJcChat(userSelectionText: string, updatedFields: Partial<typeof jcSession> = {}, nextStep: any) {
+    const currentSess = jcSession || {
+      step: "VIN_SCAN" as const,
+      regNo: "DL6CR1517",
+      customerName: "Ramesh Sharma",
+      customerMobile: "9812345678",
+      customerEmail: "ramesh.sharma@nexa.com",
+      odometer: "42500",
+      serviceType: "PMS",
+      subServiceType: "PMS-Standard",
+      isCng: false,
+      fuelLevel: "1/2",
+      dents: [],
+      interiorImages: [],
+      inventory: { spareTyre: 1, jackWrench: 1, floorMats: 4, umbrella: 1 },
+      fitments: [],
+      tyreHealth: { fl: 4, fr: 4, rl: 4, rr: 4, spare: 4 },
+      batteryHealth: "Good",
+      demands: [
+        { id: "1", desc: "Engine Oil Change", code: "LOC001", type: "L" as const, qty: 1, price: 350, addedBy: "service_menu" },
+        { id: "2", desc: "Oil Filter", code: "68510-68L10", type: "P" as const, qty: 1, price: 285, addedBy: "service_menu" },
+        { id: "3", desc: "Air Filter Check", code: "68510-79J00", type: "P" as const, qty: 1, price: 540, addedBy: "service_menu" }
+      ],
+      promisedDateTime: "Tomorrow 5 PM",
+      paymentMode: "Card",
+    };
+
+    const nextSess = {
+      ...currentSess,
+      ...updatedFields,
+      step: nextStep
+    };
+    
+    setJcSession(nextSess);
+    setTyping(true);
+    
+    let nextText = "";
+    if (nextStep === "VIN_SCAN") {
+      nextText = `Let's open a new Suzuki Nexa Job Card! Please scan the vehicle's registration plate or enter details below to begin:`;
+    } else if (nextStep === "CONFIRM_VEHICLE") {
+      nextText = `Got it — **${nextSess.regNo}**. Fetching vehicle details from DMS... ✅\n\nFound: **2022 Maruti Suzuki Swift VXi** | VIN: **MA3EWDE1S00XXXXX**\nIs this correct?`;
+    } else if (nextStep === "CUSTOMER_DETAILS") {
+      nextText = `Here are the customer details fetched from DMS:\n👤 **Ramesh Sharma** | 📞 **${nextSess.customerMobile}** | ✉️ **${nextSess.customerEmail}**\n\nPlease confirm if these details are correct or edit them:`;
+    } else if (nextStep === "ODOMETER") {
+      nextText = `What is the vehicle's current odometer reading?`;
+    } else if (nextStep === "SERVICE_TYPE") {
+      nextText = `Please select the primary service type and CNG flag:`;
+    } else if (nextStep === "DENT_VIDEO") {
+      nextText = `Let's capture the vehicle condition. You can upload a short walkround video for AI scratch & dent detection, or mark spots manually on the diagram:`;
+    } else if (nextStep === "INVENTORY") {
+      nextText = `Let's record the vehicle inventory items. Please adjust quantities of standard items inside the car:`;
+    } else if (nextStep === "FITMENTS") {
+      nextText = `Are there any unapproved or non-OEM aftermarket fitments on the vehicle?`;
+    } else if (nextStep === "TYRE_BATTERY") {
+      nextText = `Please rate the tyre health for each tyre of the vehicle (1 = Worn, 5 = New), and specify battery condition:`;
+    } else if (nextStep === "SERVICE_MENU") {
+      nextText = `Service Type is **${nextSess.serviceType}**. Standard service menu matching this type has been loaded. Confirm or customize items:`;
+    } else if (nextStep === "DEMANDS_LIST") {
+      nextText = `Review your active job demands list. You can add voice records, set promised delivery timing, and confirm payment mode:`;
+    } else if (nextStep === "LABOUR_PARTS") {
+      nextText = `Add labour and parts to the Job Card. Search/select from the frequent list below:`;
+    } else if (nextStep === "SUMMARY") {
+      nextText = `📋 **Job Card Summary — Please Review**: All fields are logged. Please collect customer digital signature and submit to create the Job Card.`;
+    } else if (nextStep === "COMPLETED") {
+      nextText = `🎉 **Job Card Created Successfully!**\n\n**Job Card Number:** JC-2026-78432\n\nCustomer approval estimates (OCAS) has been compiled. What would you like to do next?`;
+    }
+    
+    setTimeout(() => {
+      setTyping(false);
+      setMessages(prev => {
+        const jcMsgIdx = [...prev].reverse().findIndex(m => m.isJcStep);
+        if (jcMsgIdx !== -1) {
+          const actualIndex = prev.length - 1 - jcMsgIdx;
+          const updated = [...prev];
+          updated[actualIndex] = {
+            ...updated[actualIndex],
+            text: nextText,
+            jcStepCode: nextStep,
+            timestamp: new Date()
+          };
+          return updated;
+        } else {
+          return [...prev, {
+            id: Date.now().toString(),
+            role: "bot",
+            text: nextText,
+            isJcStep: true,
+            jcStepCode: nextStep,
+            timestamp: new Date()
+          }];
+        }
+      });
+    }, 400);
+  }
 
   // Speech Assistant States
   const [isListening, setIsListening] = useState(false)
@@ -4276,23 +7124,7 @@ export default function App() {
       const regMatch = trimmed.match(/[A-Za-z]{2}\d{1,2}[A-Za-z]{1,2}\d{4}/) || trimmed.match(/DL6CR1517/i) || trimmed.match(/HR26DS6144/i) || trimmed.match(/HR26CW7677/i);
       const regNoVal = regMatch ? regMatch[0].toUpperCase() : "";
       
-      const responseText = regNoVal 
-        ? `Initiating guided Job Card setup workflow for vehicle **${regNoVal}**. Advancing to Step 1: Customer & Vehicle Details...`
-        : `Opening the digital walkaround workspace to create a new Job Card. Please enter or scan the vehicle number plate.`;
-      
-      setTimeout(() => {
-        setTyping(false);
-        addBotMessageSync(responseText, "jc-opening", { regNo: regNoVal });
-        
-        // Hands-free Navigation Transition
-        setActiveDashPanel("jc-opening");
-        setActiveDashPanelData({ regNo: regNoVal });
-        setView("dashboard");
-        
-        if (speakResponses) {
-          speakText(responseText.replace(/\*\*/g, ""));
-        }
-      }, 700);
+      startChatJCOpening(regNoVal);
       return;
     }
 
@@ -4454,6 +7286,7 @@ export default function App() {
     "my-calls": "You have 2 missed customer callback requests pending handling.",
     "suzuki-connect-form": "Starting Suzuki Connect Telematics request setup form.",
     "suzuki-connect-advice": "Loading telematics diagnostic feedback guidelines.",
+    "close-jobcard": "Closing the specified job card. Please review all items.",
   }
 
   const ACTION_LABELS: Record<PanelType, string> = {
@@ -4468,10 +7301,15 @@ export default function App() {
     "my-calls": "Check Missed Calls Queue",
     "suzuki-connect-form": "Suzuki Connect installation request",
     "suzuki-connect-advice": "Suzuki Connect telematics advice",
+    "close-jobcard": "Close job card",
   }
 
   function handleQuickAction(id: PanelType, data?: Record<string, unknown>) {
     if (view !== "chat") setView("chat")
+    if (id === "jc-opening") {
+      startChatJCOpening();
+      return;
+    }
     addUserMessage(ACTION_LABELS[id])
     addBotMessageSync(BOT_TEXTS[id], id, data)
     setActiveDashPanel(id)
@@ -4502,11 +7340,7 @@ export default function App() {
             className="shrink-0 overflow-hidden h-full">
             <Sidebar 
               onNav={(id) => {
-                if (view === "dashboard") {
-                  setActiveDashPanel(id);
-                } else {
-                  handleQuickAction(id);
-                }
+                handleQuickAction(id);
               }} 
               onNewChat={handleNewChat} 
               setSidebarOpen={setSidebarOpen} 
@@ -4705,7 +7539,19 @@ export default function App() {
                       {messages.map(msg => (
                         msg.role === "user"
                           ? <UserBubble key={msg.id} text={msg.text} timestamp={msg.timestamp} />
-                          : <BotBubble key={msg.id} text={msg.text} panel={msg.panel} onAction={handleQuickAction} timestamp={msg.timestamp} initialData={msg.initialData} />
+                          : <BotBubble 
+                              key={msg.id} 
+                              text={msg.text} 
+                              panel={msg.panel} 
+                              onAction={handleQuickAction} 
+                              timestamp={msg.timestamp} 
+                              initialData={msg.initialData}
+                              isJcStep={msg.isJcStep}
+                              jcStepCode={msg.jcStepCode}
+                              jcSession={jcSession}
+                              setJcSession={setJcSession}
+                              advanceJcChat={advanceJcChat}
+                            />
                       ))}
                       <AnimatePresence>
                         {typing && (
