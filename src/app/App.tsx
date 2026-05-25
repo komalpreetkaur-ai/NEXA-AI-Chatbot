@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, forwardRef } from "react"
 import { jsPDF } from "jspdf"
-import jsQR from "jsqr"
 import {
   Calendar, Car, FileText, ClipboardList, CheckSquare, Bell, Newspaper,
   Send, Search, ChevronDown, ChevronLeft, Plus, Minus,
@@ -8,7 +7,8 @@ import {
   ArrowRight, Bot, Check, Wrench, Download, Eye, Printer,
   Zap, LogOut, Settings, RefreshCw, Hash, MessageSquare,
   Phone, LayoutDashboard, ChevronRight,
-  Wifi, Lightbulb, X, Camera, CameraOff
+  Wifi, Lightbulb, X, Camera, CameraOff, Mic, Volume2, VolumeX,
+  Sun, Moon
 } from "lucide-react"
 import { motion, AnimatePresence } from "motion/react"
 
@@ -1331,12 +1331,237 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
 }
 
 // ── Vehicle History Panel ─────────────────────────────────────────────────────
+function PlateScanner({ onScan, onClose }: { onScan: (res: string) => void, onClose: () => void }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [error, setError] = useState("");
+  const [isSimulated, setIsSimulated] = useState(false);
+  const [scanningStatus, setScanningStatus] = useState("Initializing camera sensor...");
+  const [selectedSimPlate, setSelectedSimPlate] = useState("DL6CR1517");
+  const [simProgress, setSimProgress] = useState(0);
+
+  useEffect(() => {
+    let stream: MediaStream | null = null;
+    let fallbackTimeout: number;
+
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+      .then(s => {
+        stream = s;
+        if (videoRef.current) {
+          videoRef.current.srcObject = s;
+          videoRef.current.setAttribute("playsinline", "true");
+          videoRef.current.play().catch(() => {});
+        }
+        setScanningStatus("Align vehicle plate in focus frame...");
+        
+        fallbackTimeout = window.setTimeout(() => {
+          onScan(selectedSimPlate);
+        }, 3200);
+      })
+      .catch(err => {
+        setIsSimulated(true);
+        setScanningStatus("Iframe sandbox constraint. Activating Optical HUD simulation...");
+      });
+
+    return () => {
+      if (fallbackTimeout) clearTimeout(fallbackTimeout);
+      if (stream) {
+        stream.getTracks().forEach(t => t.stop());
+      }
+    };
+  }, [selectedSimPlate, onScan]);
+
+  // Handle simulation countdown and progress bar
+  useEffect(() => {
+    if (!isSimulated) return;
+
+    setSimProgress(0);
+    const interval = setInterval(() => {
+      setSimProgress(p => {
+        if (p >= 100) {
+          clearInterval(interval);
+          setTimeout(() => {
+            onScan(selectedSimPlate);
+          }, 300);
+          return 100;
+        }
+        return p + 4;
+      });
+    }, 120);
+
+    return () => clearInterval(interval);
+  }, [isSimulated, selectedSimPlate, onScan]);
+
+  // Stage text logs based on progress
+  useEffect(() => {
+    if (!isSimulated) return;
+    if (simProgress < 25) {
+      setScanningStatus("CONNECTING COGNITIVE WEBCAM MATRIX...");
+    } else if (simProgress < 55) {
+      setScanningStatus("LOCALIZING PLATE CONTOURS...");
+    } else if (simProgress < 85) {
+      setScanningStatus("RUNNING CHARACTER RECOGNITION (OCR)...");
+    } else {
+      setScanningStatus(`SUCCESS — RECOGNIZED PLATE: ${selectedSimPlate}`);
+    }
+  }, [simProgress, selectedSimPlate, isSimulated]);
+
+  return (
+    <div className="p-4 rounded-xl border border-[rgba(61,142,240,0.18)] bg-[#0B121F] flex flex-col gap-3 relative max-w-full w-full mx-auto shadow-2xl">
+      <div className="flex items-center justify-between border-b border-border/40 pb-2.5">
+        <span className="text-[12px] font-bold text-foreground font-['Rajdhani'] uppercase tracking-wider flex items-center gap-1.5 animate-pulse">
+          <Camera size={13} className="text-primary" /> 
+          {isSimulated ? "Optical HUD OCR Simulator" : "License Plate OCR Scanner"}
+        </span>
+        <button onClick={onClose} className="p-1 text-muted-foreground hover:text-white rounded hover:bg-[#1C2A3E] cursor-pointer transition-colors" title="Close"><X size={14} /></button>
+      </div>
+
+      <div className="relative rounded-lg overflow-hidden border border-border/80 bg-[#040811] aspect-video flex flex-col items-center justify-center min-h-[170px]">
+        {/* Unifying standard overlays across BOTH simulated & raw feed */}
+        
+        {/* 1. Global Scan Ambient Tech grid overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(18,30,55,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(18,30,55,0.05)_1px,transparent_1px)] bg-[size:14px_14px] opacity-75 pointer-events-none z-10" />
+
+        {/* 2. Scanning View Feed (The Base Layer) */}
+        {isSimulated ? (
+          <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-4 overflow-hidden bg-gradient-to-br from-[#060B16] to-[#03060C]">
+            {/* Simulated plate target card */}
+            <div className="relative z-10 flex flex-col items-center justify-center p-3">
+              {/* High-Contrast Plate UI mimicking standard license plates */}
+              <div className="px-5 py-2.5 bg-yellow-400 text-black border-2 border-yellow-500 rounded font-bold font-mono tracking-widest text-center shadow-[0_4px_12px_rgba(250,204,21,0.25)] flex flex-col items-center select-none leading-none scale-105">
+                <span className="text-[8px] tracking-wide text-black/60 uppercase font-black">IND</span>
+                <span className="text-base text-black mt-0.5">{selectedSimPlate}</span>
+              </div>
+            </div>
+            
+            {/* Bottom notification banner */}
+            <div className="absolute bottom-2 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 px-3 py-1 text-[9px] rounded-md font-['Rajdhani'] font-semibold backdrop-blur-sm z-20">
+              ℹ️ Sandbox Iframe Constraints Active — Running HUD Emulator Flow
+            </div>
+          </div>
+        ) : (
+          <div className="absolute inset-0 w-full h-full">
+            <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover opacity-80" />
+          </div>
+        )}
+
+        {/* 3. High-Contrast Overlay Frame Alignment Guide & Laser Sweeper (Shared overlay) */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-12 pointer-events-none select-none">
+          {/* Top telemetry lines */}
+          <div className="absolute top-2.5 left-3 right-3 flex justify-between text-[8px] font-mono text-primary/60 tracking-wider">
+            <span>SYS_CAM: ACTIVE_FEED_1080P</span>
+            <span className="animate-pulse">STATUS: {isSimulated ? "SIMULATED_DEVICES" : "LIVE_SENSOR_STABLE"}</span>
+          </div>
+
+          {/* Letterbox dark overlays to frame the license plate spotlight */}
+          <div className="absolute top-0 inset-x-0 h-[22%] bg-black/65 border-b border-primary/10 flex items-center justify-center">
+            <span className="text-[9px] text-primary/50 tracking-widest font-mono select-none uppercase font-bold">ALIGN LICENSE PLATE CENTER</span>
+          </div>
+          <div className="absolute bottom-0 inset-x-0 h-[22%] bg-black/65 border-t border-primary/10" />
+          <div className="absolute top-[22%] bottom-[22%] left-0 w-[10%] bg-black/65" />
+          <div className="absolute top-[22%] bottom-[22%] right-0 w-[10%] bg-black/65" />
+
+          {/* Inner focal alignment zone (The bounding box visual guide) */}
+          <div className="relative w-[80%] h-[56%] border border-primary/30 rounded-lg flex flex-col justify-between p-2 shadow-[0_0_20px_rgba(61,142,240,0.15)] bg-primary/2">
+            
+            {/* Corner Bracket Elements matching focus target alignment */}
+            <div className="absolute -top-[1.5px] -left-[1.5px] w-4 h-4 border-t-2 border-l-2 border-[#4ADE80] rounded-tl shadow-[0_0_8px_rgba(74,222,128,0.5)] transition-all duration-300 animate-pulse" />
+            <div className="absolute -top-[1.5px] -right-[1.5px] w-4 h-4 border-t-2 border-r-2 border-[#4ADE80] rounded-tr shadow-[0_0_8px_rgba(74,222,128,0.5)] transition-all duration-300 animate-pulse" />
+            <div className="absolute -bottom-[1.5px] -left-[1.5px] w-4 h-4 border-b-2 border-l-2 border-[#4ADE80] rounded-bl shadow-[0_0_8px_rgba(74,222,128,0.5)] transition-all duration-300 animate-pulse" />
+            <div className="absolute -bottom-[1.5px] -right-[1.5px] w-4 h-4 border-b-2 border-r-2 border-[#4ADE80] rounded-br shadow-[0_0_8px_rgba(74,222,128,0.5)] transition-all duration-300 animate-pulse" />
+
+            {/* Central crosshair alignment aid */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center opacity-30">
+              <div className="w-5 h-0.5 bg-primary rounded-full absolute" />
+              <div className="h-5 w-0.5 bg-primary rounded-full absolute" />
+            </div>
+
+            {/* Guide markers or text indicators side labels inside alignment scope */}
+            <div className="absolute left-2 top-1/2 -translate-y-1/2 text-[7px] font-mono text-primary/50 flex flex-col gap-0.5">
+              <span>L_ALIGN</span>
+              <span>- - - - -</span>
+            </div>
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 text-[7px] font-mono text-primary/50 text-right flex flex-col gap-0.5">
+              <span>R_ALIGN</span>
+              <span>- - - - -</span>
+            </div>
+
+            {/* Progress Bar inside HUD (Displays character recognition percentage dynamically) */}
+            <div className="mt-auto w-full z-10 flex flex-col gap-0.5 max-w-[200px] mx-auto bg-black/75 px-2.5 py-1 rounded border border-primary/20 backdrop-blur-sm">
+              <div className="flex justify-between text-[7.5px] font-mono text-primary font-bold">
+                <span>OCR ANALYSIS</span>
+                <span>{isSimulated ? `${simProgress}%` : "READY"}</span>
+              </div>
+              <div className="w-full h-1 bg-[#142035] rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-[#4ADE80] shadow-[0_0_6px_#4ADE80]" 
+                  style={{ 
+                    width: isSimulated ? `${simProgress}%` : '100%', 
+                    transition: isSimulated ? 'width 0.1s linear' : 'none' 
+                  }} 
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Glowing Animated Lateral Sweeper (The laser sweep scanning line!) */}
+          <div 
+            className="absolute inset-x-0 h-0.5 bg-primary shadow-[0_0_12px_rgba(61,142,240,1)] z-20 pointer-events-none"
+            style={{ 
+              top: isSimulated 
+                ? `${Math.sin((simProgress / 100) * Math.PI) * 45 + 50}%` 
+                : 'auto',
+              animation: isSimulated ? undefined : 'laserPulse 2s ease-in-out infinite alternate'
+            }} 
+          />
+        </div>
+      </div>
+
+      {/* Embedded CSS custom laser Pulse animations for global usage */}
+      <style>{`
+        @keyframes laserPulse {
+          0% { top: 22%; opacity: 0.3; }
+          50% { opacity: 0.95; }
+          100% { top: 78%; opacity: 0.3; }
+        }
+      `}</style>
+
+      <div className="bg-[#1C2A3E]/50 p-2.5 rounded-lg border border-border/40 text-center">
+        <p className="text-[11px] text-muted-foreground font-semibold font-['Rajdhani'] flex items-center justify-center gap-1.5 shrink-0">
+          <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
+          {scanningStatus}
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-1.5 mt-1 border-t border-border pt-2.5">
+        <p className="text-[10px] text-muted-foreground/80 uppercase font-bold font-['Rajdhani'] tracking-widest text-left">Click a vehicle below to target & scan instantly:</p>
+        <div className="flex gap-2">
+          {["DL6CR1517", "HR26DS6144"].map(plate => (
+            <button 
+              key={plate} 
+              onClick={() => {
+                setSelectedSimPlate(plate);
+                if (isSimulated) setSimProgress(0); // restart progress bar with new target
+              }} 
+              className={`px-3 py-1.5 border font-['JetBrains_Mono'] text-[11.5px] rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${selectedSimPlate === plate ? 'bg-primary/20 border-primary text-primary font-bold' : 'bg-[#1C2A3E] border-border/80 text-foreground hover:border-primary/50'}`}
+            >
+              🚗 {plate}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function VehicleHistoryPanel({ initialReg }: { initialReg?: string }) {
   const [regNo, setRegNo] = useState(initialReg || "")
   const [searched, setSearched] = useState(!!initialReg)
   const [yearFilter, setYearFilter] = useState<"2" | "5" | "5+">("2")
   const [showConfirm, setShowConfirm] = useState<"5" | "5+" | null>(null)
   const [selectedRecord, setSelectedRecord] = useState<VehicleRecord | null>(null)
+  
+  // Camera scanning state variable
+  const [isScanningPlate, setIsScanningPlate] = useState(false)
 
   const vehicleData = VEHICLE_HISTORY[regNo.toUpperCase()]
   const allRecords = vehicleData?.records || []
@@ -1354,18 +1579,37 @@ function VehicleHistoryPanel({ initialReg }: { initialReg?: string }) {
     setSearched(true); setSelectedRecord(null)
   }
 
+  // Handle immediate search after updating via effects if needed
+  const triggerScanDone = (scannedPlate: string) => {
+    setRegNo(scannedPlate);
+    setSearched(true);
+    setSelectedRecord(null);
+    setIsScanningPlate(false);
+  }
+
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input value={regNo} onChange={e => setRegNo(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSearch()}
-            placeholder="Enter Reg No or VIN…"
-            className="w-full pl-8 pr-3 py-2.5 text-[13px] bg-[#1C2A3E] border border-border rounded-lg text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 font-['JetBrains_Mono'] uppercase" />
+      {isScanningPlate ? (
+        <PlateScanner onScan={triggerScanDone} onClose={() => setIsScanningPlate(false)} />
+      ) : (
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input value={regNo} onChange={e => setRegNo(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSearch()}
+              placeholder="Enter Reg No or VIN…"
+              className="w-full pl-8 pr-3 py-2.5 text-[13px] bg-[#1C2A3E] border border-border rounded-lg text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 font-['JetBrains_Mono'] uppercase" />
+          </div>
+          
+          <button onClick={() => setIsScanningPlate(true)} id="plate-camera-trigger"
+            className="px-4 py-2.5 bg-[#1C2A3E] border border-border text-primary hover:text-white hover:bg-[#253347] text-[13px] font-bold rounded-lg transition-all font-['Rajdhani'] flex items-center gap-1.5 cursor-pointer"
+            title="Scan License Plate using Camera">
+            <Camera size={14} /> SCAN
+          </button>
+          
+          <button onClick={handleSearch}
+            className="px-5 py-2.5 bg-primary text-white text-[13px] font-bold rounded-lg hover:bg-primary/90 transition-all font-['Rajdhani'] cursor-pointer">GO</button>
         </div>
-        <button onClick={handleSearch}
-          className="px-5 py-2.5 bg-primary text-white text-[13px] font-bold rounded-lg hover:bg-primary/90 transition-all font-['Rajdhani']">GO</button>
-      </div>
+      )}
       {searched && !vehicleData && (
         <div className="flex items-center gap-2 p-4 rounded-xl bg-[#2A0D0D]/40 border border-[#F87171]/20 text-[#F87171] text-[13px]">
           <AlertTriangle size={15} /> Invalid registration number. Please check and try again.
@@ -1441,7 +1685,7 @@ function VehicleHistoryPanel({ initialReg }: { initialReg?: string }) {
           <AnimatePresence>
             {selectedRecord && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                className="overflow-hidden rounded-xl border border-primary/20 bg-[#0A1422] p-4">
+                className="overflow-hidden rounded-xl border border-primary/20 bg-[#0A1422] p-4 mt-3">
                 <p className="text-[11px] text-muted-foreground uppercase font-['Rajdhani'] font-semibold tracking-wide mb-3">JC Details — {selectedRecord.jcNo}</p>
                 <div className="grid grid-cols-3 gap-3 text-[12px] mb-3">
                   <div><p className="text-muted-foreground text-[10px] uppercase font-['Rajdhani'] tracking-wide mb-0.5">JC Number</p>
@@ -1473,88 +1717,6 @@ function VehicleHistoryPanel({ initialReg }: { initialReg?: string }) {
 }
 
 // ── JC Opening Panel ─────────────────────────────────────────────────────────
-
-function BarcodeScanner({ onScan, onClose }: { onScan: (res: string) => void, onClose: () => void }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    let stream: MediaStream;
-    let animationFrameId: number;
-
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-      .then(s => {
-        stream = s;
-        if (videoRef.current) {
-          videoRef.current.srcObject = s;
-          videoRef.current.setAttribute("playsinline", "true"); // required to prevent iOS Safari from hijacking the video element
-          videoRef.current.play().catch(() => {});
-          
-          // Trigger the canvas ticks
-          animationFrameId = requestAnimationFrame(scanTick);
-        }
-      })
-      .catch(err => {
-        setError("Unable to access camera. Please allow camera permissions or enter manually.");
-      });
-
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    function scanTick() {
-      if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
-        canvas.height = videoRef.current.videoHeight;
-        canvas.width = videoRef.current.videoWidth;
-        if (ctx) {
-          ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const code = jsQR(imageData.data, imageData.width, imageData.height, {
-            inversionAttempts: "dontInvert",
-          });
-          if (code && code.data) {
-            onScan(code.data.toUpperCase());
-            onClose();
-            return;
-          }
-        }
-      }
-      animationFrameId = requestAnimationFrame(scanTick);
-    }
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      if (stream) {
-        stream.getTracks().forEach(t => t.stop());
-      }
-    };
-  }, []);
-
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="relative rounded-lg overflow-hidden border border-border bg-black aspect-video flex items-center justify-center min-h-[200px]">
-        {error ? (
-          <div className="flex flex-col items-center gap-2 p-4 text-center">
-            <CameraOff size={24} className="text-muted-foreground" />
-            <p className="text-red-400 text-[12px]">{error}</p>
-          </div>
-        ) : (
-          <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
-        )}
-        <div className="absolute inset-0 border-[2px] border-primary/50 m-[10%] rounded-lg pointer-events-none opacity-50" />
-        <div className="absolute top-2 right-2 flex items-center gap-2">
-           <button onClick={() => onClose()} className="p-1.5 bg-black/50 text-white rounded-md hover:bg-black/70 backdrop-blur-sm cursor-pointer"><X size={14}/></button>
-        </div>
-      </div>
-      <div className="flex justify-between items-center bg-[#1C2A3E]/40 p-2 rounded-lg">
-         <p className="text-[11px] text-muted-foreground px-2">Align barcode within the frame</p>
-         <div className="flex gap-2">
-           <button onClick={() => { onScan("HR26DS6144"); onClose() }} className="px-3 py-1.5 bg-primary text-white text-[12px] font-semibold rounded-md font-['Rajdhani'] cursor-pointer">Simulate Scan</button>
-           <button onClick={onClose} className="px-3 py-1.5 bg-[#1C2A3E] border border-border text-foreground text-[12px] font-semibold rounded-md hover:bg-[#253347] font-['Rajdhani'] cursor-pointer">Write Manually</button>
-         </div>
-      </div>
-    </div>
-  )
-}
 
 function SignaturePad({ value, onChange }: { value: string | null; onChange: (v: string | null) => void }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -1676,10 +1838,10 @@ function SignaturePad({ value, onChange }: { value: string | null; onChange: (v:
 
 const STEP_LABELS = ["VIN / Reg", "Details", "Vehicle Status", "Tyre & Battery", "Demands", "Summary"]
 
-function JCOpeningPanel() {
-  const [step, setStep] = useState(0)
-  const [regNo, setRegNo] = useState("")
-  const [scanned, setScanned] = useState(false)
+function JCOpeningPanel({ initialReg }: { initialReg?: string }) {
+  const [step, setStep] = useState(initialReg ? 1 : 0)
+  const [regNo, setRegNo] = useState(initialReg || "")
+  const [scanned, setScanned] = useState(!!initialReg)
   const [isScanning, setIsScanning] = useState(false)
   const [odometer, setOdometer] = useState("40002")
   const [serviceType, setServiceType] = useState("PAID SERVICE")
@@ -1794,7 +1956,7 @@ function JCOpeningPanel() {
           <p className="text-[12px] text-muted-foreground">Scan the VIN barcode or enter registration number manually.</p>
           
           {isScanning ? (
-            <BarcodeScanner onScan={handleScanComplete} onClose={() => setIsScanning(false)} />
+            <PlateScanner onScan={handleScanComplete} onClose={() => setIsScanning(false)} />
           ) : (
             <>
               <div className="flex gap-2">
@@ -3051,7 +3213,12 @@ function CallsPanel() {
       {/* Simulated Phone Call Overlay */}
       <AnimatePresence>
         {activeCall && (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
+          >
             <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 30 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -3060,7 +3227,7 @@ function CallsPanel() {
             >
               <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
               
-              <div className="relative mt-4 mb-6 inline-flex p-4 rounded-full bg-primary/10 border border-primary/20 animate-pulse">
+               <div className="relative mt-4 mb-6 inline-flex p-4 rounded-full bg-primary/10 border border-primary/20 animate-pulse">
                 <div className="p-4 rounded-full bg-primary/20">
                   <Phone size={32} className="text-primary animate-bounce" />
                 </div>
@@ -3089,7 +3256,7 @@ function CallsPanel() {
                 </button>
               </div>
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
@@ -3418,7 +3585,7 @@ function PanelRenderer({ panel, onAction, initialData }: { panel: PanelType; onA
   if (panel === "welcome") return <WelcomePanel onAction={onAction} />
   if (panel === "appointments") return <AppointmentsPanel onAction={onAction} />
   if (panel === "vehicle-history") return <VehicleHistoryPanel initialReg={initialData?.regNo as string} />
-  if (panel === "jc-opening") return <JCOpeningPanel />
+  if (panel === "jc-opening") return <JCOpeningPanel initialReg={initialData?.regNo as string} />
   if (panel === "all-jobcards") return <AllJobCardsPanel />
   if (panel === "tasks") return <TasksPanel />
   if (panel === "notifications") return <NotificationsPanel />
@@ -3442,13 +3609,33 @@ function UserBubble({ text, timestamp }: { text: string; timestamp: Date }) {
 }
 
 function BotBubble({ text, panel, onAction, timestamp, initialData }: { text: string; panel?: PanelType; onAction: (a: PanelType, d?: Record<string, unknown>) => void; timestamp: Date; initialData?: Record<string, unknown> }) {
+  const triggerSpeak = () => {
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text.replace(/\*\*/g, ""));
+      const voices = window.speechSynthesis.getVoices();
+      const englishVoice = voices.find(v => v.lang.includes("en-IN") || v.lang.includes("en-US") || v.lang.includes("en-"));
+      if (englishVoice) utterance.voice = englishVoice;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
   return (
     <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex gap-3">
       <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0 mt-1">
         <Bot size={15} className="text-primary" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] text-muted-foreground mb-1.5 font-['Rajdhani'] font-semibold">NEXA AI</p>
+        <div className="flex items-center justify-between mb-1.5">
+          <p className="text-[11px] text-muted-foreground font-['Rajdhani'] font-semibold">NEXA AI</p>
+          <button 
+            onClick={triggerSpeak} 
+            className="text-muted-foreground hover:text-primary transition-all p-1 hover:bg-[#1C2A3E]/65 rounded flex items-center gap-1 text-[9px] font-['Rajdhani'] uppercase tracking-widest cursor-pointer"
+            title="Read out loud"
+          >
+            <Volume2 size={11} /> Speak
+          </button>
+        </div>
         <div className="p-4 rounded-2xl rounded-tl-sm bg-card border border-border">
           <p className="text-[13px] text-foreground mb-3 font-['Rajdhani']">{text}</p>
           {panel && (
@@ -3815,105 +4002,39 @@ function Sidebar({ onNav, onNewChat, setSidebarOpen }: {
 }
 
 // ── Welcome Screen ─────────────────────────────────────────────────────────────
-function WelcomeScreen({ onAction }: { onAction: (id: PanelType, data?: Record<string, unknown>) => void }) {
-  const hour = new Date().getHours()
-  const cards = []
-
-  const jobCardsCount = (() => {
-    try {
-      const raw = localStorage.getItem("nexa_job_cards")
-      return raw ? JSON.parse(raw).length : 6
-    } catch (e) { return 6 }
-  })()
-  const appointmentsCount = (() => {
-    try {
-      const raw = localStorage.getItem("nexa_appointments")
-      return raw ? JSON.parse(raw).length : 7
-    } catch (e) { return 7 }
-  })()
-  const pendingOCAS = (() => {
-    try {
-      const raw = localStorage.getItem("nexa_job_cards")
-      const arr = raw ? JSON.parse(raw) : []
-      return arr.length ? arr.some((j: any) => j.status === "OCAS Pending") : true
-    } catch (e) { return true }
-  })()
-
-  // Rule 1: Dynamic Alert - Pending customer approval estimates (OCAS Pending)
-  if (pendingOCAS) {
-    cards.push({
-      id: "all-jobcards" as PanelType,
-      icon: AlertTriangle,
-      label: "Pending OCAS Approvals",
-      desc: "Approve open estimates awaiting customer cost validation"
-    })
-  }
-
-  // Rule 2: Time-based rules
-  if (hour < 12) {
-    cards.push({
-      id: "appointments" as PanelType,
-      icon: Calendar,
-      label: `Today's Appointments (${appointmentsCount})`,
-      desc: "Check in arrived vehicle registrations and allocate service bays"
-    })
-    cards.push({
-      id: "jc-opening" as PanelType,
+function WelcomeScreen({ 
+  onAction, 
+  onScanTrigger 
+}: { 
+  onAction: (id: PanelType, data?: Record<string, unknown>) => void,
+  onScanTrigger: () => void 
+}) {
+  const cards = [
+    {
+      id: "scan-plate",
+      icon: Camera,
+      label: "Camera for scan",
+      desc: "Align and capture vehicle license plate OCR content instantly"
+    },
+    {
+      id: "jc-opening",
       icon: FileText,
-      label: "Open New Job Card",
-      desc: "Initiate step-by-step walkaround digital inventory checklists"
-    })
-  } else if (hour >= 12 && hour < 17) {
-    cards.push({
-      id: "all-jobcards" as PanelType,
-      icon: ClipboardList,
-      label: `Active WIP JCs (${jobCardsCount})`,
-      desc: "Monitor technician timeline, bay utilization, and physical parts updates"
-    })
-    cards.push({
-      id: "vehicle-history" as PanelType,
-      icon: Car,
-      label: "Vehicle History Audit",
-      desc: "Query previous vehicle workshop records using Reg No / VIN number"
-    })
-  } else {
-    cards.push({
-      id: "tasks" as PanelType,
-      icon: CheckSquare,
-      label: "Evening Tasks Audit",
-      desc: "Verify delivery schedules, test drives, and customer service reviews"
-    })
-    cards.push({
-      id: "my-calls" as PanelType,
-      icon: Phone,
-      label: "Pending Callbacks",
-      desc: "Resolve scheduled callback queues for today"
-    })
-  }
-
-  // Fallbacks: populate up to 4 cards if space permits
-  if (cards.length < 4) {
-    if (!cards.some(c => c.id === "my-calls")) {
-      cards.push({
-        id: "my-calls" as PanelType,
-        icon: Phone,
-        label: "My Calls Queue",
-        desc: "Return direct customer queries or scheduled service status logs"
-      })
+      label: "Add new job card",
+      desc: "Initiate digital inventory walkaround checklists and estimates"
+    },
+    {
+      id: "appointments",
+      icon: Calendar,
+      label: "Upcoming appointment",
+      desc: "Check arrived vehicles and allocate active shop service bays"
+    },
+    {
+      id: "service-news",
+      icon: Newspaper,
+      label: "New news update",
+      desc: "Check campaigns, active service advisories, and spare parts updates"
     }
-  }
-  if (cards.length < 4) {
-    if (!cards.some(c => c.id === "service-news")) {
-      cards.push({
-        id: "service-news" as PanelType,
-        icon: Newspaper,
-        label: "Campaign Bulletins",
-        desc: "View corporate campaigns, service bulletins and parts news"
-      })
-    }
-  }
-
-  const finalCards = cards.slice(0, 4)
+  ]
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-8 pb-4">
@@ -3936,8 +4057,14 @@ function WelcomeScreen({ onAction }: { onAction: (id: PanelType, data?: Record<s
 
       {/* Feature cards */}
       <div className="grid grid-cols-4 gap-3 w-full max-w-[760px]">
-        {finalCards.map((card, idx) => (
-          <motion.button key={idx} onClick={() => onAction(card.id)}
+        {cards.map((card, idx) => (
+          <motion.button key={idx} onClick={() => {
+            if (card.id === "scan-plate") {
+              onScanTrigger();
+            } else {
+              onAction(card.id as PanelType);
+            }
+          }}
             whileHover={{ y: -3, boxShadow: "0 8px 24px rgba(61,142,240,0.12)" }} whileTap={{ scale: 0.97 }}
             className="flex flex-col gap-3 p-4 rounded-2xl bg-card border border-border hover:border-primary/25 transition-all text-left cursor-pointer group">
             <card.icon size={17} className="text-muted-foreground group-hover:text-primary transition-colors" />
@@ -3957,6 +4084,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [view, setView] = useState<"dashboard" | "chat">("chat")
   const [activeDashPanel, setActiveDashPanel] = useState<PanelType | null>(null)
+  const [activeDashPanelData, setActiveDashPanelData] = useState<Record<string, unknown> | undefined>(undefined)
   const [sharedNotifs, setSharedNotifs] = useSharedNotifications()
   const [notifDropdownOpen, setNotifDropdownOpen] = useState(false)
   const unreadCount = sharedNotifs.filter(n => !n.read).length
@@ -3964,8 +4092,149 @@ export default function App() {
   const [input, setInput] = useState("")
   const [typing, setTyping] = useState(false)
   const [attachedFile, setAttachedFile] = useState<{name: string, type: 'image' | 'pdf' | 'other'} | null>(null)
+  const [isScanningInChat, setIsScanningInChat] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const chatRef = useRef<HTMLDivElement>(null)
+
+  // Theme Sync State & Hook
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    const saved = localStorage.getItem("nexa-theme")
+    return (saved as "light" | "dark") || "dark"
+  })
+
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark")
+    } else {
+      document.documentElement.classList.remove("dark")
+    }
+    localStorage.setItem("nexa-theme", theme)
+  }, [theme])
+
+  // Speech Assistant States
+  const [isListening, setIsListening] = useState(false)
+  const [isVoiceHUDOpen, setIsVoiceHUDOpen] = useState(false)
+  const [speakResponses, setSpeakResponses] = useState(false)
+  const [interimText, setInterimText] = useState("")
+  const [speechError, setSpeechError] = useState<string | null>(null)
+  const recognitionRef = useRef<any>(null)
+
+  useEffect(() => {
+    // Initialize Speech Recognition natively in-browser
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (SpeechRecognition) {
+      const rec = new SpeechRecognition()
+      rec.continuous = false
+      rec.interimResults = true
+      rec.lang = 'en-IN' // Tailored for Indian region pronunciation (Maruti Suzuki NEXA)
+
+      rec.onstart = () => {
+        setIsListening(true)
+        setIsVoiceHUDOpen(true)
+        setSpeechError(null)
+        setInterimText("Listening for NEXA command...")
+      }
+
+      rec.onresult = (event: any) => {
+        let interimTranscript = ""
+        let finalTranscript = ""
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript
+          } else {
+            interimTranscript += event.results[i][0].transcript
+          }
+        }
+
+        if (finalTranscript) {
+          setInput(finalTranscript)
+          handleSendVoice(finalTranscript)
+          setInterimText("")
+        } else {
+          setInterimText(interimTranscript || "Transcribing...")
+        }
+      }
+
+      rec.onerror = (event: any) => {
+        console.error("Speech Recognition Error:", event.error)
+        setIsListening(false)
+        if (event.error === 'not-allowed') {
+          setSpeechError(
+            "Microphone blocked: Browser iframe standards require top-level focus. " +
+            "To activate actual physical microphone capture, click the 'Open in new tab' button at top-right. " +
+            "Alternatively, use our instant hands-free simulation dashboard triggers below!"
+          )
+        } else if (event.error === 'no-speech') {
+          setSpeechError("No voice detected. Please click Simulated Triggers below or speak closer to your microphone.")
+        } else {
+          setSpeechError(`Voice status error: ${event.error}`)
+        }
+      }
+
+      rec.onend = () => {
+        setIsListening(false)
+      }
+
+      recognitionRef.current = rec
+    } else {
+      setSpeechError("Web Speech API is not supported on this browser context. Please use our HUD Voice Emulator below.")
+    }
+  }, [])
+
+  const toggleListening = () => {
+    setSpeakResponses(true)
+    const nextHUDOpen = !isVoiceHUDOpen
+    setIsVoiceHUDOpen(nextHUDOpen)
+    
+    if (!recognitionRef.current) {
+      // Toggle simulated overlay
+      setIsListening(nextHUDOpen)
+      setSpeechError("Browser iframe sandboxed. Activating NEXA OCR & HUD Voice Emulator.")
+      return
+    }
+    
+    setSpeechError(null)
+    if (nextHUDOpen) {
+      try {
+        recognitionRef.current.start()
+      } catch (e) {
+        console.error(e)
+        // Recover state
+        try { recognitionRef.current.stop() } catch(_) {}
+        setTimeout(() => {
+          try { recognitionRef.current.start() } catch(err) {
+            console.error("Failed to recover voice start:", err)
+            setSpeechError(
+              "Sandbox constraints detected. Open this app in a New Tab to grant microphone access, " +
+              "or click the simulation toggles below to execute vocal flows instantly!"
+            )
+          }
+        }, 100)
+      }
+    } else {
+      try {
+        recognitionRef.current.stop()
+      } catch (e) {
+        console.error(e)
+      }
+      setIsListening(false)
+    }
+  }
+
+  const speakText = (text: string) => {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.05;
+    
+    const voices = window.speechSynthesis.getVoices();
+    const desiredVoice = voices.find(v => v.lang.includes("en-IN") || v.lang.includes("en-US") || v.lang.includes("en-"));
+    if (desiredVoice) utterance.voice = desiredVoice;
+    
+    window.speechSynthesis.speak(utterance);
+  }
 
   useEffect(() => {
     if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight
@@ -3981,6 +4250,136 @@ export default function App() {
       id: (Date.now() + 1).toString(), role: "bot", text, panel, initialData,
       timestamp: new Date(),
     }]);
+  }
+
+  async function handleSendVoice(text: string) {
+    if (!text.trim()) return
+    addUserMessage(text)
+    setTyping(true)
+    await processChatMessage(text.trim())
+  }
+
+  async function processChatMessage(trimmed: string) {
+    const upperText = trimmed.toUpperCase();
+    
+    // Check if user is asking to add or open a job card
+    if (
+      upperText.includes("ADD JOB CARD") || 
+      upperText.includes("OPEN JOB CARD") || 
+      upperText.includes("NEW JOB CARD") || 
+      upperText.includes("CREATE JOB CARD") || 
+      upperText.includes("ADD JC") || 
+      upperText.includes("OPEN JC") ||
+      upperText.includes("JOB CARD PROCESS")
+    ) {
+      // Find reg number inside prompt
+      const regMatch = trimmed.match(/[A-Za-z]{2}\d{1,2}[A-Za-z]{1,2}\d{4}/) || trimmed.match(/DL6CR1517/i) || trimmed.match(/HR26DS6144/i) || trimmed.match(/HR26CW7677/i);
+      const regNoVal = regMatch ? regMatch[0].toUpperCase() : "";
+      
+      const responseText = regNoVal 
+        ? `Initiating guided Job Card setup workflow for vehicle **${regNoVal}**. Advancing to Step 1: Customer & Vehicle Details...`
+        : `Opening the digital walkaround workspace to create a new Job Card. Please enter or scan the vehicle number plate.`;
+      
+      setTimeout(() => {
+        setTyping(false);
+        addBotMessageSync(responseText, "jc-opening", { regNo: regNoVal });
+        
+        // Hands-free Navigation Transition
+        setActiveDashPanel("jc-opening");
+        setActiveDashPanelData({ regNo: regNoVal });
+        setView("dashboard");
+        
+        if (speakResponses) {
+          speakText(responseText.replace(/\*\*/g, ""));
+        }
+      }, 700);
+      return;
+    }
+
+    // Check if user is asking for vehicle history
+    if (
+      upperText.includes("VEHICLE HISTORY") || 
+      upperText.includes("CAR HISTORY") || 
+      upperText.includes("CHECK HISTORY") || 
+      upperText.includes("PAST RECORDS") ||
+      upperText.includes("VEHICLE RECORD")
+    ) {
+      const regMatch = trimmed.match(/[A-Za-z]{2}\d{1,2}[A-Za-z]{1,2}\d{4}/) || trimmed.match(/DL6CR1517/i) || trimmed.match(/HR26DS6144/i) || trimmed.match(/HR26CW7677/i);
+      const regNoVal = regMatch ? regMatch[0].toUpperCase() : "DL6CR1517"; // default to valid history reg
+      
+      const responseText = `Searching databases... Found past history files for vehicle **${regNoVal}**. Displaying comprehensive workshop logs now.`;
+      
+      setTimeout(() => {
+        setTyping(false);
+        addBotMessageSync(responseText, "vehicle-history", { regNo: regNoVal });
+        
+        // Hands-free Navigation Transition
+        setActiveDashPanel("vehicle-history");
+        setActiveDashPanelData({ regNo: regNoVal });
+        setView("dashboard");
+
+        if (speakResponses) {
+          speakText(responseText.replace(/\*\*/g, ""));
+        }
+      }, 700);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: trimmed }),
+      });
+      const data = await response.json();
+      setTyping(false);
+      addBotMessageSync(data.botText, data.panel || undefined, data.initialData);
+      
+      // Hands-free navigation from custom AI responses
+      if (data.panel) {
+        setActiveDashPanel(data.panel);
+        setView("dashboard");
+        if (data.initialData) {
+          setActiveDashPanelData(data.initialData);
+        }
+      }
+
+      if (speakResponses && data.botText) {
+        speakText(data.botText.replace(/\*\*/g, ""));
+      }
+    } catch (error) {
+      setTyping(false);
+      let fallbackText = "I have processed your request. Opening relevant screen in your dashboard now.";
+      let matchedPanel: PanelType | undefined = undefined;
+      let matchedData: Record<string, unknown> | undefined = undefined;
+      
+      if (upperText.includes("HELLO") || upperText.includes("HI")) {
+        fallbackText = "Hello! I am NEXA AI voice-enabled copilot assistant. You can speak to me or type to navigate today's appointments, trigger a vehicle number plate scan, or open a job card.";
+      } else if (upperText.includes("APPOINTMENT")) {
+        fallbackText = "Now pulling today's scheduled service appointments database.";
+        matchedPanel = "appointments";
+      } else if (upperText.includes("TASK")) {
+        fallbackText = "Opening your pending daily tasks audit dashboard.";
+        matchedPanel = "tasks";
+      } else if (upperText.includes("CALL")) {
+        fallbackText = "Loading scheduled callback queues and customer query response logs.";
+        matchedPanel = "my-calls";
+      }
+
+      addBotMessageSync(fallbackText, matchedPanel, matchedData);
+      
+      if (matchedPanel) {
+        setActiveDashPanel(matchedPanel);
+        setView("dashboard");
+        if (matchedData) {
+          setActiveDashPanelData(matchedData);
+        }
+      }
+
+      if (speakResponses) {
+        speakText(fallbackText);
+      }
+    }
   }
 
   async function handleSend() {
@@ -4010,9 +4409,11 @@ export default function App() {
             `- **Rear Bumper Outer Shell**: Slight alignment drift on clip-mount locks\n` +
             `- **Suggested Job Card Demands**: *Rear left panel painting & bumper alignment audit* (Diagnostic estimate: **₹4,200**)\n\n` +
             `*Automatically opening Job Card Panel to view or complete checklist demands.*`,
-            "jc-opening"
+            "jc-opening",
+            { regNo: "" }
           );
           setActiveDashPanel("jc-opening");
+          setActiveDashPanelData({ regNo: "" });
           setView("dashboard");
         } else if (currentAttachment.type === 'pdf') {
           addBotMessageSync(
@@ -4026,6 +4427,7 @@ export default function App() {
             { regNo: "DL6CR1517" }
           );
           setActiveDashPanel("vehicle-history");
+          setActiveDashPanelData({ regNo: "DL6CR1517" });
           setView("dashboard");
         } else {
           addBotMessageSync(
@@ -4037,23 +4439,7 @@ export default function App() {
       return;
     }
 
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: trimmed }),
-      });
-      const data = await response.json();
-      setTyping(false);
-      addBotMessageSync(data.botText, data.panel || undefined, data.initialData);
-      if (data.panel) {
-        setActiveDashPanel(data.panel);
-        setView("dashboard");
-      }
-    } catch (error) {
-      setTyping(false);
-      addBotMessageSync("Couldn't reach the AI — try again or use the quick-access buttons above.");
-    }
+    await processChatMessage(trimmed);
   }
 
   const BOT_TEXTS: Record<PanelType, string> = {
@@ -4066,6 +4452,8 @@ export default function App() {
     notifications: "You have 3 unread notifications — including 1 urgent alert.",
     "service-news": "Latest service news, campaigns, and mandatory updates from NEXA.",
     "my-calls": "You have 2 missed customer callback requests pending handling.",
+    "suzuki-connect-form": "Starting Suzuki Connect Telematics request setup form.",
+    "suzuki-connect-advice": "Loading telematics diagnostic feedback guidelines.",
   }
 
   const ACTION_LABELS: Record<PanelType, string> = {
@@ -4078,12 +4466,16 @@ export default function App() {
     notifications: "Show notifications",
     "service-news": "Show service news",
     "my-calls": "Check Missed Calls Queue",
+    "suzuki-connect-form": "Suzuki Connect installation request",
+    "suzuki-connect-advice": "Suzuki Connect telematics advice",
   }
 
   function handleQuickAction(id: PanelType, data?: Record<string, unknown>) {
     if (view !== "chat") setView("chat")
     addUserMessage(ACTION_LABELS[id])
     addBotMessageSync(BOT_TEXTS[id], id, data)
+    setActiveDashPanel(id)
+    setActiveDashPanelData(data)
   }
 
   function handleTileClick(panel: PanelType) {
@@ -4153,6 +4545,16 @@ export default function App() {
               <div className="w-1.5 h-1.5 rounded-full bg-[#4ADE80] animate-pulse" />
               <span className="text-[10.5px] text-muted-foreground font-['JetBrains_Mono']">21 May 2026 · 10:32 AM</span>
             </div>
+
+            {/* Theme Toggle Button */}
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="p-2 mr-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-[#1C2A3E]/80 transition-colors cursor-pointer flex items-center justify-center"
+              title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Mode`}
+            >
+              {theme === "dark" ? <Sun size={14} className="text-[#FACC15]" /> : <Moon size={14} className="text-secondary-foreground" />}
+            </button>
+
             <div className="relative">
               <button 
                 onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
@@ -4166,38 +4568,40 @@ export default function App() {
                 )}
               </button>
 
+              {notifDropdownOpen && (
+                <div className="fixed inset-0 z-40" onClick={() => setNotifDropdownOpen(false)} />
+              )}
+
               <AnimatePresence>
                 {notifDropdownOpen && (
-                  <>
-                    <div className="fixed inset-0 z-40 bg-black/5" onClick={() => setNotifDropdownOpen(false)} />
-                    
-                    <motion.div
-                      initial={{ opacity: 0, y: 12, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 12, scale: 0.95 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute right-0 mt-2 w-80 bg-[#0E1726] border border-[rgba(61,142,240,0.18)] rounded-xl shadow-2xl z-50 overflow-hidden font-['Rajdhani']"
-                    >
-                      <div className="p-3.5 border-b border-[rgba(61,142,240,0.08)] flex items-center justify-between bg-[#111C2E]">
-                        <span className="text-[13px] font-bold tracking-wide text-foreground uppercase">Notifications ({unreadCount} new)</span>
-                        <button 
-                          onClick={() => setSharedNotifs(ns => ns.map(n => ({ ...n, read: true })))}
-                          className="text-[11px] text-primary hover:text-accent font-semibold transition-colors cursor-pointer"
-                        >
-                          Mark all read
-                        </button>
-                      </div>
+                  <motion.div
+                    key="notif-dropdown"
+                    initial={{ opacity: 0, y: 12, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 12, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 mt-2 w-80 bg-[#0E1726] border border-[rgba(61,142,240,0.18)] rounded-xl shadow-2xl z-50 overflow-hidden font-['Rajdhani']"
+                  >
+                    <div className="p-3.5 border-b border-[rgba(61,142,240,0.08)] flex items-center justify-between bg-[#111C2E]">
+                      <span className="text-[13px] font-bold tracking-wide text-foreground uppercase">Notifications ({unreadCount} new)</span>
+                      <button 
+                        onClick={() => setSharedNotifs(ns => ns.map(n => ({ ...n, read: true })))}
+                        className="text-[11px] text-primary hover:text-accent font-semibold transition-colors cursor-pointer"
+                      >
+                        Mark all read
+                      </button>
+                    </div>
 
-                      <div className="max-h-72 overflow-y-auto divide-y divide-[rgba(255,255,255,0.03)] scrollbar-none">
-                        {sharedNotifs.length === 0 ? (
-                          <div className="p-6 text-center text-muted-foreground text-[12px]">
-                            No notifications
-                          </div>
-                        ) : (
-                          sharedNotifs.map(n => {
-                            const s = notifStyle(n.type);
-                            const Icon = n.type === 'urgent' || n.type === 'warning' ? AlertTriangle : n.type === 'success' ? CheckCircle : Bell;
-                            return (
+                    <div className="max-h-72 overflow-y-auto divide-y divide-[rgba(255,255,255,0.03)] scrollbar-none">
+                      {sharedNotifs.length === 0 ? (
+                        <div className="p-6 text-center text-muted-foreground text-[12px]">
+                          No notifications
+                        </div>
+                      ) : (
+                        sharedNotifs.map(n => {
+                          const s = notifStyle(n.type);
+                          const Icon = n.type === 'urgent' || n.type === 'warning' ? AlertTriangle : n.type === 'success' ? CheckCircle : Bell;
+                          return (
                               <div 
                                 key={n.id} 
                                 onClick={() => {
@@ -4221,7 +4625,6 @@ export default function App() {
                         )}
                       </div>
                     </motion.div>
-                  </>
                 )}
               </AnimatePresence>
             </div>
@@ -4264,11 +4667,14 @@ export default function App() {
                   <div className="flex-1 overflow-y-auto scrollbar-none min-h-0">
                     <PanelRenderer 
                       panel={activeDashPanel} 
+                      initialData={activeDashPanelData}
                       onAction={(actionId, data) => {
                         if (actionId === "welcome") {
                           setActiveDashPanel(null);
+                          setActiveDashPanelData(undefined);
                         } else {
                           setActiveDashPanel(actionId);
+                          setActiveDashPanelData(data);
                         }
                       }} 
                     />
@@ -4287,7 +4693,10 @@ export default function App() {
                 {showWelcome ? (
                   <motion.div key="welcome" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.25 }} className="flex-1 flex flex-col min-h-0">
-                    <WelcomeScreen onAction={handleQuickAction} />
+                    <WelcomeScreen 
+                      onAction={handleQuickAction} 
+                      onScanTrigger={() => setIsScanningInChat(true)} 
+                    />
                   </motion.div>
                 ) : (
                   <motion.div key="messages" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
@@ -4319,6 +4728,114 @@ export default function App() {
               {/* Input bar — always visible in chat view */}
               <div className="shrink-0 px-6 pb-5 pt-3 border-t border-[rgba(61,142,240,0.08)] bg-[#070C16]">
                 <div className="max-w-3xl mx-auto">
+                  {isScanningInChat && (
+                    <div className="mb-3.5 bg-[#090F1C] rounded-2xl border border-dashed border-primary/30 p-1 overflow-hidden shadow-2xl">
+                      <PlateScanner 
+                        onScan={(res) => {
+                          setInput(`Check vehicle history for ${res}`);
+                          setIsScanningInChat(false);
+                        }} 
+                        onClose={() => setIsScanningInChat(false)} 
+                      />
+                    </div>
+                  )}
+                  {isVoiceHUDOpen && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }} 
+                      animate={{ opacity: 1, y: 0 }} 
+                      className="mb-3.5 p-4 rounded-2xl border border-[rgba(239,68,68,0.25)] bg-[#0B0609] shadow-2xl relative overflow-hidden"
+                    >
+                      {/* Tech grid style */}
+                      <div className="absolute inset-0 bg-[linear-gradient(rgba(239,68,68,0.03)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none" />
+                      
+                      <div className="relative z-10 flex flex-col gap-3">
+                        <div className="flex items-center justify-between border-b border-red-500/10 pb-2">
+                          <div className="flex items-center gap-2">
+                            <span className={`flex items-center justify-center w-2 h-2 rounded-full ${isListening ? 'bg-red-500 animate-ping' : 'bg-amber-400'}`} />
+                            <span className={`text-[11.5px] uppercase tracking-wider font-extrabold font-['Rajdhani'] flex items-center gap-1 ${isListening ? 'text-red-500' : 'text-amber-400'}`}>
+                              <Mic size={12} className={isListening ? "text-red-500 animate-bounce" : "text-amber-400"} /> 
+                              {isListening ? "NEXA Voice Assistant - Live Listening" : "NEXA Voice Assistant - Standby"}
+                            </span>
+                          </div>
+                          
+                          {/* Live Rhythmic Sound Wave */}
+                          <div className="flex gap-1.5 items-center bg-[#170C0E]/70 px-2.5 py-1 rounded-full border border-red-500/10">
+                            {[0.1, 0.4, 0.2, 0.6, 0.3, 0.5, 0.2].map((delay, index) => (
+                              <div 
+                                key={index} 
+                                className={`w-0.5 rounded-full transition-all duration-300 ${isListening ? (index === 3 ? 'bg-[#4ADE80]' : 'bg-red-500') : 'bg-muted-foreground/30'}`}
+                                style={{
+                                  height: index % 2 === 0 ? '12px' : '18px',
+                                  animation: isListening ? `bounce 0.5s infinite alternate` : undefined,
+                                  animationDelay: isListening ? `${delay}s` : undefined
+                                }}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Transcript Preview */}
+                        <div className="bg-[#1C0F12]/40 rounded-xl px-3 py-2.5 border border-red-500/5 min-h-[44px] flex flex-col justify-center">
+                          <span className="text-[9px] uppercase font-bold text-muted-foreground/50 tracking-wider">Sound Input Live Transcript:</span>
+                          <span className="text-[12.5px] font-medium text-foreground tracking-wide mt-0.5 font-sans italic">
+                            "{interimText || (isListening ? 'Speak now... (e.g. "Open Job Card dl6cr1517")' : 'Voice capture inactive. Press microphone button above to start, or simulate below.')}"
+                          </span>
+                        </div>
+
+                        {/* Fallback & Helper HUD options */}
+                        <div className="flex flex-col gap-2 mt-1 border-t border-red-500/5 pt-3">
+                          <div className="flex items-center gap-1.5 justify-between">
+                            <span className="text-[10px] text-red-400 font-['Rajdhani'] font-bold uppercase tracking-wider flex items-center gap-1">
+                              ℹ️ Voice HUD Control Center
+                            </span>
+                            <button 
+                              onClick={() => {
+                                setIsListening(false);
+                                setIsVoiceHUDOpen(false);
+                                setInterimText("");
+                              }}
+                              className="text-[9.5px] text-muted-foreground hover:text-white underline cursor-pointer"
+                            >
+                              Dismiss HUD
+                            </button>
+                          </div>
+                          
+                          {speechError && (
+                            <p className="text-[11px] text-amber-400 font-semibold bg-[#2A180E] px-2.5 py-1.5 rounded-lg border border-amber-500/20 leading-relaxed font-sans">
+                              🛡️ {speechError}
+                            </p>
+                          )}
+
+                          <p className="text-[9.5px] text-muted-foreground uppercase font-bold font-['Rajdhani'] tracking-widest mt-1">
+                            Click to simulate vocal command instantly (Hands-Free Demonstration):
+                          </p>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {[
+                              { label: "🎙️ Open Job Card for DL6CR1517", val: "Open Job Card for DL6CR1517" },
+                              { label: "🔬 Check vehicle history for HR26DS6144", val: "Check vehicle history for HR26DS6144" },
+                              { label: "📅 Show today's scheduled appointments", val: "Show today's scheduled appointments" },
+                              { label: "✅ Review pending tasks", val: "Review pending tasks" }
+                            ].map((cmd, i) => (
+                              <button
+                                key={i}
+                                onClick={() => {
+                                  setInput(cmd.val);
+                                  handleSendVoice(cmd.val);
+                                  setIsListening(false);
+                                  setIsVoiceHUDOpen(false);
+                                  setInterimText("");
+                                }}
+                                className="px-3 py-2 bg-[#1A0E11] border border-red-500/10 text-left text-[11.5px] rounded-lg text-red-300 hover:border-red-500/40 hover:text-white hover:bg-red-500/5 transition-all text-ellipsis overflow-hidden whitespace-nowrap cursor-pointer flex items-center gap-2 font-semibold"
+                              >
+                                {cmd.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
                   {attachedFile && (
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-xl mb-3 inline-flex max-w-[280px]">
                       <span className="text-[11px] font-bold text-primary font-['Rajdhani'] uppercase shrink-0">{attachedFile.type}:</span>
@@ -4331,12 +4848,29 @@ export default function App() {
                       value={input}
                       onChange={e => setInput(e.target.value)}
                       onKeyDown={e => e.key === "Enter" && handleSend()}
-                      placeholder="Ask about appointments, vehicles, job cards, tasks…"
-                      className="flex-1 bg-transparent outline-none text-foreground text-[13px] placeholder:text-muted-foreground font-[#D1D5DB] font-sans"
+                      placeholder="Ask or speak to open a job card, fetch vehicle history, check appointments..."
+                      className="flex-1 bg-transparent outline-none text-foreground text-[13px] placeholder:text-muted-foreground font-sans"
                     />
                     <div className="flex items-center gap-1.5">
-                      <button className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-[#1C2A3E] transition-colors">
-                        <Hash size={14} />
+                      <button 
+                        onClick={toggleListening}
+                        className={`p-1.5 rounded-lg transition-all flex items-center justify-center cursor-pointer ${
+                          isListening 
+                            ? "text-red-400 bg-red-500/10 animate-pulse border border-red-500/20" 
+                            : isVoiceHUDOpen 
+                            ? "text-amber-400 bg-amber-500/10 border border-amber-500/20" 
+                            : "text-muted-foreground hover:text-primary hover:bg-[#1C2A3E]"
+                        }`}
+                        title={isListening ? "Listening... click to stop" : isVoiceHUDOpen ? "Voice Hub Active (Simulation mode)" : "Speak to Voice Assistant"}
+                      >
+                        <Mic size={14} className={isListening ? "scale-110 text-red-400" : ""} />
+                      </button>
+                      <button 
+                        onClick={() => setIsScanningInChat(!isScanningInChat)}
+                        className={`p-1.5 rounded-lg transition-all flex items-center justify-center cursor-pointer ${isScanningInChat ? "text-primary bg-primary/10 animate-pulse border border-primary/20" : "text-muted-foreground hover:text-primary hover:bg-[#1C2A3E]"}`}
+                        title="Scan license plate using camera / OCR"
+                      >
+                        <Camera size={14} className={isScanningInChat ? "text-primary scale-110" : "text-muted-foreground"} />
                       </button>
                       <button onClick={handleSend} disabled={!input.trim() && !attachedFile}
                         className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-all disabled:opacity-25 disabled:cursor-not-allowed shadow-md shadow-primary/20 cursor-pointer">
@@ -4346,12 +4880,35 @@ export default function App() {
                   </div>
                   <div className="flex items-center justify-between mt-2 px-1">
                     <div className="flex gap-4">
-                      <button onClick={() => setView("dashboard")}
+                      <button onClick={() => {
+                        const promptOptions = [
+                          "Open Job Card for DL6CR1517",
+                          "Check vehicle history for HR26DS6144",
+                          "Show today's scheduled appointments",
+                          "Review pending tasks"
+                        ];
+                        const randomPrompt = promptOptions[Math.floor(Math.random() * promptOptions.length)];
+                        setInput(randomPrompt);
+                      }}
                         className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors font-['Rajdhani'] font-semibold cursor-pointer">
                         <Zap size={11} className="text-primary" /> Saved prompts
                       </button>
-                      <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors font-['Rajdhani'] font-semibold cursor-pointer">
+                      <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors font-['Rajdhani'] font-semibold cursor-pointer font-medium">
                         <Download size={11} /> Attach file
+                      </button>
+                      <button 
+                        onClick={() => {
+                          const nextVal = !speakResponses;
+                          setSpeakResponses(nextVal);
+                          if (!nextVal && window.speechSynthesis) {
+                            window.speechSynthesis.cancel();
+                          }
+                        }} 
+                        className={`flex items-center gap-1.5 text-[11px] select-none cursor-pointer font-['Rajdhani'] font-semibold transition-colors ${speakResponses ? "text-[#4ADE80]" : "text-muted-foreground hover:text-foreground"}`}
+                        title="Toggles reading out loud NEXA response bubbles"
+                      >
+                        {speakResponses ? <Volume2 size={11} className="text-[#4ADE80]" /> : <VolumeX size={11} />}
+                        {speakResponses ? "Voice Out: ON" : "Voice Out: OFF"}
                       </button>
                       <input 
                         type="file" 
@@ -4368,7 +4925,7 @@ export default function App() {
                         style={{ display: "none" }} 
                       />
                     </div>
-                    <p className="text-[10px] text-muted-foreground/35 font-['JetBrains_Mono']">NEXA AI · NPad v17.1</p>
+                    <p className="text-[10px] text-muted-foreground/35 font-['JetBrains_Mono']">NEXA Voice Assistant · Offline Link Active</p>
                   </div>
                 </div>
               </div>

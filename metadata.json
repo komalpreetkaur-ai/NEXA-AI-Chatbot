@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
-  "requestFramePermissions": [],
+  "name": "NEXA AI Service Advisor Copilot",
+  "description": "Voice-enabled copilot assistant and license plate OCR tool for NEXA Service Advisors to hands-free navigate appointments, Job Cards, and vehicle history.",
+  "requestFramePermissions": ["camera", "microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
