@@ -2899,9 +2899,9 @@ function CloseJobCardPanel({
   const [email, setEmail] = useState(jc.customer.email || jc.customer.email || "amit.sharma@email.com");
   const [revisedDate, setRevisedDate] = useState("03-SEP-2025 12:44");
 
-  const [bay, setBay] = useState(jc.bay || "BODY REPAIRS");
+  const [bay, setBay] = useState(jc.bay || "");
   const [group, setGroup] = useState(jc.group || "Other Group 2");
-  const [technician, setTechnician] = useState(jc.techName || "Technician 3");
+  const [technician, setTechnician] = useState(jc.techName || "");
   const [techExpert, setTechExpert] = useState("Expert 2");
   const [followUpDate, setFollowUpDate] = useState("25-MAY-2026");
   const [csPercent, setCsPercent] = useState("85");
@@ -3030,14 +3030,14 @@ function CloseJobCardPanel({
   // Handle NEXT / Submit
   function handleNextStep() {
     if (step === 0) {
-      if (!odometer.trim()) {
+      if (!odometer.toString().trim()) {
         triggerToast("Odometer reading is mandatory before proceeding!");
         return;
       }
       setStep(1);
     } else if (step === 1) {
-      if (!bay || !technician) {
-        triggerToast("BAY, GROUP and TECHNICIAN are mandatory!");
+      if (!bay.trim() || !technician.trim()) {
+        triggerToast("BAY and TECHNICIAN are mandatory!");
         return;
       }
       setStep(2);
@@ -3374,6 +3374,7 @@ function CloseJobCardPanel({
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5">BAY CODE *</label>
                     <select value={bay} onChange={(e) => setBay(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none font-bold">
+                      <option value="">Select Bay</option>
                       <option value="BODY REPAIRS">BODY REPAIRS</option>
                       <option value="BAY-01">BAY-01 (PMS STANDARD)</option>
                       <option value="BAY-02">BAY-02 (RUNNING REPAIR)</option>
@@ -3391,6 +3392,7 @@ function CloseJobCardPanel({
                   <div>
                     <label className="text-[9.5px] text-muted-foreground block mb-0.5">TECHNICIAN *</label>
                     <select value={technician} onChange={(e) => setTechnician(e.target.value)} className="w-full bg-[#1C2A3E] text-white text-[11.5px] px-2 py-1.5 rounded border border-border outline-none font-bold">
+                      <option value="">Select Technician</option>
                       <option value="Technician 3">Technician 3 (Sandeep S)</option>
                       <option value="RAJESH KUMAR">RAJESH KUMAR</option>
                       <option value="VISHAL ADITYA">VISHAL ADITYA</option>
