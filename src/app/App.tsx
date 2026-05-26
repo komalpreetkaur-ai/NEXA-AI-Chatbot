@@ -12,6 +12,15 @@ import {
   Sun, Moon
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { 
+  isFirebaseEnabled,
+  fetchChatSessions, 
+  fetchChatMessages, 
+  saveChatSession, 
+  saveChatMessage, 
+  deleteChatSession 
+} from "./firebaseChat"
+import { ensureAuth } from "../firebase"
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type PanelType = "welcome" | "appointments" | "vehicle-history" | "jc-opening" | "all-jobcards" | "tasks" | "notifications" | "service-news" | "my-calls" | "suzuki-connect-form" | "suzuki-connect-advice" | "close-jobcard"
@@ -7093,13 +7102,26 @@ const NAV_ITEMS: { id: PanelType; icon: typeof Calendar; label: string; badge?: 
 ]
 
 // ── Sidebar ────────────────────────────────────────────────────────────────────
-function Sidebar({ onNav, onNewChat, setSidebarOpen }: {
+function Sidebar({ 
+  onNav, 
+  onNewChat, 
+  setSidebarOpen,
+  history,
+  activeSessionId,
+  onSelectSession,
+  onRenameSession,
+  onDeleteSession
+}: {
   onNav: (id: PanelType) => void
   onNewChat: () => void
   setSidebarOpen: (v: boolean) => void
+  history: { id: string; label: string; section: string; isDb?: boolean }[]
+  activeSessionId: string | null
+  onSelectSession: (id: string) => void
+  onRenameSession: (id: string, newLabel: string) => void
+  onDeleteSession: (id: string, e: React.MouseEvent) => void
 }) {
   const [search, setSearch] = useState("")
-  const [history, setHistory] = useState(CHAT_HISTORY)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingValue, setEditingValue] = useState("")
   const sections = ["Today", "Yesterday", "7 Days"]
@@ -7113,7 +7135,7 @@ function Sidebar({ onNav, onNewChat, setSidebarOpen }: {
 
   function commitEdit(id: string) {
     const trimmed = editingValue.trim()
-    if (trimmed) setHistory(prev => prev.map(h => h.id === id ? { ...h, label: trimmed } : h))
+    if (trimmed) onRenameSession(id, trimmed)
     setEditingId(null)
   }
 
@@ -7180,7 +7202,7 @@ function Sidebar({ onNav, onNewChat, setSidebarOpen }: {
               <p className="px-2 pb-1.5 pt-1 text-[9.5px] uppercase tracking-widest text-muted-foreground/50 font-sans font-bold">{section}</p>
               <div className="flex flex-col gap-0.5">
                 {items.map(h => (
-                  <div key={h.id} className="group relative flex items-center rounded-lg hover:bg-card/50 transition-all">
+                  <div key={h.id} className={`group relative flex items-center rounded-lg transition-all ${activeSessionId === h.id ? "bg-primary/10 border-l-2 border-primary" : "hover:bg-card/50"}`}>
                     {editingId === h.id ? (
                       <input
                         autoFocus
@@ -7196,17 +7218,30 @@ function Sidebar({ onNav, onNewChat, setSidebarOpen }: {
                     ) : (
                       <>
                         <button
-                          className="flex-1 text-left px-2.5 py-1.5 text-[12px] text-muted-foreground group-hover:text-foreground transition-colors font-sans truncate min-w-0">
+                          onClick={() => onSelectSession(h.id)}
+                          className={`flex-1 text-left px-2.5 py-1.5 text-[12px] font-sans truncate min-w-0 transition-colors ${activeSessionId === h.id ? "text-primary font-bold" : "text-muted-foreground group-hover:text-foreground"}`}>
                           {h.label}
                         </button>
                         <button
                           onClick={e => startEdit(h.id, h.label, e)}
-                          className="shrink-0 mr-1.5 p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all">
+                          className="shrink-0 mr-1 p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all opacity-0 group-hover:opacity-100 transition-opacity">
                           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                           </svg>
                         </button>
+                        {h.isDb && (
+                          <button
+                            onClick={e => onDeleteSession(h.id, e)}
+                            className="shrink-0 mr-1.5 p-1 rounded-md text-muted-foreground hover:text-[#F87171] hover:bg-[#F87171]/10 transition-all opacity-0 group-hover:opacity-100 transition-opacity">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="3 6 5 6 21 6"></polyline>
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                              <line x1="10" y1="11" x2="10" y2="17"></line>
+                              <line x1="14" y1="11" x2="14" y2="17"></line>
+                            </svg>
+                          </button>
+                        )}
                       </>
                     )}
                   </div>
@@ -7354,6 +7389,97 @@ export default function App() {
   
   const [notifDropdownOpen, setNotifDropdownOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
+  const [loadingChat, setLoadingChat] = useState(false)
+  const [dbSessions, setDbSessions] = useState<any[]>([])
+
+  async function refreshSessionsList() {
+    if (!isFirebaseEnabled()) return
+    try {
+      const realSessions = await fetchChatSessions()
+      setDbSessions(realSessions)
+    } catch (err) {
+      console.error("Failed to load chat history sessions from Firestore:", err)
+    }
+  }
+
+  // Reload real chat sessions on startup or when authenticated
+  useEffect(() => {
+    async function initFirebaseAndLoad() {
+      if (isFirebaseEnabled()) {
+        try {
+          await ensureAuth()
+          await refreshSessionsList()
+        } catch (err) {
+          console.error("Firebase init failed:", err)
+        }
+      }
+    }
+    initFirebaseAndLoad()
+  }, [authenticated])
+
+  // Helper to persist a single message to Firestore during active runtime sessions
+  async function persistMessage(msg: Message, customSessionLabel?: string) {
+    if (!isFirebaseEnabled()) return
+    try {
+      let currentSessId = activeSessionId
+      if (!currentSessId) {
+        // Create new session ID
+        currentSessId = "sess_" + Date.now().toString()
+        setActiveSessionId(currentSessId)
+        
+        // Define label from message text
+        const labelText = customSessionLabel || msg.text || "New Conversation"
+        await saveChatSession(currentSessId, labelText)
+        await refreshSessionsList()
+      } else if (customSessionLabel) {
+        await saveChatSession(currentSessId, customSessionLabel)
+        await refreshSessionsList()
+      }
+      
+      // Save message document inside subcollection
+      await saveChatMessage(currentSessId, msg)
+    } catch (err) {
+      console.error("Failed to save session/message to Firebase:", err)
+    }
+  }
+
+  async function handleSelectSession(sessId: string) {
+    setLoadingChat(true)
+    setView("chat")
+    setActiveSessionId(sessId)
+    try {
+      const msgs = await fetchChatMessages(sessId)
+      setMessages(msgs)
+    } catch (err) {
+      console.error("Failed to load conversation messages:", err)
+    } finally {
+      setLoadingChat(false)
+    }
+  }
+
+  async function handleDeleteSession(sessId: string, e: React.MouseEvent) {
+    e.stopPropagation()
+    if (!confirm("Are you sure you want to delete this chat conversation?")) return
+    try {
+      await deleteChatSession(sessId)
+      if (activeSessionId === sessId) {
+        handleNewChat()
+      }
+      refreshSessionsList()
+    } catch (err) {
+      console.error("Failed to delete chat session from Firestore:", err)
+    }
+  }
+
+  async function handleRenameSession(sessId: string, newLabel: string) {
+    try {
+      await saveChatSession(sessId, newLabel)
+      refreshSessionsList()
+    } catch (err) {
+      console.error("Failed to rename chat session inside Firestore:", err)
+    }
+  }
   const [input, setInput] = useState("")
   const [typing, setTyping] = useState(false)
   const [attachedFile, setAttachedFile] = useState<{name: string, type: 'image' | 'pdf' | 'other'} | null>(null)
@@ -7501,14 +7627,16 @@ export default function App() {
         ? `Initiating guided Job Card setup workflow for vehicle **${regInput}**. Advancing to Step 1: Customer & Vehicle Details...`
         : `Let's open a new Job Card. Please scan or type the vehicle's Registration Number or VIN.`;
       
-      setMessages(prev => [...prev, {
+      const msg: Message = {
         id: Date.now().toString(),
         role: "bot",
         text,
         isJcStep: true,
         jcStepCode: regInput ? "CONFIRM_VEHICLE" : "VIN_SCAN",
         timestamp: new Date()
-      }]);
+      };
+      setMessages(prev => [...prev, msg]);
+      persistMessage(msg);
     }, 500);
   }
 
@@ -7586,22 +7714,26 @@ export default function App() {
         if (jcMsgIdx !== -1) {
           const actualIndex = prev.length - 1 - jcMsgIdx;
           const updated = [...prev];
-          updated[actualIndex] = {
+          const updatedMsg = {
             ...updated[actualIndex],
             text: nextText,
             jcStepCode: nextStep,
             timestamp: new Date()
           };
+          updated[actualIndex] = updatedMsg;
+          persistMessage(updatedMsg);
           return updated;
         } else {
-          return [...prev, {
+          const newMsg: Message = {
             id: Date.now().toString(),
             role: "bot",
             text: nextText,
             isJcStep: true,
             jcStepCode: nextStep,
             timestamp: new Date()
-          }];
+          };
+          persistMessage(newMsg);
+          return [...prev, newMsg];
         }
       });
     }, 400);
@@ -7732,13 +7864,16 @@ export default function App() {
   function addUserMessage(text: string) {
     const msg: Message = { id: Date.now().toString(), role: "user", text, timestamp: new Date() }
     setMessages(prev => [...prev, msg])
+    persistMessage(msg)
   }
 
   function addBotMessageSync(text: string, panel?: PanelType, initialData?: Record<string, unknown>) {
-    setMessages(prev => [...prev, {
+    const msg: Message = {
       id: (Date.now() + 1).toString(), role: "bot", text, panel, initialData,
       timestamp: new Date(),
-    }]);
+    }
+    setMessages(prev => [...prev, msg])
+    persistMessage(msg)
   }
 
   async function handleSendVoice(text: string) {
@@ -7964,8 +8099,24 @@ export default function App() {
 
   function handleNewChat() {
     setMessages([])
+    setActiveSessionId(null)
     setView("chat")
   }
+
+  const combinedHistory = [
+    ...dbSessions.map(s => ({
+      id: s.id,
+      label: s.label,
+      section: (() => {
+        const hrs = (Date.now() - new Date(s.updatedAt).getTime()) / 3600000;
+        if (hrs < 24) return "Today";
+        if (hrs < 48) return "Yesterday";
+        return "7 Days";
+      })(),
+      isDb: true
+    })),
+    ...CHAT_HISTORY.map(h => ({ ...h, isDb: false }))
+  ];
 
   const showWelcome = messages.length === 0 && view === "chat"
 
@@ -7985,6 +8136,11 @@ export default function App() {
               }} 
               onNewChat={handleNewChat} 
               setSidebarOpen={setSidebarOpen} 
+              history={combinedHistory}
+              activeSessionId={activeSessionId}
+              onSelectSession={handleSelectSession}
+              onRenameSession={handleRenameSession}
+              onDeleteSession={handleDeleteSession}
             />
           </motion.div>
         )}
@@ -8165,7 +8321,14 @@ export default function App() {
 
               {/* Welcome or chat messages */}
               <AnimatePresence mode="wait">
-                {showWelcome ? (
+                {loadingChat ? (
+                  <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    className="flex-1 flex flex-col justify-center items-center p-6 text-center">
+                    <div className="w-10 h-10 rounded-full border-4 border-primary border-t-transparent animate-spin mb-4" />
+                    <p className="text-[14px] font-bold text-foreground font-sans uppercase tracking-widest leading-relaxed">Syncing Dialogue Files</p>
+                    <p className="text-[11.5px] text-muted-foreground font-mono mt-1">Retrieving conversation logs from NEXA Cloud Database Engine...</p>
+                  </motion.div>
+                ) : showWelcome ? (
                   <motion.div key="welcome" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.25 }} className="flex-1 flex flex-col min-h-0">
                     <WelcomeScreen onNavToPanel={(id) => {

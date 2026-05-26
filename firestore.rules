@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Chat Sessions and Messages endpoints
+    match /chat_sessions/{sessionId} {
+      // Allow read, create, update, delete for anyone as long as they provide a valid session ID
+      allow read, write: if sessionId is string && sessionId.size() <= 128;
+
+      match /messages/{messageId} {
+        // Message elements are completely read-write inside their parent session namespace
+        allow read, write: if sessionId is string && messageId is string && messageId.size() <= 128;
+      }
+    }
+  }
+}
