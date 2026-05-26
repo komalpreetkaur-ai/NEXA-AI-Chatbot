@@ -569,17 +569,31 @@ function AppointmentsPanel({ onAction }: { onAction: (a: PanelType, data?: Recor
           My Appointments
         </div>
 
-        <div className="flex items-center gap-3">
-          <input 
-            type="text" 
-            value={search} 
-            onChange={e => setSearch(e.target.value)} 
-            placeholder="Search by Reg No."
-            className="bg-card text-white px-3 py-1 text-[11px] rounded-md border border-border focus:border-[#00AAFF] w-[110px] sm:w-[150px] outline-none placeholder-neutral-500 font-medium font-sans" 
-          />
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 bg-card/60 px-2 py-1 rounded-md border border-border focus-within:border-primary/40 transition-all">
+            <Search size={11} className="text-muted-foreground/50" />
+            <input 
+              type="text" 
+              value={search} 
+              onChange={e => setSearch(e.target.value)} 
+              placeholder="Search by Reg No."
+              className="bg-transparent text-white text-[11px] w-[90px] sm:w-[130px] outline-none placeholder-neutral-600 font-medium font-sans" 
+            />
+          </div>
+          
+          <button
+            onClick={() => onAction("jc-opening")}
+            className="px-2.5 py-1 bg-primary text-primary-foreground text-[10px] font-extrabold uppercase tracking-widest rounded-md hover:bg-primary/95 transition-all shadow-sm active:scale-95 flex items-center gap-1 cursor-pointer whitespace-nowrap"
+            title="Create/Open a New Job Card"
+          >
+            <Plus size={11} className="stroke-[3px]" />
+            <span>Open JC</span>
+          </button>
+
           <button 
             onClick={() => setShowAddPopup(true)} 
-            className="text-white hover:text-primary transition-colors leading-none text-[22px] font-light px-2"
+            className="text-white hover:text-primary hover:bg-card/85 transition-colors text-[18px] font-semibold px-2 py-0.5 border border-border rounded-md bg-card/40 flex items-center justify-center cursor-pointer"
+            title="Schedule a New Appointment"
           >
             +
           </button>
@@ -2888,12 +2902,6 @@ function Tab1ActionModal({
         </div>
         <div className="flex flex-col gap-2.5">
           <button 
-            onClick={() => onSelectAction("find_id")}
-            className="w-full py-2.5 text-[12px] font-bold text-primary border border-primary/30 hover:border-primary hover:bg-primary/5 rounded-xl transition-all cursor-pointer font-sans uppercase tracking-wider bg-card/30"
-          >
-            Find ID (View Details)
-          </button>
-          <button 
             onClick={() => onSelectAction("update")}
             className="w-full py-2.5 text-[12px] font-bold text-[#FACC15] border border-[#FACC15]/30 hover:border-[#FACC15] hover:bg-[#FACC15]/5 rounded-xl transition-all cursor-pointer font-sans uppercase tracking-wider bg-card/30"
           >
@@ -3136,6 +3144,11 @@ function CloseJobCardPanel({
   // Hotspots toggles
   const [scratchDot, setScratchDot] = useState<number[]>([1, 4, 8]);
   const [dentDot, setDentDot] = useState<number[]>([2, 5]);
+
+  // AI Walkaround and Live Scanner states
+  const [videoAnalyzing, setVideoAnalyzing] = useState(false);
+  const [videoPlayProgress, setVideoPlayProgress] = useState(0);
+  const [showLiveScanner, setShowLiveScanner] = useState(false);
 
   return (
     <div className="relative flex flex-col h-full bg-background text-foreground overflow-hidden font-sans">
@@ -3570,8 +3583,127 @@ function CloseJobCardPanel({
                     <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded bg-blue-500" /> Total Elements: <strong className="font-mono">{scratchDot.length + dentDot.length}</strong></span>
                   </div>
 
-                  <div className="text-[12px] font-bold mt-1 text-primary hover:underline cursor-pointer flex items-center gap-1">
-                    <span>📷 CAPTURING EXTRA EXTERIOR IMAGES (14 SENSORS TRIGGERED)</span>
+                  <div className="border-t border-border/40 pt-3 mt-1 flex flex-col gap-2.5">
+                    <p className="text-[11px] font-black text-foreground uppercase tracking-wider flex items-center gap-1.5 font-sans">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
+                      AI Walkaround & Body Scanner
+                    </p>
+
+                    <AnimatePresence>
+                      {showLiveScanner && (
+                        <motion.div 
+                          initial={{ opacity: 0 }} 
+                          animate={{ opacity: 1 }} 
+                          exit={{ opacity: 0 }}
+                          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4"
+                        >
+                          <VehicleScanner 
+                            onClose={() => setShowLiveScanner(false)}
+                            onScan={(images) => {
+                              setShowLiveScanner(false);
+                              // Trigger auto analysis simulation after capture
+                              setVideoAnalyzing(true);
+                              setVideoPlayProgress(0);
+                              const timer = setInterval(() => {
+                                setVideoPlayProgress((prev) => {
+                                  if (prev >= 100) {
+                                    clearInterval(timer);
+                                    setScratchDot([1, 4, 8, 3, 7, 11]);
+                                    setDentDot([2, 5, 9, 13]);
+                                    return 100;
+                                  }
+                                  return prev + 10;
+                                });
+                              }, 130);
+                            }}
+                          />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {!videoAnalyzing && videoPlayProgress === 0 ? (
+                      <div className="grid grid-cols-3 gap-2">
+                        <label className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl border border-border bg-card/60 hover:bg-muted hover:border-primary/30 transition-all cursor-pointer text-center select-none active:scale-95">
+                          <input 
+                            type="file" 
+                            accept="video/*" 
+                            className="hidden" 
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files[0]) {
+                                setVideoAnalyzing(true);
+                                setVideoPlayProgress(0);
+                                const timer = setInterval(() => {
+                                  setVideoPlayProgress((prev) => {
+                                    if (prev >= 100) {
+                                      clearInterval(timer);
+                                      setScratchDot([1, 4, 8, 3, 7]);
+                                      setDentDot([2, 5, 10]);
+                                      return 100;
+                                    }
+                                    return prev + 10;
+                                  });
+                                }, 130);
+                              }
+                            }} 
+                          />
+                          <Upload size={14} className="text-secondary" />
+                          <span className="text-[9px] font-black uppercase text-foreground leading-tight">Upload Video</span>
+                        </label>
+                        
+                        <button
+                          type="button"
+                          onClick={() => setShowLiveScanner(true)}
+                          className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl border border-border bg-card/60 hover:bg-muted hover:border-primary/30 transition-all cursor-pointer text-center select-none active:scale-95"
+                        >
+                          <Camera size={14} className="text-primary" />
+                          <span className="text-[9px] font-black uppercase text-foreground leading-tight">Live Scan</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setVideoPlayProgress(100);
+                            setScratchDot([1, 4, 8, 3, 7]);
+                            setDentDot([2, 5, 10]);
+                          }}
+                          className="flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl border border-border bg-card/60 hover:bg-muted hover:border-primary/30 transition-all cursor-pointer text-center select-none active:scale-95"
+                        >
+                          <ClipboardList size={14} className="text-muted-foreground" />
+                          <span className="text-[9px] font-black uppercase text-foreground leading-tight">Autofill</span>
+                        </button>
+                      </div>
+                    ) : videoAnalyzing && videoPlayProgress < 100 ? (
+                      <div className="p-3 rounded-xl bg-background border border-border text-center flex flex-col items-center gap-2">
+                        <div className="w-5 h-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                        <p className="text-[11px] font-bold text-foreground">Analyzing walkaround recording...</p>
+                        <div className="w-full bg-card h-1.5 rounded-full overflow-hidden">
+                          <div className="bg-primary h-full transition-all duration-150" style={{ width: `${videoPlayProgress}%` }} />
+                        </div>
+                        <p className="text-[8.5px] font-mono text-muted-foreground">{videoPlayProgress}% Keyframes analyzed</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        <div className="bg-[#4ADE80]/15 border border-[#4ADE80]/20 p-2.5 rounded-xl flex items-start gap-2 text-left">
+                          <CheckCircle size={14} className="text-[#4ADE80] shrink-0 mt-0.5" />
+                          <div className="text-[11px] leading-tight">
+                            <p className="text-[#4ADE80] font-black uppercase tracking-wider text-[9px]">AI Scanner Complete</p>
+                            <p className="text-muted-foreground mt-0.5">Identified & loaded {scratchDot.length + dentDot.length} damage hotspots above 85% confidence.</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setVideoAnalyzing(false);
+                            setVideoPlayProgress(0);
+                            setScratchDot([1, 4, 8]);
+                            setDentDot([2, 5]);
+                          }}
+                          className="text-[9px] text-muted-foreground hover:text-white transition-colors text-right underline cursor-pointer self-end"
+                        >
+                          Reset AI spots
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -4458,8 +4590,16 @@ function AllJobCardsPanel({ onAction }: { onAction?: (a: PanelType, d?: Record<s
           <div className="relative flex-1">
             <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search JC No, Reg, Model…"
-              className="w-full pl-8 pr-3 py-2 text-[12px] bg-card border border-border rounded-lg text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 font-mono" />
+              className="w-full pl-8 pr-3 py-2 text-[12px] bg-card border border-border rounded-lg text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 font-sans" />
           </div>
+          <button
+            onClick={() => onAction?.("jc-opening")}
+            className="px-3.5 py-2 bg-primary hover:bg-primary/95 text-primary-foreground text-[11px] font-extrabold uppercase tracking-wide rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 whitespace-nowrap"
+            title="Create / Open New Job Card"
+          >
+             <Plus size={12} className="stroke-[3px]" />
+             <span>New Job Card</span>
+          </button>
         </div>
         <div className="flex gap-1.5 flex-wrap">
           {filters.map(f => (
@@ -6344,101 +6484,144 @@ function BotBubble({
           </button>
         </div>
         <div className="p-4 rounded-2xl rounded-tl-sm bg-card border border-border">
-          <p className="text-[13px] text-foreground mb-3 font-sans leading-relaxed">{text}</p>
-          
-          <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-border/50">
-            {NAV_ITEMS.map((item) => (
-              <button 
-                key={item.id}
-                onClick={() => onAction(item.id)}
-                className="px-2.5 py-1 text-[10px] font-bold bg-card border border-border rounded flex items-center gap-1.5 hover:bg-muted transition-colors text-foreground uppercase tracking-wider"
-              >
-                <item.icon size={11} className="text-primary" /> {item.label}
-              </button>
-            ))}
-          </div>
+          <p className="text-[13px] text-foreground font-sans leading-relaxed">{text}</p>
+        </div>
 
-          {isJcStep && jcStepCode && (
-            <div className="mb-4 bg-card/70 p-3 rounded-xl border border-border font-sans">
-              <div className="flex justify-between items-center text-[11px] mb-2 font-sans font-bold uppercase tracking-wider text-muted-foreground">
-                <span className="text-primary flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#3D8EF0] animate-pulse" />
-                  Guided Setup Details
-                </span>
-                <span className="text-foreground">
-                  {ALL_JC_STEPS.indexOf(jcStepCode) + 1} of {ALL_JC_STEPS.length} Steps
-                </span>
-              </div>
-              
-              <div className="flex gap-1 h-1.5">
-                {ALL_JC_STEPS.map((step, idx) => {
-                  const currentIdx = ALL_JC_STEPS.indexOf(jcStepCode);
-                  const isDone = idx < currentIdx;
-                  const isCurrent = idx === currentIdx;
-                  return (
-                    <div 
-                      key={step} 
-                      className={`flex-1 rounded-sm transition-all duration-300 ${
-                        isDone 
-                          ? "bg-primary" 
-                          : isCurrent 
-                            ? "bg-[#3D8EF0] ring-1 ring-[#3D8EF0]/50" 
-                            : "bg-card"
-                      }`}
-                      title={FRIENDLY_STEP_LABELS[step]}
-                    />
-                  );
-                })}
-              </div>
-              
-              <div className="flex justify-between items-center mt-2.5 text-[11px] font-sans">
-                <span className="text-foreground font-semibold">
-                  Active Area: <span className="text-primary">{FRIENDLY_STEP_LABELS[jcStepCode] || jcStepCode}</span>
-                </span>
-                {jcStepCode !== "COMPLETED" && (
-                  <span className="text-muted-foreground font-mono text-[9px] uppercase">
-                    Single Interactive Output
-                  </span>
-                )}
-              </div>
+        {isJcStep && jcStepCode && (
+          <div className="mt-3 bg-card/70 p-3 rounded-xl border border-border font-sans">
+            <div className="flex justify-between items-center text-[11px] mb-2 font-sans font-bold uppercase tracking-wider text-muted-foreground">
+              <span className="text-primary flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3D8EF0] animate-pulse" />
+                Guided Setup Details
+              </span>
+              <span className="text-foreground">
+                {ALL_JC_STEPS.indexOf(jcStepCode) + 1} of {ALL_JC_STEPS.length} Steps
+              </span>
             </div>
-          )}
-
-          {panel && (
-            <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-              <PanelRenderer panel={panel} onAction={onAction} initialData={initialData} />
-            </motion.div>
-          )}
-          {isJcStep && jcStepCode && (
-            <div className="flex flex-col gap-2">
-              <JCChatStepRenderer 
-                stepCode={jcStepCode} 
-                jcSession={jcSession} 
-                setJcSession={setJcSession} 
-                advanceJcChat={advanceJcChat} 
-                isActive={jcSession?.step === jcStepCode} 
-              />
-              {jcSession?.step === jcStepCode && jcStepCode !== "VIN_SCAN" && jcStepCode !== "COMPLETED" && (
-                <div className="flex justify-start px-0.5 mt-1.5 animate-fade-in">
-                  <button
-                    onClick={() => {
-                      const currentIdx = ALL_JC_STEPS.indexOf(jcStepCode);
-                      if (currentIdx > 0) {
-                        const prevStep = ALL_JC_STEPS[currentIdx - 1];
-                        if (advanceJcChat) {
-                          advanceJcChat("↩ Return to previous step", {}, prevStep);
-                        }
-                      }
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground hover:text-white bg-card/35 hover:bg-card/70 border border-border hover:border-border rounded-lg transition-all cursor-pointer shadow-md select-none"
-                  >
-                    <ChevronLeft size={13} className="text-muted-foreground" />
-                    Back to previous step ({FRIENDLY_STEP_LABELS[ALL_JC_STEPS[ALL_JC_STEPS.indexOf(jcStepCode) - 1]] || ""})
-                  </button>
-                </div>
+            
+            <div className="flex gap-1 h-1.5">
+              {ALL_JC_STEPS.map((step, idx) => {
+                const currentIdx = ALL_JC_STEPS.indexOf(jcStepCode);
+                const isDone = idx < currentIdx;
+                const isCurrent = idx === currentIdx;
+                return (
+                  <div 
+                    key={step} 
+                    className={`flex-1 rounded-sm transition-all duration-300 ${
+                      isDone 
+                        ? "bg-primary" 
+                        : isCurrent 
+                          ? "bg-[#3D8EF0] ring-1 ring-[#3D8EF0]/50" 
+                          : "bg-card"
+                    }`}
+                    title={FRIENDLY_STEP_LABELS[step]}
+                  />
+                );
+              })}
+            </div>
+            
+            <div className="flex justify-between items-center mt-2.5 text-[11px] font-sans">
+              <span className="text-foreground font-semibold">
+                Active Area: <span className="text-primary">{FRIENDLY_STEP_LABELS[jcStepCode] || jcStepCode}</span>
+              </span>
+              {jcStepCode !== "COMPLETED" && (
+                <span className="text-muted-foreground font-mono text-[9px] uppercase">
+                  Single Interactive Output
+                </span>
               )}
             </div>
-          )}
+          </div>
+        )}
+
+        {panel && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.05 }}
+            className="mt-3 overflow-hidden rounded-2xl border-2 border-primary/20 bg-card shadow-2xl relative"
+          >
+            {/* Elegant Header of Output Card */}
+            <div className="bg-gradient-to-r from-primary/15 via-card to-transparent border-b border-border/80 py-3.5 px-4 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                {(() => {
+                  const activeItem = NAV_ITEMS.find(n => n.id === panel);
+                  const Icon = activeItem?.icon || Activity;
+                  return (
+                    <div className="p-1.5 rounded-lg bg-primary/20 text-primary">
+                      <Icon size={14} className="stroke-[2px]" />
+                    </div>
+                  );
+                })()}
+                <span className="text-[12.5px] font-black uppercase tracking-widest text-foreground font-sans">
+                  {panel.replace("-", " ")} Workspace Card
+                </span>
+              </div>
+              <span className="text-[9.5px] text-primary bg-primary/10 border border-primary/20 font-mono px-2.5 py-0.5 rounded-full uppercase tracking-wider font-extrabold">
+                System Live Panel
+              </span>
+            </div>
+
+            {/* Panel Area wrapper with controlled padding */}
+            <div className="p-4 md:p-5">
+              <PanelRenderer panel={panel} onAction={onAction} initialData={initialData} />
+            </div>
+          </motion.div>
+        )}
+
+        {isJcStep && jcStepCode && (
+          <div className="flex flex-col gap-2 mt-3">
+            <JCChatStepRenderer 
+              stepCode={jcStepCode} 
+              jcSession={jcSession} 
+              setJcSession={setJcSession} 
+              advanceJcChat={advanceJcChat} 
+              isActive={jcSession?.step === jcStepCode} 
+            />
+            {jcSession?.step === jcStepCode && jcStepCode !== "VIN_SCAN" && jcStepCode !== "COMPLETED" && (
+              <div className="flex justify-start px-0.5 mt-1.5 animate-fade-in">
+                <button
+                  onClick={() => {
+                    const currentIdx = ALL_JC_STEPS.indexOf(jcStepCode);
+                    if (currentIdx > 0) {
+                      const prevStep = ALL_JC_STEPS[currentIdx - 1];
+                      if (advanceJcChat) {
+                        advanceJcChat("↩ Return to previous step", {}, prevStep);
+                      }
+                    }
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground hover:text-white bg-card/35 hover:bg-card/70 border border-border hover:border-border rounded-lg transition-all cursor-pointer shadow-md select-none"
+                >
+                  <ChevronLeft size={13} className="text-muted-foreground" />
+                  Back to previous step ({FRIENDLY_STEP_LABELS[ALL_JC_STEPS[ALL_JC_STEPS.indexOf(jcStepCode) - 1]] || ""})
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Quick Options Navigation Buttons — ALWAYS below the output card! */}
+        <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-border/40">
+          {NAV_ITEMS.map((item) => (
+            <button 
+              key={item.id}
+              onClick={() => onAction(item.id)}
+              className={`px-3 py-1.5 text-[10px] font-bold rounded-xl flex items-center gap-1.5 transition-all uppercase tracking-wider select-none cursor-pointer ${
+                panel === item.id 
+                  ? "bg-primary text-primary-foreground border border-primary shadow-sm" 
+                  : "bg-card border border-border hover:bg-muted hover:border-primary/40 text-foreground"
+              }`}
+            >
+              <item.icon size={11} className={panel === item.id ? "text-primary-foreground" : "text-primary"} /> 
+              {item.label}
+              {item.badge && (
+                <span className={`ml-1 px-1.5 py-0.5 text-[8px] font-black rounded-full leading-none ${
+                  panel === item.id ? "bg-primary-foreground text-primary" : "bg-primary text-primary-foreground"
+                }`}>
+                  {item.badge}
+                </span>
+              )}
+            </button>
+          ))}
         </div>
         <p className="text-[10px] text-muted-foreground mt-1 font-mono">{timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
       </div>
@@ -6624,8 +6807,17 @@ function DashboardView({ onTileClick }: { onTileClick: (panel: PanelType) => voi
             </div>
             
             <button 
+              onClick={() => onTileClick('jc-opening')}
+              className="h-11 px-4 rounded-2xl flex items-center justify-center gap-2 font-black uppercase tracking-widest text-[9.5px] bg-primary/10 border border-primary/20 text-primary hover:bg-primary hover:text-primary-foreground transition-all active:scale-95 cursor-pointer shadow-sm hover:shadow-primary/15"
+              title="Add a manual new job card"
+            >
+              <Plus size={14} className="stroke-[3px]" />
+              <span className="hidden sm:inline">Add Job Card</span>
+            </button>
+            
+            <button 
               onClick={handleStartScan}
-              className="h-11 px-6 rounded-2xl flex items-center justify-center gap-2.5 font-black uppercase tracking-widest text-[10px] bg-primary text-primary-foreground hover:shadow-lg hover:shadow-primary/20 active:scale-95 transition-all relative overflow-hidden"
+              className="h-11 px-6 rounded-2xl flex items-center justify-center gap-2.5 font-black uppercase tracking-widest text-[10px] bg-primary text-primary-foreground hover:shadow-lg hover:shadow-primary/20 active:scale-95 transition-all relative overflow-hidden shrink-0"
             >
               <Camera size={16} />
               <span>Scan Vehicle</span>
@@ -7045,7 +7237,7 @@ function Sidebar({ onNav, onNewChat, setSidebarOpen }: {
 }
 
 // ── Welcome Screen ─────────────────────────────────────────────────────────────
-function WelcomeScreen({ onAction }: { onAction: (p: PanelType) => void }) {
+function WelcomeScreen({ onNavToPanel }: { onNavToPanel: (id: PanelType) => void }) {
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-8 pb-4">
       {/* Orb */}
@@ -7057,20 +7249,15 @@ function WelcomeScreen({ onAction }: { onAction: (p: PanelType) => void }) {
       </div>
 
       {/* Greeting */}
-      <p className="text-[16px] font-bold font-sans text-primary tracking-wider mb-1">Hello, Vishal</p>
       <p className="text-[27px] font-black text-foreground font-sans mb-3 text-center leading-tight">
         How can I assist you today?
       </p>
-      <p className="text-[13px] text-muted-foreground mb-10 text-center max-w-md leading-relaxed">
-        Manage appointments, open job cards, check vehicle history, or ask anything about today's service work.
-      </p>
-
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 w-full max-w-lg">
         {NAV_ITEMS.map((item) => (
           <button
             key={item.id}
-            onClick={() => onAction(item.id)}
-            className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card hover:bg-muted transition-colors text-foreground text-[11px] font-bold uppercase tracking-wider"
+            onClick={() => onNavToPanel(item.id)}
+            className="flex items-center gap-3 p-4 rounded-2xl border border-border bg-card hover:bg-secondary/30 hover:border-primary/50 hover:shadow-md transition-all text-foreground text-[12px] font-bold uppercase tracking-wider"
           >
             <item.icon size={16} className="text-primary" />
             {item.label}
@@ -7082,15 +7269,90 @@ function WelcomeScreen({ onAction }: { onAction: (p: PanelType) => void }) {
 }
 
 
+
+// ── Face Scanner ─────────────────────────────────────────────────────────────
+function FaceScanner({ onLogin, onClose }: { onLogin: () => void, onClose: () => void }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+      .then(s => { if (videoRef.current) videoRef.current.srcObject = s; })
+      .catch(console.error);
+    const timer = setTimeout(onLogin, 2000);
+    return () => clearTimeout(timer);
+  }, [onLogin]);
+  return (
+    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-card p-6 rounded-2xl border border-border shadow-2xl w-full max-w-sm text-center">
+        <h2 className="text-xl font-bold mb-4">Scanning Face...</h2>
+        <div className="aspect-square bg-black rounded-xl overflow-hidden mb-4">
+          <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+        </div>
+        <button onClick={onClose} className="text-muted-foreground hover:text-foreground">Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+// ── Login Screen ─────────────────────────────────────────────────────────────
+function LoginScreen({ onLoginSuccess }: { onLoginSuccess: () => void }) {
+  const [showFaceScanner, setShowFaceScanner] = useState(false)
+  return (
+    <div className="flex h-screen w-full bg-background text-foreground">
+      {showFaceScanner && <FaceScanner onLogin={onLoginSuccess} onClose={() => setShowFaceScanner(false)} />}
+      <div className="w-1/2 flex flex-col justify-center items-center bg-card border-r border-border">
+        <h1 className="text-6xl font-serif tracking-widest">NEXA</h1>
+        <div className="absolute bottom-6 left-6 text-xs text-muted-foreground">
+          <p>Version : 16.4  Mode: LIVE</p>
+        </div>
+      </div>
+      <div className="w-1/2 flex flex-col justify-center items-center bg-background px-20">
+        <div className="absolute top-6 right-6 text-xs text-muted-foreground">Designed & Developed by <span className="font-bold">global360</span></div>
+        <div className="bg-card p-6 rounded-full mb-8 border border-border">
+          <User size={48} className="text-primary" />
+        </div>
+        <div className="w-full max-w-sm space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-1">User ID</label>
+            <input type="text" className="w-full p-3 bg-card border border-border rounded-lg focus:ring-2 focus:ring-primary outline-none" defaultValue="Nexa123345" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-1">Password</label>
+            <input type="password" className="w-full p-3 bg-card border border-border rounded-lg focus:ring-2 focus:ring-primary outline-none" defaultValue="XXXXXXXXXX" />
+          </div>
+          <button 
+            onClick={onLoginSuccess}
+            className="w-full bg-primary text-primary-foreground p-4 rounded-full font-bold uppercase tracking-widest hover:bg-primary/90 hover:scale-[1.02] transition-all"
+          >
+            LOGIN
+          </button>
+          <button
+            onClick={() => setShowFaceScanner(true)}
+            className="w-full border border-border bg-card p-4 rounded-full font-bold uppercase tracking-widest hover:bg-muted hover:border-primary/50 transition-all flex items-center justify-center gap-2"
+          >
+            <Camera size={18} /> FACE ID LOGIN
+          </button>
+        </div>
+        <div className="absolute bottom-6 right-6 text-xs text-muted-foreground">UDID: 4B8CF526-786D-4B0B-9383-626BA7062213</div>
+      </div>
+    </div>
+  )
+}
+
+
 // ── App ────────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [authenticated, setAuthenticated] = useState(() => localStorage.getItem("nexa-authenticated") === "true")
+
+  useEffect(() => {
+    localStorage.setItem("nexa-authenticated", authenticated.toString())
+  }, [authenticated])
+  const [sidebarOpen, setSidebarOpen] = useState(true)
   const [view, setView] = useState<"dashboard" | "chat">("chat")
   const [activeDashPanel, setActiveDashPanel] = useState<PanelType | null>(null)
   const [activeDashPanelData, setActiveDashPanelData] = useState<Record<string, unknown> | undefined>(undefined)
   const [sharedNotifs, setSharedNotifs] = useSharedNotifications()
+  
   const [notifDropdownOpen, setNotifDropdownOpen] = useState(false)
-  const unreadCount = sharedNotifs.filter(n => !n.read).length
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [typing, setTyping] = useState(false)
@@ -7098,7 +7360,6 @@ export default function App() {
   const [isScanningInChat, setIsScanningInChat] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const chatRef = useRef<HTMLDivElement>(null)
-
   const [jcSession, setJcSession] = useState<{
     step: "VIN_SCAN" | "CONFIRM_VEHICLE" | "CUSTOMER_DETAILS" | "ODOMETER" | "SERVICE_TYPE" | "DENT_VIDEO" | "INVENTORY" | "FITMENTS" | "TYRE_BATTERY" | "SERVICE_MENU" | "DEMANDS_LIST" | "LABOUR_PARTS" | "SUMMARY" | "COMPLETED";
     regNo: string;
@@ -7121,12 +7382,14 @@ export default function App() {
     paymentMode: string;
     signature?: string;
   } | null>(null)
-
-  // Theme Sync State & Hook
-  const [theme, setTheme] = useState<"light" | "dark">(() => {
-    const saved = localStorage.getItem("nexa-theme")
-    return (saved as "light" | "dark") || "dark"
-  })
+  const [isListening, setIsListening] = useState(false)
+  const [isVoiceHUDOpen, setIsVoiceHUDOpen] = useState(false)
+  const [speakResponses, setSpeakResponses] = useState(false)
+  const [interimText, setInterimText] = useState("")
+  const [speechError, setSpeechError] = useState<string | null>(null)
+  const recognitionRef = useRef<any>(null)
+  
+  const [theme, setTheme] = useState<"light" | "dark">("light")
 
   useEffect(() => {
     if (theme === "dark") {
@@ -7137,11 +7400,77 @@ export default function App() {
     localStorage.setItem("nexa-theme", theme)
   }, [theme])
 
+  useEffect(() => {
+    // Initialize Speech Recognition natively in-browser
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (SpeechRecognition) {
+      const rec = new SpeechRecognition()
+      rec.continuous = false
+      rec.interimResults = true
+      rec.lang = 'en-IN' // Tailored for Indian region pronunciation (Maruti Suzuki NEXA)
+
+      rec.onstart = () => {
+        setIsListening(true)
+        setIsVoiceHUDOpen(true)
+        setSpeechError(null)
+        setInterimText("Listening for NEXA command...")
+      }
+
+      rec.onresult = (event: any) => {
+        let interimTranscript = ""
+        let finalTranscript = ""
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript
+          } else {
+            interimTranscript += event.results[i][0].transcript
+          }
+        }
+
+        if (finalTranscript) {
+          setInput(finalTranscript)
+          handleSendVoice(finalTranscript)
+          setInterimText("")
+        } else {
+          setInterimText(interimTranscript || "Transcribing...")
+        }
+      }
+
+      rec.onerror = (event: any) => {
+        console.error("Speech Recognition Error:", event.error)
+        setIsListening(false)
+        if (event.error === 'not-allowed') {
+          setSpeechError(
+            "Microphone blocked: Browser iframe standards require top-level focus. " +
+            "To activate actual physical microphone capture, click the 'Open in new tab' button at top-right. " +
+            "Alternatively, use our instant hands-free simulation dashboard triggers below!"
+          )
+        } else if (event.error === 'no-speech') {
+          setSpeechError("No voice detected. Please click Simulated Triggers below or speak closer to your microphone.")
+        } else {
+          setSpeechError(`Voice status error: ${event.error}`)
+        }
+      }
+
+      rec.onend = () => {
+        setIsListening(false)
+      }
+
+      recognitionRef.current = rec
+    } else {
+      setSpeechError("Web Speech API is not supported on this browser context. Please use our HUD Voice Emulator below.")
+    }
+  }, [])
+  
+  const unreadCount = sharedNotifs.filter(n => !n.read).length
+
+
+
   function startChatJCOpening(regInput = "") {
-    const regNum = regInput.toUpperCase() || "DL6CR1517";
     const initialSession = {
       step: (regInput ? "CONFIRM_VEHICLE" : "VIN_SCAN") as any,
-      regNo: regNum,
+      regNo: regInput,
       customerName: "Ramesh Sharma",
       customerMobile: "9812345678",
       customerEmail: "ramesh.sharma@nexa.com",
@@ -7169,7 +7498,7 @@ export default function App() {
     setTimeout(() => {
       setTyping(false);
       const text = regInput 
-        ? `Initiating guided Job Card setup workflow for vehicle **${regNum}**. Advancing to Step 1: Customer & Vehicle Details...`
+        ? `Initiating guided Job Card setup workflow for vehicle **${regInput}**. Advancing to Step 1: Customer & Vehicle Details...`
         : `Let's open a new Job Card. Please scan or type the vehicle's Registration Number or VIN.`;
       
       setMessages(prev => [...prev, {
@@ -7279,13 +7608,6 @@ export default function App() {
   }
 
   // Speech Assistant States
-  const [isListening, setIsListening] = useState(false)
-  const [isVoiceHUDOpen, setIsVoiceHUDOpen] = useState(false)
-  const [speakResponses, setSpeakResponses] = useState(false)
-  const [interimText, setInterimText] = useState("")
-  const [speechError, setSpeechError] = useState<string | null>(null)
-  const recognitionRef = useRef<any>(null)
-
   useEffect(() => {
     // Initialize Speech Recognition natively in-browser
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
@@ -7846,7 +8168,9 @@ export default function App() {
                 {showWelcome ? (
                   <motion.div key="welcome" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.25 }} className="flex-1 flex flex-col min-h-0">
-                    <WelcomeScreen onAction={setActiveDashPanel} />
+                    <WelcomeScreen onNavToPanel={(id) => {
+                      handleQuickAction(id);
+                    }} />
                   </motion.div>
                 ) : (
                   <motion.div key="messages" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
@@ -7881,6 +8205,7 @@ export default function App() {
                           </motion.div>
                         )}
                       </AnimatePresence>
+
                       <div className="h-2" />
                     </div>
                   </motion.div>
